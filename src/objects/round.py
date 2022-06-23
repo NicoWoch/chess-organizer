@@ -20,4 +20,4 @@ class Round:
         self.results[game_id] = result
 
     def end_round(self):
-        pass
+        self.algorithm.finish_round(self)
