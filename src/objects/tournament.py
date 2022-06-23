@@ -1,6 +1,6 @@
 from typing import List
-from .player import Player
-from .round import Round, Result
+from src.objects.player import Player
+from src.objects.round import Round, Result
 
 
 class Tournament:

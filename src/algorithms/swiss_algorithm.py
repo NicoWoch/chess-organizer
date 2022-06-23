@@ -1,4 +1,4 @@
-from algorithm import Algorithm
+from src.algorithms.algorithm import Algorithm
 
 
 class SwissAlgorithm(Algorithm):
