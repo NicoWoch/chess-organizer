@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
-from ..objects.player import Player
-from ..objects.round import Round, Result
+from src.objects.player import Player
+from src.objects.round import Round, Result
 
 
 class Algorithm(ABC):

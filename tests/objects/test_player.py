@@ -1,5 +1,5 @@
 import unittest
-from ...src.objects.player import *
+from src.objects.player import *
 
 
 class MyTestCase(unittest.TestCase):
