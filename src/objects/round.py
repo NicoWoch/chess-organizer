@@ -1,7 +1,23 @@
-from enum import Enum
+from enum import Enum, auto
+from typing import List, Tuple
+from src.objects.player import Player
 
-class result(Enum):
-    win = 2
-    draw = 1
-    lose = 0
 
+class Result(Enum):
+    WIN = auto()
+    DRAW = auto()
+    LOST = auto()
+    PLAYNG = auto()
+
+
+class Round:
+    def __init__(self, games, algorithm):
+        self.games: List[Tuple[Player, Player]] = games
+        self.results: List[Result] = [Result.PLAYNG] * len(self.games)
+        self.algorithm = algorithm
+
+    def set_result(self, game_id, result: Result):
+        self.results[game_id] = result
+
+    def end_round(self):
+        pass

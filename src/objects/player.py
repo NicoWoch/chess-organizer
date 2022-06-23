@@ -1,5 +1,9 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class Player:
-  def __init__(self, name, surname, rating):
-    self.name = name
-    self.surname = surname
-    self.rating = rating
+    name = ''
+    surname = ''
+    rating = 0
+    tournament_stats = {}
