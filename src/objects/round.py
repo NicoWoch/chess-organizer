@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from typing import List, Tuple
-from src.objects.player import Player
+from .player import Player
 
 
 class Result(Enum):
