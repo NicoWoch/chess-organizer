@@ -1,0 +1,83 @@
+digraph {
+rankdir=RL
+compound=true
+
+node [ style=filled, color=lightblue]
+
+
+subgraph cluster_player {
+	label="Player"
+	p [label="Player"]
+	pl [label="PlayerList"]
+}
+
+subgraph cluster_algs {
+label="Algorithms"
+	subgraph cluster_tops {
+		label="Tops"
+		tg [label="TopsGame"]
+		tr [label="TopsRound"]
+		tf [label="TopsFrame"]
+	}
+
+
+	subgraph cluster_swiss {
+		label="Swiss"
+		sg [label="SwissGame"]
+		sr [label="SwissRound"]
+		sf [label="SwissFrame"]
+	}
+
+	subgraph cluster_circle {
+		label="Circle"
+		cg [label="CircleGame"]
+		cr [label="CircleRound"]
+		cf [label="CircleFrame"]
+	}
+}
+
+subgraph cluster_gui {
+	label="GUI"
+	gf [label="GameFrame(ABC)"]
+	abf [label="ActionBarFrame"]
+	mw [label="MainWindow"]
+	sw [label="SettingsWindow"]
+	pw [label="PlayerWindow"]
+	psw [label="PlayerSelectionWindow"]
+	gcw [label="GameCreationWindow"]
+}
+
+m [label="main.py"]
+
+pl -> p
+
+{tg, sg, cg, tr, sr, cr} -> pl
+tf -> tg -> tr
+sf -> sg -> sr
+cf -> cg -> cr
+
+{tf, sf, cf} -> gf
+
+mw -> abf
+mw -> {gf, tf, sf, cf}
+mw -> {sw, pw, psw, gcw}
+
+pw -> p
+psw -> pl
+
+psw -> pw
+
+m -> mw
+
+
+node [ style=filled, color=lightgreen ]
+
+subgraph cluster_gui {
+sw_i [label="Settings"]
+sw_i1 [label="language"]
+sw_i2 [label="font_size ?"]
+
+sw -> sw_i -> {sw_i1, sw_i2}
+}
+
+}
