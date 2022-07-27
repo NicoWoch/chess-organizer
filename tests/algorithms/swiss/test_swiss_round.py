@@ -1,8 +1,8 @@
 import unittest
 
 
-class MyTestCase(unittest.TestCase):
-    pass
+class TestSwissRound(unittest.TestCase):
+    ...
 
 
 if __name__ == '__main__':

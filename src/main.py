@@ -1,7 +1,7 @@
 import tkinter as tk
-from gui.rounds_frame import RoundsFrame
-from gui.pairs_frame import PairsFrame
-from gui.functions_frame import FunctionsFrame
+from gui.old_rounds_frame import RoundsFrame
+from gui.old_pairs_frame import PairsFrame
+from gui.action_bar_frame import FunctionsFrame
 
 
 WINDOW_NAME = 'Chess Organizer V0.1'

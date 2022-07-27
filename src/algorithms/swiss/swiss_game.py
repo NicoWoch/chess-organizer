@@ -1,6 +1,6 @@
 from typing import List
-from src.objects.player import Player
-from src.objects.round import Round, Result
+from src.player.player import Player
+from src.algorithms.swiss.swiss_round import Round, Result
 
 
 class Tournament:
