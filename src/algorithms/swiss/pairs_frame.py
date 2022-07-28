@@ -3,8 +3,8 @@ from tkinter import ttk
 
 
 class PairsFrame(tk.Frame):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
         column_names = ('NB', 'WHITE', 'BLACK', 'POINTS')
         column_sizes = (20, 300, 300, 80)
 
@@ -23,7 +23,6 @@ class PairsFrame(tk.Frame):
         for _ in range(50):
             self.add_pair('Paweł', 'Patryk', '2 - 0')
             self.add_pair('Piotr', 'Nicolas', '1 - 1')
-            self.add_pair('Idol X', 'Idol Y', '2 - 0')
 
         self.config(padx=20, pady=20, bg='#efefef')
 

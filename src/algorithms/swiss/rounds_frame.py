@@ -2,8 +2,8 @@ import tkinter as tk
 
 
 class RoundsFrame(tk.Frame):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.labels = []
 
         self.columnconfigure(0, weight=1)
