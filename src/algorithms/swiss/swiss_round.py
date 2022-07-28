@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from typing import List, Tuple
-from src.player.player import Player
+from src.player import Player
 
 
 class Result(Enum):
@@ -10,7 +10,7 @@ class Result(Enum):
     PLAYING = auto()
 
 
-class Round:
+class SwissRound:
     def __init__(self, games, algorithm):
         self.games: List[Tuple[Player, Player]] = games
         self.results: List[Result] = [Result.PLAYING] * len(self.games)

@@ -1,12 +1,12 @@
 from typing import List
-from src.player.player import Player
-from src.algorithms.swiss.swiss_round import Round, Result
+from src.player import Player
+from src.algorithms.swiss.swiss_round import SwissRound, Result
 
 
-class Tournament:
+class SwissGame:
     def __init__(self, players, algorithm):
         self.players: List[Player] = players
-        self.rounds: List[Round] = []
+        self.rounds: List[SwissRound] = []
         self.algorithm = algorithm
 
         self.algorithm.init_players(self.players)
@@ -16,7 +16,7 @@ class Tournament:
 
     def start_round(self):
         pairs = self.algorithm.pair_players(self.rounds)
-        self.rounds.append(Round(pairs, self.algorithm))
+        self.rounds.append(SwissRound(pairs, self.algorithm))
 
     def finish_round(self):
         self.rounds[-1].end_round()
