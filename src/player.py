@@ -17,7 +17,7 @@ class Player:
         self.rating = rating
 
     def __eq__(self, other):
-        return self.name == other.name and self.surname == other.surname
+        return isinstance(other, Player) and self.name == other.name and self.surname == other.surname
 
     def __str__(self):
         return f'<{self.name} {self.surname}>'

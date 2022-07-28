@@ -1,7 +1,7 @@
 import unittest
 
 
-class TestSwissRound(unittest.TestCase):
+class TestTops(unittest.TestCase):
     ...
 
 

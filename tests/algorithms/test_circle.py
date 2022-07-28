@@ -1,7 +1,7 @@
 import unittest
 
 
-class TestSwissGame(unittest.TestCase):
+class TestCircle(unittest.TestCase):
     ...
 
 
