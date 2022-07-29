@@ -1,6 +1,7 @@
 import unittest
 
-from src.algorithms.swiss.swiss_tournament import SwissTournament
+from src.algorithms.swiss_tournament import SwissTournament
+from src.algorithms.tournament import Result
 from src.player import Player, Gender
 
 
@@ -10,6 +11,27 @@ def get_dummy():
         Player('Anna', 'Nowak', Gender.Women, 1100),
         Player('Maximum', 'Engine', Gender.Other, 3000),
         Player('Marcin', 'Nowak', Gender.Men, 800),
+        Player('Maximum2', 'Engine2', Gender.Other, 3200),
+        Player('Ryszard', 'Nowak', Gender.Men, 990),
+        Player('2Adam', 'Nowak', Gender.Men, 1200),
+        Player('2Anna', 'Nowak', Gender.Women, 1100),
+        Player('2Maximum', 'Engine', Gender.Other, 3000),
+        Player('2Marcin', 'Nowak', Gender.Men, 800),
+        Player('2Maximum2', 'Engine2', Gender.Other, 3200),
+        Player('2Ryszard', 'Nowak', Gender.Men, 990),
+        Player('3Adam', 'Nowak', Gender.Men, 1200),
+        Player('3Anna', 'Nowak', Gender.Women, 1100),
+        Player('3Maximum', 'Engine', Gender.Other, 3000),
+        Player('3Marcin', 'Nowak', Gender.Men, 800),
+        Player('3Maximum2', 'Engine2', Gender.Other, 3200),
+        Player('3Ryszard', 'Nowak', Gender.Men, 990),
+        Player('4Adam', 'Nowak', Gender.Men, 1200),
+        Player('4Anna', 'Nowak', Gender.Women, 1100),
+        Player('4Maximum', 'Engine', Gender.Other, 3000),
+        Player('4Marcin', 'Nowak', Gender.Men, 800),
+        Player('4Maximum2', 'Engine2', Gender.Other, 3200),
+        Player('4Ryszard', 'Nowak', Gender.Men, 990),
+
     ]
     return dummy_players
 
@@ -24,28 +46,131 @@ class TestSwiss(unittest.TestCase):
             else:
                 self.fail(f'Bad pair {game.white} with {game.black}')
 
+    def test_no_error(self):
+        players = get_dummy()[:24]
+        t = SwissTournament(players)
+
+        for i in range(12):
+            t.set_result(i, Result.White)
+
+        for _ in range(2):
+            t.next_round()
+            for i in range(12):
+                t.set_result(i, Result.White)
+
     def test_pairing_1(self):
         players = get_dummy()[:4]
         t = SwissTournament(players)
-        t.start_round()
-        t.set_win(players[0])
-        t.set_win(players[1])
-        t.finish_round()
-        t.start_round()
 
+        t.set_result(0, Result.White)
+        t.set_result(1, Result.White)
+        games = t.get_last_round()
+
+        t.next_round()
         self.assert_round(players, t.rounds[-1], [
-            (players[0], players[2]),
-            (players[1], players[3])
+            (games[0].white, games[1].white),
+            (games[0].black, games[1].black)
         ])
 
-    def test_no_error(self):
-        players = get_dummy()[:4]
+    def test_pausing_player(self):
+        players = get_dummy()[:23]
         t = SwissTournament(players)
-        for _ in range(2):
-            t.start_round()
-            t.set_win(t.rounds[-1][0].white)
-            t.set_win(t.rounds[-1][1].white)
-            t.finish_round()
+
+        for i in range(11):
+            t.set_result(i, Result.White)
+        pauses = [t.get_waiting_players()[0]]
+
+        for _ in range(3):
+            t.next_round()
+
+            for i in range(11):
+                t.set_result(i, Result.White)
+
+            pause = t.get_waiting_players()[0]
+            self.assertNotIn(pause, pauses)
+
+            pauses.append(pause)
+
+    def test_scoreboard_with_points(self):
+        players = get_dummy()[:4]
+
+        t = SwissTournament(players)
+        t.set_result(0, Result.White)
+        t.set_result(1, Result.Draw)
+        games = t.get_last_round()
+        t.end_tournament()
+
+        scoreboard = t.get_scoreboard()
+
+        self.assertEqual(scoreboard[0][0], games[0].white)
+        self.assertEqual(scoreboard[-1][0], games[0].black)
+
+        self.assertEqual(scoreboard[0][1], (2, 0, 0))
+        self.assertEqual(scoreboard[1][1], (1, 1, 0))
+        self.assertEqual(scoreboard[2][1], (1, 1, 0))
+        self.assertEqual(scoreboard[3][1], (0, 0, 2))
+
+    def set_player_win(self, t: SwissTournament, player: Player):
+        for i, game in enumerate(t.get_last_round()):
+            if player == game.white:
+                t.set_result(i, Result.White)
+            elif player == game.black:
+                t.set_result(i, Result.Black)
+        else:
+            ValueError('Player not found')
+
+    def set_player_lost(self, t: SwissTournament, player: Player):
+        for i, game in enumerate(t.get_last_round()):
+            if player == game.white:
+                t.set_result(i, Result.Black)
+            elif player == game.black:
+                t.set_result(i, Result.White)
+        else:
+            ValueError('Player not found')
+
+    def test_points_1(self):
+        players = get_dummy()[:4]
+
+        t = SwissTournament(players)
+        t.set_result(0, Result.White)
+        t.set_result(1, Result.Draw)
+
+        g1 = t.get_last_round()
+        a, b = g1[0].white, g1[0].black
+
+        t.next_round()
+        self.set_player_lost(t, a)
+        self.set_player_lost(t, b)
+
+        t.end_tournament()
+        scoreboard = t.get_scoreboard()
+
+        self.assertEqual(scoreboard[0][1], (3, 9, 0))
+        self.assertEqual(scoreboard[1][1], (3, 3, 0))
+        self.assertEqual(scoreboard[2][1], (2, 0, 3))
+        self.assertEqual(scoreboard[3][1], (0, 0, 5))
+
+    def test_points_2(self):
+        players = get_dummy()[:4]
+
+        t = SwissTournament(players)
+        t.set_result(0, Result.Black)
+        t.set_result(1, Result.Draw)
+
+        g1 = t.get_last_round()
+        a, b = g1[0].white, g1[0].black
+
+        t.next_round()
+        self.set_player_win(t, a)
+        self.set_player_lost(t, b)
+
+        t.end_tournament()
+        scoreboard = t.get_scoreboard()
+
+        self.assertEqual(scoreboard[0][1], (3, 7, 0))
+        self.assertEqual(scoreboard[1][1], (2, 6, 3))
+        self.assertEqual(scoreboard[2][1], (2, 3, 2))
+        self.assertEqual(scoreboard[3][1], (1, 3, 2))
 
 
 if __name__ == '__main__':

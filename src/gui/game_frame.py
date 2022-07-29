@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from src.algorithms.swiss.swiss_frame import SwissFrame
+from src.algorithms.old_swiss_frames.swiss_frame import SwissFrame
 
 ALGORITHM_FRAMES = [
     SwissFrame

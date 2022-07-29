@@ -1,7 +1,7 @@
 import tkinter as tk
 
-from src.algorithms.swiss.pairs_frame import PairsFrame
-from src.algorithms.swiss.rounds_frame import RoundsFrame
+from src.algorithms.old_swiss_frames.pairs_frame import PairsFrame
+from src.algorithms.old_swiss_frames.rounds_frame import RoundsFrame
 
 
 class SwissFrame(tk.Frame):
