@@ -50,17 +50,6 @@ class SwissTournament(Tournament):
         new_points = []
 
         for player, points, stats in zip(self.players, self.points, self.stats):
-            # if player == self.pausing_players[-1]:
-            #     won_points = 3
-            # else:
-            #     game = self._find_game(player)
-            #
-            #     has_won = (game.white == player and game.result == Result.White) or \
-            #               (game.black == player and game.result == Result.Black)
-            #     has_draw = game.result == Result.Draw
-            #
-            #     won_points = 2 if has_won else (1 if has_draw else 0)
-
             win_op_points = sum(self.points[i][0] for i in stats['win'])
             draw_op_points = sum(self.points[i][0] for i in stats['draw'])
             lost_op_points = sum(self.points[i][0] for i in stats['lost'])
