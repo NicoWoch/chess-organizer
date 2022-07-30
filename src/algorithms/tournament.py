@@ -24,11 +24,16 @@ Round = List[Game]
 
 
 class Tournament(ABC):
-    @abstractmethod
-    def __init__(self, players: List[Player]): ...
+    def __init__(self, name: str, players: List[Player]):
+        self.name = name
+        self.players = players
 
-    @abstractmethod
-    def get_players(self) -> List[Player]: ...
+    def get_players(self):
+        return self.players
+
+    def set_players(self, players):
+        assert len(self.get_rounds()) == 0, 'Cannot add player when tournament has already begin'
+        self.players = players
 
     @abstractmethod
     def get_waiting_players(self, round_id=-1) -> List[Player]: ...

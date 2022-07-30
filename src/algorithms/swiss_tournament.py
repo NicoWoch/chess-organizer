@@ -6,8 +6,8 @@ from src.player import Player
 
 
 class SwissTournament(Tournament):
-    def __init__(self, players):
-        self.players = players
+    def __init__(self, name, players):
+        super().__init__(name, players)
 
         self.rounds: List[List[Game]] = []
         self.pausing_players: List[Player] = []
@@ -61,9 +61,6 @@ class SwissTournament(Tournament):
             ))
 
         self.points = new_points
-
-    def get_players(self):
-        return self.players
 
     def get_waiting_players(self, round_id=-1):
         return [self.pausing_players[round_id]]

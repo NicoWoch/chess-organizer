@@ -7,12 +7,12 @@ from src.player import Player, Gender
 
 def get_dummy():
     dummy_players = [
-        Player('Adam', 'Nowak', Gender.Men, 1200),
-        Player('Anna', 'Nowak', Gender.Women, 1100),
-        Player('Maximum', 'Engine', Gender.Other, 3000),
-        Player('Marcin', 'Nowak', Gender.Men, 800),
-        Player('Maximum2', 'Engine2', Gender.Other, 3200),
-        Player('Ryszard', 'Nowak', Gender.Men, 990),
+        Player.create_player(name='Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
+        Player.create_player(name='Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
+        Player.create_player(name='Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
+        Player.create_player(name='Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
+        Player.create_player(name='Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
+        Player.create_player(name='Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
     ]
     return dummy_players
 
@@ -29,7 +29,7 @@ class TestRandom(unittest.TestCase):
 
     def test_no_error(self):
         players = get_dummy()[:6]
-        t = RandomTournament(players)
+        t = RandomTournament('t1', players)
         t.set_result(0, Result.White)
         t.set_result(1, Result.White)
         t.set_result(2, Result.White)
@@ -42,7 +42,7 @@ class TestRandom(unittest.TestCase):
 
     def test_scoreboard_and_points(self):
         players = get_dummy()[:6]
-        t = RandomTournament(players)
+        t = RandomTournament('t2', players)
         t.set_result(0, Result.White)
         t.set_result(1, Result.Draw)
         t.set_result(2, Result.Draw)

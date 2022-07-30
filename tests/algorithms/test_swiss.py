@@ -7,31 +7,30 @@ from src.player import Player, Gender
 
 def get_dummy():
     dummy_players = [
-        Player('Adam', 'Nowak', Gender.Men, 1200),
-        Player('Anna', 'Nowak', Gender.Women, 1100),
-        Player('Maximum', 'Engine', Gender.Other, 3000),
-        Player('Marcin', 'Nowak', Gender.Men, 800),
-        Player('Maximum2', 'Engine2', Gender.Other, 3200),
-        Player('Ryszard', 'Nowak', Gender.Men, 990),
-        Player('2Adam', 'Nowak', Gender.Men, 1200),
-        Player('2Anna', 'Nowak', Gender.Women, 1100),
-        Player('2Maximum', 'Engine', Gender.Other, 3000),
-        Player('2Marcin', 'Nowak', Gender.Men, 800),
-        Player('2Maximum2', 'Engine2', Gender.Other, 3200),
-        Player('2Ryszard', 'Nowak', Gender.Men, 990),
-        Player('3Adam', 'Nowak', Gender.Men, 1200),
-        Player('3Anna', 'Nowak', Gender.Women, 1100),
-        Player('3Maximum', 'Engine', Gender.Other, 3000),
-        Player('3Marcin', 'Nowak', Gender.Men, 800),
-        Player('3Maximum2', 'Engine2', Gender.Other, 3200),
-        Player('3Ryszard', 'Nowak', Gender.Men, 990),
-        Player('4Adam', 'Nowak', Gender.Men, 1200),
-        Player('4Anna', 'Nowak', Gender.Women, 1100),
-        Player('4Maximum', 'Engine', Gender.Other, 3000),
-        Player('4Marcin', 'Nowak', Gender.Men, 800),
-        Player('4Maximum2', 'Engine2', Gender.Other, 3200),
-        Player('4Ryszard', 'Nowak', Gender.Men, 990),
-
+        Player.create_player(name='Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
+        Player.create_player(name='Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
+        Player.create_player(name='Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
+        Player.create_player(name='Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
+        Player.create_player(name='Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
+        Player.create_player(name='Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
+        Player.create_player(name='2Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
+        Player.create_player(name='2Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
+        Player.create_player(name='2Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
+        Player.create_player(name='2Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
+        Player.create_player(name='2Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
+        Player.create_player(name='2Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
+        Player.create_player(name='3Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
+        Player.create_player(name='3Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
+        Player.create_player(name='3Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
+        Player.create_player(name='3Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
+        Player.create_player(name='3Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
+        Player.create_player(name='3Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
+        Player.create_player(name='4Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
+        Player.create_player(name='4Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
+        Player.create_player(name='4Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
+        Player.create_player(name='4Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
+        Player.create_player(name='4Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
+        Player.create_player(name='4Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
     ]
     return dummy_players
 
@@ -48,7 +47,7 @@ class TestSwiss(unittest.TestCase):
 
     def test_no_error(self):
         players = get_dummy()[:24]
-        t = SwissTournament(players)
+        t = SwissTournament('t1', players)
 
         for i in range(12):
             t.set_result(i, Result.White)
@@ -60,7 +59,7 @@ class TestSwiss(unittest.TestCase):
 
     def test_pairing_1(self):
         players = get_dummy()[:4]
-        t = SwissTournament(players)
+        t = SwissTournament('t2', players)
 
         t.set_result(0, Result.White)
         t.set_result(1, Result.White)
@@ -74,7 +73,7 @@ class TestSwiss(unittest.TestCase):
 
     def test_pausing_player(self):
         players = get_dummy()[:23]
-        t = SwissTournament(players)
+        t = SwissTournament('t3', players)
 
         for i in range(11):
             t.set_result(i, Result.White)
@@ -94,7 +93,7 @@ class TestSwiss(unittest.TestCase):
     def test_scoreboard_with_points(self):
         players = get_dummy()[:4]
 
-        t = SwissTournament(players)
+        t = SwissTournament('t4', players)
         t.set_result(0, Result.White)
         t.set_result(1, Result.Draw)
         games = t.get_last_round()
@@ -131,7 +130,7 @@ class TestSwiss(unittest.TestCase):
     def test_points_1(self):
         players = get_dummy()[:4]
 
-        t = SwissTournament(players)
+        t = SwissTournament('t5', players)
         t.set_result(0, Result.White)
         t.set_result(1, Result.Draw)
 
@@ -153,7 +152,7 @@ class TestSwiss(unittest.TestCase):
     def test_points_2(self):
         players = get_dummy()[:4]
 
-        t = SwissTournament(players)
+        t = SwissTournament('t6', players)
         t.set_result(0, Result.Black)
         t.set_result(1, Result.Draw)
 

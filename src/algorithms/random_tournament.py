@@ -6,8 +6,8 @@ from src.player import Player
 
 
 class RandomTournament(Tournament):
-    def __init__(self, players):
-        self.players = players
+    def __init__(self, name, players):
+        super().__init__(name, players)
 
         self.rounds: List[Round] = []
         self.waiting_players: List[Player] = []
@@ -15,9 +15,6 @@ class RandomTournament(Tournament):
         self.points: List[int] = [0 for _ in players]
 
         self.next_round()
-
-    def get_players(self):
-        return self.players
 
     def get_waiting_players(self, round_id=-1):
         return [self.waiting_players[round_id]]
