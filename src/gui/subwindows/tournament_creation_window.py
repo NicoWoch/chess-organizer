@@ -4,6 +4,7 @@ from typing import Callable
 
 from src.algorithms.random_tournament import RandomTournament
 from src.algorithms.swiss_tournament import SwissTournament
+from src.config import Config
 
 Alg = namedtuple('Alg', ('name', 'cls'))
 
@@ -17,7 +18,9 @@ class TournamentCreationWindow(tk.Toplevel):
     def __init__(self, parent, on_create: Callable):
         super().__init__(parent)
 
+        self.title('Stwóz turniej')
         self.geometry('+500+500')
+        self.iconbitmap(Config.WINDOW_ICON_PATH)
 
         self.on_create = on_create
         self.name = tk.StringVar()

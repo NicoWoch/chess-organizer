@@ -1,6 +1,7 @@
 import tkinter as tk
 from typing import Callable
 
+from src.config import Config
 from src.player import Player, Gender
 
 GROUPS = [
@@ -15,6 +16,7 @@ class PlayerEditorWindow(tk.Toplevel):
 
         self.title('Gracz')
         self.geometry('+500+500')
+        self.iconbitmap(Config.WINDOW_ICON_PATH)
 
         self.player = player
         self.on_save = on_save

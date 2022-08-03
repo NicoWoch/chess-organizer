@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 from collections.abc import Callable
 
 from src import db
+from src.config import Config
 from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
 import src.gui.gui_utils as utils
 
@@ -12,8 +13,9 @@ class TournamentBrowserWindow(tk.Toplevel):
     def __init__(self, parent, open_tournament: Callable):
         super().__init__(parent)
 
-        self.geometry('+500+300')
         self.title('Wszystkie Turnieje')
+        self.geometry('+500+300')
+        self.iconbitmap(Config.WINDOW_ICON_PATH)
 
         self.open_tournament = open_tournament
         self.__photos = []
@@ -42,7 +44,9 @@ class TournamentBrowserWindow(tk.Toplevel):
             self.treeview.delete(item)
 
         for i, tournament in enumerate(self.tournaments):
-            self.treeview.insert('', 'end', values=(i + 1, tournament.name, len(tournament.get_players())))
+            self.treeview.insert('', 'end', values=(i + 1, tournament.name, len(tournament.players)))
+
+        self.auto_save()
 
     def get_selection_gen(self):
         selected_players = self.treeview.selection()
@@ -56,13 +60,15 @@ class TournamentBrowserWindow(tk.Toplevel):
             utils.Action('plus.png', self.add_tournament_btn, tk.LEFT),
             utils.Action('minus.png', self.remove_tournament_btn, tk.LEFT),
             utils.Action('open.png', self.open_tournament_btn, tk.RIGHT),
-            utils.Action('save.png', self.save_btn, tk.RIGHT),
         ], (40, 40))
 
         action_bar.pack(fill='x')
 
     def add_tournament_btn(self):
         def on_create(tournament):
+            if tournament.name in [t.name for t in self.tournaments]:
+                raise Exception('That name is already occupied')
+
             self.tournaments.append(tournament)
             self.update_treeview()
 
@@ -74,9 +80,6 @@ class TournamentBrowserWindow(tk.Toplevel):
 
         self.update_treeview()
 
-    def save_btn(self):
-        db.save_tournaments(self.tournaments)
-
     def open_tournament_btn(self):
         selected_ids = list(self.get_selection_gen())
 
@@ -87,7 +90,11 @@ class TournamentBrowserWindow(tk.Toplevel):
             logging.warning('No tournament is selected')
             return
 
-        self.open_tournament(self.tournaments[selected_ids[0]])
+        self.open_tournament(selected_ids[0], self.tournaments[selected_ids[0]])
+        self.destroy()
+
+    def auto_save(self):
+        db.save_tournaments(self.tournaments)
 
 if __name__ == '__main__':
     root = tk.Tk()

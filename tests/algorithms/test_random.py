@@ -18,7 +18,7 @@ def get_dummy():
 
 
 class TestRandom(unittest.TestCase):
-    def assert_round(self, players, round_, pairs):
+    def assert_round(self, round_, pairs):
         for game in round_:
             for i, pair in enumerate(pairs):
                 if game.white in pair and game.black in pair:
@@ -30,6 +30,8 @@ class TestRandom(unittest.TestCase):
     def test_no_error(self):
         players = get_dummy()[:6]
         t = RandomTournament('t1', players)
+
+        t.next_round()
         t.set_result(0, Result.White)
         t.set_result(1, Result.White)
         t.set_result(2, Result.White)
@@ -43,10 +45,12 @@ class TestRandom(unittest.TestCase):
     def test_scoreboard_and_points(self):
         players = get_dummy()[:6]
         t = RandomTournament('t2', players)
+        t.next_round()
         t.set_result(0, Result.White)
         t.set_result(1, Result.Draw)
         t.set_result(2, Result.Draw)
-        games = t.get_last_round()
+
+        games = t.active_round
         t.end_tournament()
         scoreboard = t.get_scoreboard()
 

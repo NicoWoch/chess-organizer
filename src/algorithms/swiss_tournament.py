@@ -1,58 +1,68 @@
-from typing import List
+from typing import List, Tuple
 
 import src.pypair as pp
-from src.algorithms.tournament import Tournament, Result, Game
+from src.algorithms.tournament import Tournament, Result, Game, Round
 from src.player import Player
 
 
 class SwissTournament(Tournament):
     def __init__(self, name, players):
         super().__init__(name, players)
+        self._engine = pp.Tournament()
 
-        self.rounds: List[List[Game]] = []
-        self.pausing_players: List[Player] = []
+    def _get_default_points(self) -> tuple:
+        return 0, 0, 0
 
-        self.swiss_engine = pp.Tournament()
+    def _get_win_draw_lost_points(self) -> tuple[int, int, int]:
+        return 2, 1, 0
 
-        self.points = [(0, 0, 0) for _ in players]
-        self.stats = [{'win': [], 'draw': [], 'lost': []} for _ in players]
+    def _pair_round(self) -> Tuple[Round, List[Player]]:
+        if not self.is_started():
+            self.__add_players_to_engine()
+        else:
+            self.__report_engine_results()
 
-        self._add_players_to_engine()
-        self._start_round()
+        return self.__make_pairs()
 
-    def _add_players_to_engine(self):
-        for i, player in enumerate(self.players):
-            self.swiss_engine.addPlayer(i, player.name)
+    def __add_players_to_engine(self):
+        for i, player in enumerate(self._players):
+            self._engine.addPlayer(i, player.name)
 
-    def _start_round(self):
-        pairs = self.swiss_engine.pairRound()
+    def __report_engine_results(self):
+        for i, game in enumerate(self.active_round):
+            if game.result == Result.White:
+                self._engine.reportMatch(i + 1, (2, 0, 0))
+            elif game.result == Result.Black:
+                self._engine.reportMatch(i + 1, (0, 2, 0))
+            elif game.result == Result.Draw:
+                self._engine.reportMatch(i + 1, (1, 1, 0))
+            else:
+                raise Exception('Cannot report not ended game')
 
-        self.rounds.append([])
-        pause = self.players.copy()
+    def __make_pairs(self):
+        pairs = self._engine.pairRound()
 
-        for table_id, (white_id, black_id) in pairs.items():
-            self.rounds[-1].append(Game(self.players[white_id], self.players[black_id], Result.Playing))
-            pause.remove(self.players[white_id])
-            pause.remove(self.players[black_id])
+        round_ = []
+        pause = self._players.copy()
 
-        assert len(pause) <= 1
+        for _, (white_id, black_id) in pairs.items():
+            round_.append(Game(self._players[white_id], self._players[black_id], Result.Playing))
 
-        self.pausing_players.append(pause[0] if pause else None)
+            pause.remove(self._players[white_id])
+            pause.remove(self._players[black_id])
 
-    def _find_game(self, player: Player):
-        for game in self.rounds[-1]:
-            if game.white == player or game.black == player:
-                return game
+        assert len(pause) <= 1, 'Cannot make pairs (too many pause)'
+        assert len(round_) > 0, 'Cannot make pairs (zero games)'
 
-        raise ValueError('Game not found')
+        return round_, pause
 
-    def _update_small_points(self):
+    def _update_points(self):
         new_points = []
 
-        for player, points, stats in zip(self.players, self.points, self.stats):
-            win_op_points = sum(self.points[i][0] for i in stats['win'])
-            draw_op_points = sum(self.points[i][0] for i in stats['draw'])
-            lost_op_points = sum(self.points[i][0] for i in stats['lost'])
+        for points, stats in zip(self._points, self._stats):
+            win_op_points = sum(self._points[i][0] for i in stats[Result.White])
+            draw_op_points = sum(self._points[i][0] for i in stats[Result.Draw])
+            lost_op_points = sum(self._points[i][0] for i in stats[Result.Black])
 
             new_points.append((
                 points[0],
@@ -60,53 +70,4 @@ class SwissTournament(Tournament):
                 lost_op_points
             ))
 
-        self.points = new_points
-
-    def get_waiting_players(self, round_id=-1):
-        return [self.pausing_players[round_id]]
-
-    def get_rounds(self):
-        return self.rounds
-
-    def get_scoreboard(self):
-        return sorted(zip(self.players, self.points), key=lambda x: x[1], reverse=True)
-
-    def set_result(self, table_id, result):
-        game = self.get_last_round()[table_id]
-        game.result = result
-
-        white_id = self.players.index(game.white)
-        black_id = self.players.index(game.black)
-
-        if result == Result.White:
-            ws, bs = 'win', 'lost'
-            p = [2, 0]
-        elif result == Result.Black:
-            ws, bs = 'lost', 'win'
-            p = [0, 2]
-        elif result == Result.Draw:
-            ws, bs = 'draw', 'draw'
-            p = [1, 1]
-        else:
-            raise ValueError('Bad result')
-
-        self.stats[white_id][ws].append(black_id)
-        self.stats[black_id][bs].append(white_id)
-
-        self.points[white_id] = (self.points[white_id][0] + p[0], self.points[white_id][1], self.points[white_id][2])
-        self.points[black_id] = (self.points[black_id][0] + p[1], self.points[black_id][1], self.points[black_id][2])
-
-        self.swiss_engine.reportMatch(table_id + 1, p + [0])
-
-    def next_round(self):
-        if not self.has_round_ended():
-            raise Exception('Round not ended yet')
-
-        self._update_small_points()
-        self._start_round()
-
-    def end_tournament(self):
-        if not self.has_round_ended():
-            raise Exception('Round not ended yet')
-
-        self._update_small_points()
+        self._points = new_points

@@ -1,9 +1,15 @@
 import logging
 
+from src.config import Config
 from src.gui.main_window import MainWindow
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.DEBUG,
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename=Config.LOG_FILE)
+
 logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL + 1)
 
 

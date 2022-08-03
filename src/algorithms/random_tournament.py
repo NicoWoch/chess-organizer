@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import random
 
 from src.algorithms.tournament import Tournament, Round, Result, Game
@@ -6,48 +6,22 @@ from src.player import Player
 
 
 class RandomTournament(Tournament):
-    def __init__(self, name, players):
-        super().__init__(name, players)
+    def _get_default_points(self) -> tuple:
+        return 0,
 
-        self.rounds: List[Round] = []
-        self.waiting_players: List[Player] = []
+    def _get_win_draw_lost_points(self) -> tuple[int, int, int]:
+        return 2, 1, 0
 
-        self.points: List[int] = [0 for _ in players]
+    def _pair_round(self) -> Tuple[Round, List[Player]]:
+        players = self._players.copy()
 
-        self.next_round()
-
-    def get_waiting_players(self, round_id=-1):
-        return [self.waiting_players[round_id]]
-
-    def get_rounds(self):
-        return self.rounds
-
-    def get_scoreboard(self):
-        return sorted(zip(self.players, self.points), key=lambda x: x[1], reverse=True)
-
-    def set_result(self, table_id, result):
-        game = self.get_last_round()[table_id]
-        game.result = result
-
-        white_id = self.players.index(game.white)
-        black_id = self.players.index(game.black)
-
-        if game.result == Result.White:
-            self.points[white_id] += 2
-        elif game.result == Result.Black:
-            self.points[black_id] += 2
-        elif game.result == Result.Draw:
-            self.points[white_id] += 1
-            self.points[black_id] += 1
+        if len(self._players) % 2 == 1:  # Choose pause
+            pause = [random.choice(players)]
+            players.remove(pause)
         else:
-            raise ValueError('Bad result')
-
-    def next_round(self):
-        if len(self.rounds) != 0 and not self.has_round_ended():
-            raise Exception('Round not ended yet')
+            pause = []
 
         new_round = []
-        players = self.players.copy()
         while players:
             white = random.choice(players)
             players.remove(white)
@@ -57,9 +31,7 @@ class RandomTournament(Tournament):
 
             new_round.append(Game(white, black, Result.Playing))
 
-        print(new_round)
-        self.rounds.append(new_round)
+        return new_round, pause
 
-    def end_tournament(self):
-        if not self.has_round_ended():
-            raise Exception('Round not ended yet')
+    def _update_points(self):
+        return

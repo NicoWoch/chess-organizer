@@ -1,8 +1,10 @@
+import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 from collections.abc import Callable
 
 from src import db
+from src.config import Config
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
 import src.gui.gui_utils as utils
@@ -12,8 +14,9 @@ class PlayerBrowserWindow(tk.Toplevel):
     def __init__(self, parent, add_to_tournament: Callable):
         super().__init__(parent)
 
-        self.geometry('+500+300')
         self.title('Wszyscy Gracze')
+        self.geometry('+500+300')
+        self.iconbitmap(Config.WINDOW_ICON_PATH)
 
         self.__photos = []
         self.add_to_tournament = add_to_tournament
@@ -44,6 +47,8 @@ class PlayerBrowserWindow(tk.Toplevel):
         for i, player in enumerate(self.players):
             self.treeview.insert('', 'end', values=(i + 1, player.name, player.surname, player.rating))
 
+        self.auto_save()
+
     def get_selection_gen(self):
         selected_players = self.treeview.selection()
 
@@ -55,15 +60,15 @@ class PlayerBrowserWindow(tk.Toplevel):
         action_bar = utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.add_player_btn, tk.LEFT),
             utils.Action('minus.png', self.remove_players_btn, tk.LEFT),
+            utils.Action('edit.png', self.edit_player, tk.LEFT),
             utils.Action('open.png', self.add_to_tournament_btn, tk.RIGHT),
-            utils.Action('save.png', self.save_btn, tk.RIGHT),
         ], (40, 40))
 
         action_bar.pack(fill='x')
 
     def add_player_btn(self):
         new_player = Player.create_player(
-            name='', surname='', gender=Gender.Men, rating=1000, title='', group_name=''
+            name='', surname='', gender=Gender.Men, rating=1000
         )
 
         def on_save():
@@ -78,12 +83,22 @@ class PlayerBrowserWindow(tk.Toplevel):
 
         self.update_treeview()
 
-    def save_btn(self):
-        db.save_players(self.players)
+    def edit_player(self):
+        selection = list(self.get_selection_gen())
+
+        if len(selection) != 1:
+            logging.warning('Cannot edit more/less than one player')
+            return
+
+        player = self.players[selection[0]]
+        PlayerEditorWindow(self, player, self.update_treeview)
 
     def add_to_tournament_btn(self):
         selected_players = [self.players[idx] for idx in self.get_selection_gen()]
         self.add_to_tournament(selected_players)
+
+    def auto_save(self):
+        db.save_players(self.players)
 
 if __name__ == '__main__':
     root = tk.Tk()

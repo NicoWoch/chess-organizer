@@ -4,38 +4,47 @@ import pickle
 from typing import List
 
 from src.algorithms.tournament import Tournament
+from src.config import Config
 from src.player import Player
 
-BASE_DIR = 'C:/Users/48502/PycharmProjects/chess-organizer/src'
-PLAYERS_DB = os.path.join(BASE_DIR, '../db/players.pickle')
-TOURNAMENTS_DB = os.path.join(BASE_DIR, '../db/tournaments.pickle')
+
 
 
 def get_players() -> List[Player]:
-    logging.info(f'Loading players from file "{PLAYERS_DB}"')
+    if not os.path.exists(Config.DB_PLAYERS):
+        logging.info(f'Creating players database in file "{Config.DB_PLAYERS}"')
+        save_players([], no_debug=True)
 
-    players = pickle.load(open(PLAYERS_DB, 'rb'))
+    logging.info(f'Loading players from file "{Config.DB_PLAYERS}"')
+
+    players = pickle.load(open(Config.DB_PLAYERS, 'rb'))
     assert isinstance(players, list), 'Importing Error'
     assert len(players) == 0 or isinstance(players[0], Player), 'Importing Error'
     return players
 
 
-def save_players(players: List[Player]):
-    logging.info(f'Saving players to file "{PLAYERS_DB}"')
+def save_players(players: List[Player], no_debug=False):
+    if not no_debug:
+        logging.info(f'Saving players to file "{Config.DB_PLAYERS}"')
 
-    pickle.dump(players, open(PLAYERS_DB, 'wb'))
+    pickle.dump(players, open(Config.DB_PLAYERS, 'wb'))
 
 
 def get_tournaments() -> List[Tournament]:
-    logging.info(f'Loading tournaments from file "{TOURNAMENTS_DB}"')
+    if not os.path.exists(Config.DB_TOURNAMENTS):
+        logging.info(f'Creating tournaments database in file "{Config.DB_PLAYERS}"')
+        save_tournaments([], no_debug=True)
 
-    tournaments = pickle.load(open(TOURNAMENTS_DB, 'rb'))
+    logging.info(f'Loading tournaments from file "{Config.DB_TOURNAMENTS}"')
+
+    tournaments = pickle.load(open(Config.DB_TOURNAMENTS, 'rb'))
     assert isinstance(tournaments, list), 'Importing Error'
     assert len(tournaments) == 0 or isinstance(tournaments[0], Tournament), 'Importing Error'
     return tournaments
 
 
-def save_tournaments(tournaments: List[Tournament]):
-    logging.info(f'Saving tournaments to file "{TOURNAMENTS_DB}"')
+def save_tournaments(tournaments: List[Tournament], no_debug=False):
+    if not no_debug:
+        logging.info(f'Saving tournaments to file "{Config.DB_TOURNAMENTS}"')
 
-    pickle.dump(tournaments, open(TOURNAMENTS_DB, 'wb'))
+    pickle.dump(tournaments, open(Config.DB_TOURNAMENTS, 'wb'))

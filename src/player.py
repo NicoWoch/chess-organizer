@@ -29,7 +29,7 @@ class Player:
         self.surname = self.surname.title()
 
     @classmethod
-    def create_player(cls, *, name: str, surname: str, gender: Gender, title: str, group_name: str, rating: int):
+    def create_player(cls, *, name: str, surname: str, gender: Gender, rating: int, title: str = '', group_name: str = ''):
         now = datetime.now().astimezone()
         return Player(
             name, surname, gender, title,
@@ -58,4 +58,4 @@ class Player:
         return isinstance(other, Player) and self.name == other.name and self.surname == other.surname
 
     def __str__(self):
-        return f'<{self.name} {self.surname}>'
+        return f'{self.name} {self.surname}'

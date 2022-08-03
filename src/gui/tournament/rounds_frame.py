@@ -1,27 +1,54 @@
 import tkinter as tk
+from typing import List
+
+import src.gui.gui_utils as utils
 
 
 class RoundsFrame(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, on_change_round):
         super().__init__(parent)
-        self.labels = []
-
-        self.columnconfigure(0, weight=1)
-
-        self.add_round('Start')
-        self.add_round('Round 1')
-        self.add_round('Round 2')
-        self.add_round('Round 3')
 
         self.config(bg='#bfbfbf', borderwidth=3, relief='groove')
 
-    def add_round(self, text):
-        label_id = len(self.labels)
+        self.buttons: List[tk.Button] = []
+        self.on_change_round = on_change_round
+        self.active_round_id = 0
 
-        label = tk.Button(self, text=text, height=2, borderwidth=1, bg='white', command=lambda: self.change_round(label_id))
-        label.grid(row=label_id, column=0, sticky='nesw')
+    def set_active_round(self, round_id):
+        assert 0 <= round_id < len(self.buttons), 'Invalid round'
+        self.active_round_id = round_id
+        self.update_btn_colors()
 
-        self.labels.append(label)
+    def update_round_count(self, count):
+        while self.buttons:
+            self.buttons.pop().destroy()
 
-    def change_round(self, round_id):
-        print(f'Changing round to {round_id}')
+        self._add_round_btn(0, 'Zapisy', 'green_flag.png')
+
+        for _ in range(count):
+            self._add_round()
+
+        self.set_active_round(count)
+
+    def _add_round(self):
+        i = len(self.buttons)
+        self._add_round_btn(i, f'Runda {i}', 'white_queen.png')
+
+    def _add_round_btn(self, i, text, image_filename):
+        text = ' ' * 2 + text
+
+        image = utils.create_image(image_filename, (28, 28))
+        btn = tk.Button(self, text=text, font=('verdana', 13), image=image, compound=tk.LEFT, command=lambda: self.change_round(i))
+        btn.pack(fill='x')
+
+        self.buttons.append(btn)
+
+    def change_round(self, i):
+        self.set_active_round(i)
+        self.on_change_round()
+
+    def update_btn_colors(self):
+        for btn in self.buttons:
+            btn.config(bg='white')
+
+        self.buttons[self.active_round_id].config(bg='lightblue')
