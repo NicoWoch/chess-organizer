@@ -1,0 +1,154 @@
+import logging
+import tkinter as tk
+from typing import Optional
+
+from src import db
+from src.algorithms.tournament import Result, Tournament
+from src.config import Config
+from src.gui.action_bar_frame import ActionBarListener
+from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
+from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
+from src.gui.tournament.pairs_frame import PairsFrame
+from src.gui.tournament.rounds_frame import RoundsFrame
+from src.gui.tournament.scoreboard_frame import ScoreboardFrame
+
+
+def update_title(main_window: tk.Tk, tournament):
+    if tournament is None:
+        main_window.title(Config.WINDOW_NAME)
+    else:
+        sep = ' ' * 3 + '-' + ' ' * 3
+        main_window.title(Config.WINDOW_NAME + sep + tournament.name)
+
+
+class TournamentFrame(tk.Frame, ActionBarListener):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.tournament: Optional[Tournament] = None
+
+        self.rounds_frame = RoundsFrame(self, lambda: self._update_frame(auto_save=False))
+        self.pairs_frame = PairsFrame(self)
+        self.scoreboard_frame = ScoreboardFrame(self)
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=20)
+        self.columnconfigure(2, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self._update_frame()
+
+    def _grid_frame(self):
+        self.rounds_frame.grid(row=0, column=0, sticky='nesw')
+        self.pairs_frame.grid(row=0, column=1, sticky='nesw')
+        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+
+    def _update_frame(self, auto_save=True):
+        if self.tournament is None:
+            self.rounds_frame.grid_forget()
+            self.pairs_frame.grid_forget()
+            self.scoreboard_frame.grid_forget()
+            return
+
+        self._grid_frame()
+
+        self.rounds_frame.update_btn_colors()
+
+        if self.active_round is None:
+            self.pairs_frame.update_list(sorted(self.tournament.players, key=lambda p: p.rating, reverse=True))
+        else:
+            self.pairs_frame.update_pairing(self.active_round)
+
+        self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
+
+        if auto_save:
+            self.auto_save_tournament()
+
+    @property
+    def active_round(self):
+        if self.rounds_frame.active_round_id == 0:
+            return None
+        else:
+            return self.tournament.get_round(self.rounds_frame.active_round_id - 1)
+
+    def set_result(self, result):
+        if self.tournament is None:
+            logging.warning('There is no tournament opened')
+            return
+
+        if self.active_round != self.tournament.active_round:
+            logging.warning('Tried to change game status in round that ended')
+            return
+
+        selection = self.pairs_frame.table.get_selected_ids()
+
+        for i in selection:
+            self.tournament.set_result(i, result)
+
+        self.pairs_frame.table.remove_selection()
+
+        self._update_frame()
+
+    def next_round(self):
+        if self.tournament is None:
+            logging.warning('There is no tournament opened')
+            return
+
+        self.tournament.next_round()
+
+        self.rounds_frame.update_round_count(self.tournament.round_count)
+        self._update_frame()
+
+    def end_tournament(self):
+        if self.tournament is None:
+            logging.warning('There is no tournament opened')
+            return
+
+        self.tournament.end_tournament()
+        self._update_frame()
+
+    def browse_players(self):
+        players_browser = PlayerBrowserWindow(self, self.add_players)
+        players_browser.focus()
+
+    def add_players(self, players):
+        if self.tournament is None:
+            logging.warning('There is no tournament opened')
+            return
+
+        if self.tournament.is_started():
+            raise Exception('Cannot add player to started tournament')
+
+        for player in players:
+            self.tournament.add_player(player)
+
+        self._update_frame()
+
+    def browse_tournaments(self):
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament)
+        tournament_browser.focus()
+
+    def open_tournament(self, tournament_id, tournament):
+        logging.info(f'Changing opened tournament to ({tournament_id=}, {tournament.name=})')
+        self.tournament = tournament
+
+        update_title(self.winfo_toplevel(), self.tournament)
+
+        self.rounds_frame.update_round_count(self.tournament.round_count)
+        self._update_frame()
+
+    def auto_save_tournament(self):
+        if self.tournament is None:
+            return
+
+        logging.info(f'Auto saving opened tournament')
+
+        tournaments = db.get_tournaments()
+
+        for i, t in enumerate(tournaments):
+            if t.name == self.tournament.name:
+                tournaments[i] = self.tournament
+                break
+        else:
+            raise Exception('Tournament not found when autosaving')
+
+        db.save_tournaments(tournaments)
