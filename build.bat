@@ -1,0 +1,26 @@
+set APP_VERSION=V0.2-1
+
+
+rem Compiling
+
+pyinstaller --noconfirm ^
+             --onedir ^
+             --windowed ^
+             --icon ./images/icon.ico ^
+             ./chess-organizer.py
+
+robocopy images dist\chess-organizer\images
+mkdir dist\chess-organizer\logs
+mkdir dist\chess-organizer\db
+
+
+rem Cleaning
+
+rmdir /S /Q build
+rmdir /S /Q dist\chess-organizer-%APP_VERSION%
+rename dist\chess-organizer chess-organizer-%APP_VERSION%
+
+
+echo COMPILED SUCCESSFUL
+exit
+
