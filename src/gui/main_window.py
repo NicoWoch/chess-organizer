@@ -3,6 +3,7 @@ import random
 import tkinter as tk
 import traceback
 
+from src import dummy_generator, db
 from src.gui.action_bar_frame import ActionBarFrame
 from src.gui.tournament.tournament_frame import TournamentFrame
 from src.config import Config
@@ -20,6 +21,8 @@ def show_error(_, exc: type, val, tb):
     print(err_str)
 
 tk.Tk.report_callback_exception = show_error
+
+DEV_KEYS = list('devon\r')
 
 
 class MainWindow(tk.Tk):
@@ -44,21 +47,60 @@ class MainWindow(tk.Tk):
 
         self.center_window()
 
+        self._keys = []
+        self.bind('<Key>', self._on_key_pressed)
+
     def center_window(self):
         top = (self.winfo_screenheight() - Config.WINDOW_SIZE[1]) / 2
         left = (self.winfo_screenwidth() - Config.WINDOW_SIZE[0]) / 2
         self.geometry('%dx%d+%d+%d' % (Config.WINDOW_SIZE[0], Config.WINDOW_SIZE[1], left, top))
 
-    def make_menu(self):
+    def make_menu(self, dev=False):
         menubar = tk.Menu(self)
 
-        filemenu = tk.Menu(menubar, tearoff=0)
+        if dev:
+            devmenu = tk.Menu(menubar, tearoff=0)
 
-        filemenu.add_command(label='Function 1', command=self.dev_function_1)
+            for func_name in dir(self):
+                func = getattr(self, func_name)
 
-        menubar.add_cascade(label='Developer', menu=filemenu)
+                if func_name.startswith('_dev_') and callable(func):
+                    display_name = func_name[5:].replace('_', ' ').title()
+
+                    devmenu.add_command(label=display_name, command=func)
+
+            menubar.add_cascade(label='Developer', menu=devmenu)
 
         self.config(menu=menubar)
 
-    def dev_function_1(self):
-        self.tournament_frame.rounds_frame.update_btn_colors()
+    def _show_dev_menu(self):
+        self.make_menu(dev=True)
+
+    def _on_key_pressed(self, event):
+        self._keys.append(event.char)
+
+        while len(self._keys) > len(DEV_KEYS):
+            self._keys.pop(0)
+
+        if self._keys == DEV_KEYS:
+            logging.info('DEVELOPER MODE - ON')
+            self.make_menu(dev=True)
+
+    def _dev_hide_menu(self):
+        logging.info('DEVELOPER MODE - OFF')
+        self.make_menu()
+
+    def _dev_create_5_random_players(self):
+        dummy_players = dummy_generator.get_random_players(5)
+        db.save_players(db.get_players() + dummy_players)
+
+    def _dev_clear_players(self):
+        db.save_players([])
+
+    def _dev_create_dummy_tournament(self):
+        tournaments = db.get_tournaments()
+        tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
+        db.save_tournaments(tournaments)
+
+    def _dev_clear_tournaments(self):
+        db.save_tournaments([])
