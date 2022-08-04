@@ -57,6 +57,8 @@ class Table(ttk.Treeview):
 
         self['columns'] = ('x',)
 
+        self.bind('<Button-3>', self.remove_selection)
+
     def style_headings(self, **kwargs):
         self.table_style.configure(f'{self.table_style_name}.Heading', **kwargs)
 

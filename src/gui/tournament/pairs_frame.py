@@ -30,16 +30,14 @@ class PairsFrame(tk.Frame):
         self.table.style_even(background='#cfcfcf')
         self.table.style_odd(background='white')
 
-        self.table.bind('<Button-3>', self.table.remove_selection)
-
     def update_pairing(self, pairing: List[Game]):
         self.table.set_columns(*PAIRING_COLUMNS)
 
         for i, game in enumerate(pairing):
-            self.table.add_row(i, game.white, game.black, game.result.value)
+            self.table.add_row(i + 1, game.white, game.black, game.result.value)
 
     def update_list(self, players: List[Player]):
         self.table.set_columns(*LIST_COLUMNS)
 
         for i, player in enumerate(players):
-            self.table.add_row(i, str(player), player.rating)
+            self.table.add_row(i + 1, str(player), player.rating)
