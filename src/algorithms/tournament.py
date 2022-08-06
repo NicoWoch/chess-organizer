@@ -58,8 +58,10 @@ class Tournament(ABC):
             raise Exception('Cannot add player when tournament is running')
 
         if player in self._players:
-            logging.warning('Player is already added')
+            logging.warning(f'Player "{player}" is already added')
             return
+
+        logging.debug(f'Tournament "{self.name}": Adding player "{player}"')
 
         self._players.append(player)
         self._points.append(self._get_default_points())
@@ -99,6 +101,8 @@ class Tournament(ABC):
             raise Exception('Tournament not started')
 
         game = self.active_round[table_id]
+
+        logging.debug(f'Tournament "{self.name}": Setting result {new_result} for table_id {table_id} with result {game.result}')
 
         # Clear old result
         self.__change_player_by_result(game.white, game.black, game.result, -1)
@@ -148,6 +152,8 @@ class Tournament(ABC):
         if self._is_ended:
             raise Exception('Tournament arleady ended')
 
+        logging.debug(f'Tournament "{self.name}": Pairing next round')
+
         self._end_round()
         self._start_round()
 
@@ -157,6 +163,8 @@ class Tournament(ABC):
 
         if self._is_ended:
             raise Exception('Tournament arleady ended')
+
+        logging.debug(f'Tournament "{self.name}": Ending tournament')
 
         self._end_round()
         self._update_ratings()
@@ -175,7 +183,7 @@ class Tournament(ABC):
         self._update_points()
 
     def _update_ratings(self):
-        logging.info('Updating ratings comming soon')
+        logging.error('Updating ratings comming soon')
         pass
 
     @abstractmethod

@@ -90,7 +90,7 @@ class TournamentBrowserWindow(tk.Toplevel):
             logging.warning('No tournament is selected')
             return
 
-        self.open_tournament(selected_ids[0], self.tournaments[selected_ids[0]])
+        self.open_tournament(self.tournaments[selected_ids[0]])
         self.destroy()
 
     def auto_save(self):

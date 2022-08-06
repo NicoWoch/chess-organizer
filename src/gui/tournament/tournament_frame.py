@@ -127,8 +127,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         tournament_browser = TournamentBrowserWindow(self, self.open_tournament)
         tournament_browser.focus()
 
-    def open_tournament(self, tournament_id, tournament):
-        logging.info(f'Changing opened tournament to ({tournament_id=}, {tournament.name=})')
+    def open_tournament(self, tournament):
+        logging.info(f'Changing opened tournament to ({tournament.name=})')
         self.tournament = tournament
 
         update_title(self.winfo_toplevel(), self.tournament)
