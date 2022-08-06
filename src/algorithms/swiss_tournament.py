@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import src.pypair as pp
 from src.algorithms.tournament import Tournament, Result, Game, Round
 from src.player import Player
@@ -16,7 +14,7 @@ class SwissTournament(Tournament):
     def _get_win_draw_lost_points(self) -> tuple[int, int, int]:
         return 2, 1, 0
 
-    def _pair_round(self) -> Tuple[Round, List[Player]]:
+    def _pair_round(self) -> tuple[Round, list[Player]]:
         if not self.is_started():
             self.__add_players_to_engine()
         else:

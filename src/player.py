@@ -1,8 +1,7 @@
-import pickle
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum, auto
-from typing import List, Tuple, Optional
+from enum import Enum
+from typing import Optional
 
 
 class Gender(Enum):
@@ -21,8 +20,8 @@ class Player:
     last_played: Optional[datetime]
     group_name: str
 
-    _ratings_history: List[Tuple[datetime, int]]
-    _tournament_ids: List[int]
+    _ratings_history: list[tuple[datetime, int]]
+    _tournament_ids: list[int]
 
     def __post_init__(self):
         self.name = self.name.title()

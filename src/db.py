@@ -1,14 +1,13 @@
 import logging
 import os.path
 import pickle
-from typing import List
 
 from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.player import Player
 
 
-def get_players(*, debug=True) -> List[Player]:
+def get_players(*, debug=True) -> list[Player]:
     if not os.path.exists(Config.DB_PLAYERS):
         logging.info(f'Creating players database in file "{Config.DB_PLAYERS}"')
         save_players([], debug=False)
@@ -22,7 +21,7 @@ def get_players(*, debug=True) -> List[Player]:
     return players
 
 
-def save_players(players: List[Player], *, debug=True):
+def save_players(players: list[Player], *, debug=True):
     if debug:
         logging.info(f'Saving players to file "{Config.DB_PLAYERS}"')
 
@@ -30,7 +29,7 @@ def save_players(players: List[Player], *, debug=True):
     pickle.dump(players, open(Config.DB_PLAYERS, 'wb'))
 
 
-def get_tournaments(*, debug=True) -> List[Tournament]:
+def get_tournaments(*, debug=True) -> list[Tournament]:
     if not os.path.exists(Config.DB_TOURNAMENTS):
         logging.info(f'Creating tournaments database in file "{Config.DB_PLAYERS}"')
         save_tournaments([], debug=False)
@@ -44,7 +43,7 @@ def get_tournaments(*, debug=True) -> List[Tournament]:
     return tournaments
 
 
-def save_tournaments(tournaments: List[Tournament], *, debug=True):
+def save_tournaments(tournaments: list[Tournament], *, debug=True):
     if debug:
         logging.info(f'Saving tournaments to file "{Config.DB_TOURNAMENTS}"')
 

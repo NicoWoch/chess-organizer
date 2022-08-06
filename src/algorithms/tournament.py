@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Tuple, List, Dict
 
 from src.player import Player
 
@@ -29,19 +28,19 @@ class Game:
     result: Result
 
 
-Round = List[Game]
+Round = list[Game]
 
 
 class Tournament(ABC):
-    def __init__(self, name: str, players: List[Player]):
+    def __init__(self, name: str, players: list[Player]):
         self.name = name
 
-        self._players: List[Player] = []
-        self._points: List[tuple] = []
-        self._stats: List[Dict[Result, List[int]]] = []
+        self._players: list[Player] = []
+        self._points: list[tuple] = []
+        self._stats: list[dict[Result, list[int]]] = []
 
-        self._rounds: List[Round] = []
-        self._pausing_players: List[List[Player]] = []
+        self._rounds: list[Round] = []
+        self._pausing_players: list[list[Player]] = []
 
         self._is_started = False
         self._is_ended = False
@@ -50,7 +49,7 @@ class Tournament(ABC):
             self.add_player(player)
 
     @property
-    def players(self) -> List[Player]:
+    def players(self) -> list[Player]:
         return self._players.copy()
 
     def add_player(self, player: Player):
@@ -84,16 +83,16 @@ class Tournament(ABC):
     def get_round(self, round_id) -> Round:
         return self._rounds[round_id]
 
-    def get_waiting_players(self, round_id=-1) -> List[Player]:
+    def get_waiting_players(self, round_id=-1) -> list[Player]:
         return self._pausing_players[round_id]
 
     def has_round_ended(self) -> bool:
         return all(game.result != Result.Playing for game in self.active_round)
 
-    def get_scoreboard(self) -> List[Tuple[Player, tuple]]:
+    def get_scoreboard(self) -> list[tuple[Player, tuple]]:
         return sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
 
-    def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> List[str]:
+    def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> list[str]:
         return [str(player) + main_sep + points_sep.join(points) for player, points in self.get_scoreboard()]
 
     def set_result(self, table_id: int, new_result: Result):
@@ -193,7 +192,7 @@ class Tournament(ABC):
     def _get_win_draw_lost_points(self) -> tuple[int, int, int]: ...
 
     @abstractmethod
-    def _pair_round(self) -> Tuple[Round, List[Player]]: ...
+    def _pair_round(self) -> tuple[Round, list[Player]]: ...
 
     @abstractmethod
     def _update_points(self): ...

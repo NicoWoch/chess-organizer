@@ -1,4 +1,3 @@
-from typing import List, Tuple
 import random
 
 from src.algorithms.tournament import Tournament, Round, Result, Game
@@ -12,12 +11,12 @@ class RandomTournament(Tournament):
     def _get_win_draw_lost_points(self) -> tuple[int, int, int]:
         return 2, 1, 0
 
-    def _pair_round(self) -> Tuple[Round, List[Player]]:
+    def _pair_round(self) -> tuple[Round, list[Player]]:
         players = self._players.copy()
 
         if len(self._players) % 2 == 1:  # Choose pause
             pause = [random.choice(players)]
-            players.remove(pause)
+            players.remove(pause[0])
         else:
             pause = []
 

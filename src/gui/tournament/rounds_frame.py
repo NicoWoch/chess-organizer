@@ -1,5 +1,4 @@
 import tkinter as tk
-from typing import List
 
 import src.gui.gui_utils as utils
 
@@ -10,7 +9,7 @@ class RoundsFrame(tk.Frame):
 
         self.config(bg='#bfbfbf', borderwidth=3, relief='groove')
 
-        self.buttons: List[tk.Button] = []
+        self.buttons: list[tk.Button] = []
         self.on_change_round = on_change_round
         self.active_round_id = 0
 
