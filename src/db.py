@@ -8,8 +8,6 @@ from src.config import Config
 from src.player import Player
 
 
-
-
 def get_players() -> List[Player]:
     if not os.path.exists(Config.DB_PLAYERS):
         logging.info(f'Creating players database in file "{Config.DB_PLAYERS}"')
@@ -18,8 +16,8 @@ def get_players() -> List[Player]:
     logging.info(f'Loading players from file "{Config.DB_PLAYERS}"')
 
     players = pickle.load(open(Config.DB_PLAYERS, 'rb'))
-    assert isinstance(players, list), 'Importing Error'
-    assert len(players) == 0 or isinstance(players[0], Player), 'Importing Error'
+    assert isinstance(players, list), 'Importing Error (other instance)'
+    assert len(players) == 0 or isinstance(players[0], Player), 'Importing Error (other instance in list)'
     return players
 
 
@@ -38,8 +36,8 @@ def get_tournaments() -> List[Tournament]:
     logging.info(f'Loading tournaments from file "{Config.DB_TOURNAMENTS}"')
 
     tournaments = pickle.load(open(Config.DB_TOURNAMENTS, 'rb'))
-    assert isinstance(tournaments, list), 'Importing Error'
-    assert len(tournaments) == 0 or isinstance(tournaments[0], Tournament), 'Importing Error'
+    assert isinstance(tournaments, list), 'Importing Error (other instance)'
+    assert len(tournaments) == 0 or isinstance(tournaments[0], Tournament), 'Importing Error (other instance in list)'
     return tournaments
 
 
