@@ -174,12 +174,18 @@ class Tournament(ABC):
         self._rounds.append(pairs)
         self._pausing_players.append(pause)
 
+        self._trigger_playing_to_players()
+
     def _end_round(self):
         if not self.has_round_ended():
             not_ended_count = len([g for g in self.active_round if g.result == Result.Playing])
             raise Exception(f'Round not ended yet on {not_ended_count} tables')
 
         self._update_points()
+
+    def _trigger_playing_to_players(self):
+        for player in self._players:
+            player.trigger_playing()
 
     def _update_ratings(self):
         logging.error('Updating ratings comming soon')
