@@ -25,6 +25,7 @@ def save_players(players: List[Player], no_debug=False):
     if not no_debug:
         logging.info(f'Saving players to file "{Config.DB_PLAYERS}"')
 
+    os.makedirs(os.path.dirname(Config.DB_PLAYERS), exist_ok=True)
     pickle.dump(players, open(Config.DB_PLAYERS, 'wb'))
 
 
@@ -45,4 +46,5 @@ def save_tournaments(tournaments: List[Tournament], no_debug=False):
     if not no_debug:
         logging.info(f'Saving tournaments to file "{Config.DB_TOURNAMENTS}"')
 
+    os.makedirs(os.path.dirname(Config.DB_TOURNAMENTS), exist_ok=True)
     pickle.dump(tournaments, open(Config.DB_TOURNAMENTS, 'wb'))
