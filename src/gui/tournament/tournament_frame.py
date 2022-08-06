@@ -142,7 +142,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         logging.info(f'Auto saving opened tournament')
 
-        tournaments = db.get_tournaments()
+        tournaments = db.get_tournaments(debug=False)
 
         for i, t in enumerate(tournaments):
             if t.name == self.tournament.name:
@@ -151,4 +151,4 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         else:
             raise Exception('Tournament not found when autosaving')
 
-        db.save_tournaments(tournaments)
+        db.save_tournaments(tournaments, debug=False)
