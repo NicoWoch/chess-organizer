@@ -81,20 +81,4 @@ class DB:
         self._save_object(Config.DB_TOURNAMENTS, tournaments)
 
 
-MAIN_DB = DB()
-
-
-def get_players(*, debug=True) -> list[Player]:
-    return MAIN_DB.load_players()
-
-
-def save_players(players: list[Player], *, debug=True):
-    MAIN_DB.save_players(players)
-
-
-def get_tournaments(*, debug=True) -> list[Tournament]:
-    return MAIN_DB.load_tournaments()
-
-
-def save_tournaments(tournaments: list[Tournament], *, debug=True):
-    MAIN_DB.save_tournaments(tournaments)
+MainDB = DB()

@@ -80,9 +80,5 @@ class PlayerEditorWindow(tk.Toplevel):
 if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('0x0+0+0')
-    PlayerEditorWindow(root, Player.create_player(
-        name='adam', surname='nowak',
-        rating=1000, group_name='default',
-        gender=Gender.Men, title=''
-    ), lambda: 0)
+    PlayerEditorWindow(root, Player.create_player(name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men), lambda: 0)
     root.mainloop()

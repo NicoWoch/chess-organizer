@@ -3,11 +3,11 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from collections.abc import Callable
 
-from src import db
+import src.gui.gui_utils as utils
 from src.config import Config
+from src.db import MainDB
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
-import src.gui.gui_utils as utils
 
 
 class PlayerBrowserWindow(tk.Toplevel):
@@ -20,7 +20,7 @@ class PlayerBrowserWindow(tk.Toplevel):
 
         self.__photos = []
         self.add_to_tournament = add_to_tournament
-        self.players = db.get_players()
+        self.players = MainDB.load_players()
         self.treeview = None
 
         self.make_treeview()
@@ -98,7 +98,7 @@ class PlayerBrowserWindow(tk.Toplevel):
         self.add_to_tournament(selected_players)
 
     def auto_save(self):
-        db.save_players(self.players)
+        MainDB.save_players(self.players)
 
 if __name__ == '__main__':
     root = tk.Tk()

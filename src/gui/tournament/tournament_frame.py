@@ -2,9 +2,9 @@ import logging
 import tkinter as tk
 from typing import Optional
 
-from src import db
-from src.algorithms.tournament import Result, Tournament
+from src.algorithms.tournament import Tournament
 from src.config import Config
+from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
@@ -142,7 +142,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         logging.info(f'Auto saving opened tournament')
 
-        tournaments = db.get_tournaments(debug=False)
+        tournaments = MainDB.load_tournaments()
 
         for i, t in enumerate(tournaments):
             if t.name == self.tournament.name:
@@ -151,4 +151,4 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         else:
             raise Exception('Tournament not found when autosaving')
 
-        db.save_tournaments(tournaments, debug=False)
+        MainDB.save_tournaments(tournaments)
