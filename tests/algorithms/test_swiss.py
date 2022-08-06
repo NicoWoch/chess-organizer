@@ -112,9 +112,6 @@ class TestSwiss(unittest.TestCase):
 
         scoreboard = t.get_scoreboard()
 
-        for p in scoreboard:
-            print(p[1])
-
         self.assertEqual(scoreboard[0][0], games[0].white)
         self.assertEqual(scoreboard[-1][0], games[0].black)
 
