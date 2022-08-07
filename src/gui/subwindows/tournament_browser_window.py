@@ -3,10 +3,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from collections.abc import Callable
 
-from src import db
-from src.config import Config
-from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
 import src.gui.gui_utils as utils
+from src.config import Config
+from src.db import MainDB
+from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
 
 
 class TournamentBrowserWindow(tk.Toplevel):
@@ -19,7 +19,7 @@ class TournamentBrowserWindow(tk.Toplevel):
 
         self.open_tournament = open_tournament
         self.__photos = []
-        self.tournaments = db.get_tournaments()
+        self.tournaments = MainDB.load_tournaments()
         self.treeview = None
 
         self.make_treeview()
@@ -90,11 +90,11 @@ class TournamentBrowserWindow(tk.Toplevel):
             logging.warning('No tournament is selected')
             return
 
-        self.open_tournament(selected_ids[0], self.tournaments[selected_ids[0]])
+        self.open_tournament(self.tournaments[selected_ids[0]])
         self.destroy()
 
     def auto_save(self):
-        db.save_tournaments(self.tournaments)
+        MainDB.save_tournaments(self.tournaments)
 
 if __name__ == '__main__':
     root = tk.Tk()

@@ -2,9 +2,9 @@ import logging
 import tkinter as tk
 from typing import Optional
 
-from src import db
-from src.algorithms.tournament import Result, Tournament
+from src.algorithms.tournament import Tournament
 from src.config import Config
+from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
@@ -127,8 +127,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         tournament_browser = TournamentBrowserWindow(self, self.open_tournament)
         tournament_browser.focus()
 
-    def open_tournament(self, tournament_id, tournament):
-        logging.info(f'Changing opened tournament to ({tournament_id=}, {tournament.name=})')
+    def open_tournament(self, tournament):
+        logging.info(f'Changing opened tournament to ({tournament.name=})')
         self.tournament = tournament
 
         update_title(self.winfo_toplevel(), self.tournament)
@@ -142,7 +142,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         logging.info(f'Auto saving opened tournament')
 
-        tournaments = db.get_tournaments()
+        tournaments = MainDB.load_tournaments()
 
         for i, t in enumerate(tournaments):
             if t.name == self.tournament.name:
@@ -151,4 +151,4 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         else:
             raise Exception('Tournament not found when autosaving')
 
-        db.save_tournaments(tournaments)
+        MainDB.save_tournaments(tournaments)

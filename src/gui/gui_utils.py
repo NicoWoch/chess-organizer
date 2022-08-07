@@ -2,7 +2,6 @@ import os
 import tkinter as tk
 import tkinter.ttk as ttk
 from collections import namedtuple
-from typing import List
 
 from PIL import Image, ImageTk
 
@@ -34,7 +33,7 @@ def create_image_btn(parent, img_filename: str, size=None, cmd=lambda: None):
 Action = namedtuple('Action', ('image_filename', 'cmd', 'side'))
 
 
-def create_image_action_bar(parent, actions: List[Action], image_size, padx=0, pady=0):
+def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0):
     action_bar = tk.Frame(parent)
 
     for action in actions:

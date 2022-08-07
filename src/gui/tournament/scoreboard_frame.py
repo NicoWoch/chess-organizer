@@ -1,5 +1,4 @@
 import tkinter as tk
-from typing import Tuple, List
 
 from src.player import Player
 
@@ -36,7 +35,7 @@ class ScoreboardFrame(tk.Frame):
         else:
             self._add_entry(self.last_pos + 1, str(player), score)
 
-    def update_scoreboard(self, scoreboard: List[Tuple[Player, object]]):
+    def update_scoreboard(self, scoreboard: list[tuple[Player, object]]):
         for s in self.grid_slaves():
             s.destroy()
 

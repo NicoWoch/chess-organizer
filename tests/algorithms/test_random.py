@@ -7,12 +7,12 @@ from src.player import Player, Gender
 
 def get_dummy():
     dummy_players = [
-        Player.create_player(name='Adam', surname='Nowak', gender=Gender.Men, rating=1200, title='', group_name=''),
-        Player.create_player(name='Anna', surname='Nowak', gender=Gender.Women, rating=1100, title='', group_name=''),
-        Player.create_player(name='Maximum', surname='Engine', gender=Gender.Other, rating=3000, title='', group_name=''),
-        Player.create_player(name='Marcin', surname='Nowak', gender=Gender.Men, rating=800, title='', group_name=''),
-        Player.create_player(name='Maximum2', surname='Engine2', gender=Gender.Other, rating=3200, title='', group_name=''),
-        Player.create_player(name='Ryszard', surname='Nowak', gender=Gender.Men, rating=990, title='', group_name=''),
+        Player.create_player(name='Adam', surname='Nowak', gender=Gender.Men, rating=1200),
+        Player.create_player(name='Anna', surname='Nowak', gender=Gender.Women, rating=1100),
+        Player.create_player(name='Maximum', surname='Engine', gender=Gender.Other, rating=3000),
+        Player.create_player(name='Marcin', surname='Nowak', gender=Gender.Men, rating=800),
+        Player.create_player(name='Maximum2', surname='Engine2', gender=Gender.Other, rating=3200),
+        Player.create_player(name='Ryszard', surname='Nowak', gender=Gender.Men, rating=990),
     ]
     return dummy_players
 

@@ -1,5 +1,4 @@
 import tkinter as tk
-from typing import List
 
 import src.gui.gui_utils as utils
 from src.algorithms.tournament import Game
@@ -30,13 +29,13 @@ class PairsFrame(tk.Frame):
         self.table.style_even(background='#cfcfcf')
         self.table.style_odd(background='white')
 
-    def update_pairing(self, pairing: List[Game]):
+    def update_pairing(self, pairing: list[Game]):
         self.table.set_columns(*PAIRING_COLUMNS)
 
         for i, game in enumerate(pairing):
             self.table.add_row(i + 1, game.white, game.black, game.result.value)
 
-    def update_list(self, players: List[Player]):
+    def update_list(self, players: list[Player]):
         self.table.set_columns(*LIST_COLUMNS)
 
         for i, player in enumerate(players):

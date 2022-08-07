@@ -2,7 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Tuple, List, Dict
 
 from src.player import Player
 
@@ -29,19 +28,19 @@ class Game:
     result: Result
 
 
-Round = List[Game]
+Round = list[Game]
 
 
 class Tournament(ABC):
-    def __init__(self, name: str, players: List[Player]):
+    def __init__(self, name: str, players: list[Player]):
         self.name = name
 
-        self._players: List[Player] = []
-        self._points: List[tuple] = []
-        self._stats: List[Dict[Result, List[int]]] = []
+        self._players: list[Player] = []
+        self._points: list[tuple] = []
+        self._stats: list[dict[Result, list[int]]] = []
 
-        self._rounds: List[Round] = []
-        self._pausing_players: List[List[Player]] = []
+        self._rounds: list[Round] = []
+        self._pausing_players: list[list[Player]] = []
 
         self._is_started = False
         self._is_ended = False
@@ -50,7 +49,7 @@ class Tournament(ABC):
             self.add_player(player)
 
     @property
-    def players(self) -> List[Player]:
+    def players(self) -> list[Player]:
         return self._players.copy()
 
     def add_player(self, player: Player):
@@ -58,8 +57,10 @@ class Tournament(ABC):
             raise Exception('Cannot add player when tournament is running')
 
         if player in self._players:
-            logging.warning('Player is already added')
+            logging.warning(f'Player "{player}" is already added')
             return
+
+        logging.debug(f'Tournament "{self.name}": Adding player "{player}"')
 
         self._players.append(player)
         self._points.append(self._get_default_points())
@@ -82,16 +83,16 @@ class Tournament(ABC):
     def get_round(self, round_id) -> Round:
         return self._rounds[round_id]
 
-    def get_waiting_players(self, round_id=-1) -> List[Player]:
+    def get_waiting_players(self, round_id=-1) -> list[Player]:
         return self._pausing_players[round_id]
 
     def has_round_ended(self) -> bool:
         return all(game.result != Result.Playing for game in self.active_round)
 
-    def get_scoreboard(self) -> List[Tuple[Player, tuple]]:
+    def get_scoreboard(self) -> list[tuple[Player, tuple]]:
         return sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
 
-    def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> List[str]:
+    def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> list[str]:
         return [str(player) + main_sep + points_sep.join(points) for player, points in self.get_scoreboard()]
 
     def set_result(self, table_id: int, new_result: Result):
@@ -99,6 +100,8 @@ class Tournament(ABC):
             raise Exception('Tournament not started')
 
         game = self.active_round[table_id]
+
+        logging.debug(f'Tournament "{self.name}": Setting result {new_result} for table_id {table_id} with result {game.result}')
 
         # Clear old result
         self.__change_player_by_result(game.white, game.black, game.result, -1)
@@ -148,6 +151,8 @@ class Tournament(ABC):
         if self._is_ended:
             raise Exception('Tournament arleady ended')
 
+        logging.debug(f'Tournament "{self.name}": Pairing next round')
+
         self._end_round()
         self._start_round()
 
@@ -158,6 +163,8 @@ class Tournament(ABC):
         if self._is_ended:
             raise Exception('Tournament arleady ended')
 
+        logging.debug(f'Tournament "{self.name}": Ending tournament')
+
         self._end_round()
         self._update_ratings()
         self._is_ended = True
@@ -167,6 +174,8 @@ class Tournament(ABC):
         self._rounds.append(pairs)
         self._pausing_players.append(pause)
 
+        self._trigger_playing_to_players()
+
     def _end_round(self):
         if not self.has_round_ended():
             not_ended_count = len([g for g in self.active_round if g.result == Result.Playing])
@@ -174,8 +183,12 @@ class Tournament(ABC):
 
         self._update_points()
 
+    def _trigger_playing_to_players(self):
+        for player in self._players:
+            player.trigger_playing()
+
     def _update_ratings(self):
-        logging.info('Updating ratings comming soon')
+        logging.error('Updating ratings comming soon')
         pass
 
     @abstractmethod
@@ -185,7 +198,7 @@ class Tournament(ABC):
     def _get_win_draw_lost_points(self) -> tuple[int, int, int]: ...
 
     @abstractmethod
-    def _pair_round(self) -> Tuple[Round, List[Player]]: ...
+    def _pair_round(self) -> tuple[Round, list[Player]]: ...
 
     @abstractmethod
     def _update_points(self): ...

@@ -1,4 +1,4 @@
-set APP_VERSION=V0.2-1
+set APP_VERSION=V0.2-2
 
 
 rem Compiling
@@ -10,8 +10,12 @@ pyinstaller --noconfirm ^
              ./chess-organizer.py
 
 robocopy images dist\chess-organizer\images
+
 mkdir dist\chess-organizer\logs
+echo . > dist\chess-organizer\logs\empty.txt
+
 mkdir dist\chess-organizer\db
+echo . > dist\chess-organizer\db\empty.txt
 
 
 rem Cleaning
@@ -22,5 +26,5 @@ rename dist\chess-organizer chess-organizer-%APP_VERSION%
 
 
 echo COMPILED SUCCESSFUL
-exit
+rem exit
 

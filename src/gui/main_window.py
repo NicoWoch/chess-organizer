@@ -3,10 +3,11 @@ import random
 import tkinter as tk
 import traceback
 
-from src import dummy_generator, db
+from src import dummy_generator
+from src.config import Config
+from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
 from src.gui.tournament.tournament_frame import TournamentFrame
-from src.config import Config
 
 
 def show_error(_, exc: type, val, tb):
@@ -92,15 +93,15 @@ class MainWindow(tk.Tk):
 
     def _dev_create_5_random_players(self):
         dummy_players = dummy_generator.get_random_players(5)
-        db.save_players(db.get_players() + dummy_players)
+        MainDB.save_players(MainDB.load_players() + dummy_players)
 
     def _dev_clear_players(self):
-        db.save_players([])
+        MainDB.save_players([])
 
     def _dev_create_dummy_tournament(self):
-        tournaments = db.get_tournaments()
+        tournaments = MainDB.load_tournaments()
         tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
-        db.save_tournaments(tournaments)
+        MainDB.save_tournaments(tournaments)
 
     def _dev_clear_tournaments(self):
-        db.save_tournaments([])
+        MainDB.save_tournaments([])

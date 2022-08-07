@@ -1,5 +1,4 @@
 import unittest
-from typing import Tuple, List
 
 from src.algorithms.swiss_tournament import SwissTournament
 from src.algorithms.tournament import Result, Round
@@ -37,7 +36,7 @@ def get_dummy():
 
 
 class TestSwiss(unittest.TestCase):
-    def assert_round(self, round_: Round, pairs: List[Tuple[Player, Player]]):
+    def assert_round(self, round_: Round, pairs: list[tuple[Player, Player]]):
         for game in round_:
             for i, pair in enumerate(pairs):
                 if game.white in pair and game.black in pair:
