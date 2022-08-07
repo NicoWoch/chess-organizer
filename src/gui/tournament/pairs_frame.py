@@ -1,9 +1,8 @@
-import logging
 import tkinter as tk
 from typing import Optional
 
 import src.gui.gui_utils as utils
-from src.algorithms.tournament import Game, Tournament
+from src.algorithms.tournament import Tournament
 from src.player import Player
 
 FIRST_COLUMNS = [
@@ -38,7 +37,7 @@ class PairsFrame(tk.Frame):
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_table = utils.Table(self, style_prefix='pairs_frame')
-        self.waiting_table.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
+        self._place_waiting_table()
         self.waiting_table.set_columns(*WAITING_COLUMNS)
 
         self.table.style_headings(font=('Calibri', 20, 'bold'))
@@ -73,9 +72,17 @@ class PairsFrame(tk.Frame):
             self.table.add_row(pos, *row)
             prev_row = row
 
-    def _update_waiting(self, players: list[Player]):
+    def _place_waiting_table(self):
+        self.waiting_table.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
+
+    def _update_waiting(self, players: Optional[list[Player]]):
         self.waiting_table.clear_rows()
 
+        if players is None:
+            self.waiting_table.place_forget()
+            return
+
+        self._place_waiting_table()
         for player in players:
             self.waiting_table.add_row(player)
 
@@ -85,7 +92,7 @@ class PairsFrame(tk.Frame):
         self.first_page_players = sorted(tournament.players, key=lambda p: p.rating, reverse=True)
 
         self._update_rows([(player, player.rating) for player in self.first_page_players])
-        self._update_waiting([])
+        self._update_waiting(None)
 
     def update_pairing(self, tournament: Tournament, round_id: int):
         self.table.set_columns(*PAIRING_COLUMNS)
@@ -104,4 +111,4 @@ class PairsFrame(tk.Frame):
             )
             for i in tournament.get_scoreboard_ids()
         ], slice(2, 3))
-        self._update_waiting([])
+        self._update_waiting(None)

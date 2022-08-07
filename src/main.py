@@ -1,5 +1,4 @@
 import logging
-import os
 
 from src.config import Config
 from src.gui.main_window import MainWindow
