@@ -108,7 +108,7 @@ class TestSwiss(unittest.TestCase):
         t.set_result(1, Result.Draw)
 
         games = t.active_round
-        t.end_tournament()
+        t.next_round()
 
         scoreboard = t.get_scoreboard()
 
@@ -159,7 +159,7 @@ class TestSwiss(unittest.TestCase):
         self.set_player_lost(t, a)
         self.set_player_lost(t, b)
 
-        t.end_tournament()
+        t.next_round()
         scoreboard = t.get_scoreboard()
 
         self.assertEqual(scoreboard[0][1], (3, 9, 0))
@@ -188,7 +188,7 @@ class TestSwiss(unittest.TestCase):
         self.set_player_win(t, a)
         self.set_player_lost(t, b)
 
-        t.end_tournament()
+        t.next_round()
         scoreboard = t.get_scoreboard()
 
         self.assertEqual(scoreboard[0][1], (3, 7, 0))

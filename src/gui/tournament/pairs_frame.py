@@ -1,8 +1,8 @@
 import tkinter as tk
+from typing import Optional
 
 import src.gui.gui_utils as utils
-from src.algorithms.tournament import Game
-from src.player import Player
+from src.algorithms.tournament import Game, Tournament
 
 FIRST_COLUMNS = [
     ('#', 'Gracz', 'Ranking'),
@@ -15,8 +15,8 @@ PAIRING_COLUMNS = [
 ]
 
 LAST_COLUMNS = [
-    ('#', 'Gracz', 'Stary Ranking', 'Nowy Ranking'),
-    (50, 350, 100, 100)
+    ('#', 'Gracz', 'Zmiana rankingu', 'Punkty'),
+    (50, 250, 230, 120)
 ]
 
 
@@ -34,20 +34,41 @@ class PairsFrame(tk.Frame):
         self.table.style_even(background='#cfcfcf')
         self.table.style_odd(background='white')
 
-    def update_first(self, players: list[Player]):
+    def _update_rows(self, rows: list[tuple], cmp_slice: Optional[slice] = None):
+        prev_row = None
+        pos = 0
+        while rows:
+            row = rows.pop(0)
+
+            if cmp_slice is None:
+                pos += 1
+            elif prev_row[cmp_slice] != row[cmp_slice]:
+                pos += 1
+
+            self.table.add_row(pos, *row)
+            prev_row = row
+
+
+    def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
 
-        for i, player in enumerate(players):
-            self.table.add_row(i + 1, str(player), player.rating)
+        sorted_players = sorted(tournament.players, key=lambda p: p.rating, reverse=True)
+
+        self._update_rows([(player, player.rating) for player in sorted_players])
 
     def update_pairing(self, pairing: list[Game]):
         self.table.set_columns(*PAIRING_COLUMNS)
 
-        for i, game in enumerate(pairing):
-            self.table.add_row(i + 1, game.white, game.black, game.result.value)
+        self._update_rows([(game.white, game.black, game.result.value) for game in pairing])
 
-    def update_last(self, players: list[Player], old_ratings: list[int]):
+    def update_last(self, tournament: Tournament):
         self.table.set_columns(*LAST_COLUMNS)
 
-        for i, player in enumerate(players):
-            self.table.add_row(i + 1, str(player), old_ratings[i], player.rating)
+        self._update_rows([
+            (
+                tournament.players[i],
+                f'{tournament.old_ratings[i]} -> {tournament.new_ratings[i]}',
+                ',   '.join(map(str, tournament.get_points(i)))
+            )
+            for i in tournament.get_scoreboard_ids()
+        ])

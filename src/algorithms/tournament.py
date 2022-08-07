@@ -2,6 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from src.algorithms.elo import elo_rating
 from src.player import Player
@@ -46,6 +47,8 @@ class Tournament(ABC):
         self._is_started = False
         self._is_ended = False
 
+        self.old_ratings: list[int] = []
+
         for player in players:
             self.add_player(player)
 
@@ -66,6 +69,16 @@ class Tournament(ABC):
         self._players.append(player)
         self._points.append(self._get_default_points())
         self._stats.append({Result.White: [], Result.Draw: [], Result.Black: []})
+        self.old_ratings.append(player.rating)
+
+    def get_player_id(self, player: Player):
+        return self._players.index(player)
+
+    def get_points(self, player_id: int):
+        return self._points[player_id]
+
+    def get_stats(self, player_id: int):
+        return self._stats[player_id]
 
     def is_started(self):
         return self._is_started
@@ -92,6 +105,9 @@ class Tournament(ABC):
 
     def get_scoreboard(self) -> list[tuple[Player, tuple]]:
         return sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
+
+    def get_scoreboard_ids(self) -> list[int]:
+        return [self.get_player_id(player) for player, points in self.get_scoreboard()]
 
     def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> list[str]:
         return [str(player) + main_sep + points_sep.join(points) for player, points in self.get_scoreboard()]
@@ -152,12 +168,12 @@ class Tournament(ABC):
         if self._is_ended:
             raise Exception('Tournament arleady ended')
 
-        logging.debug(f'Tournament "{self.name}": Pairing next round')
+        logging.debug(f'Tournament "{self.name}": Next round')
 
         self._end_round()
         self._start_round()
 
-    def end_tournament(self):
+    def end_tournament(self, db):
         if not self._is_started:
             raise Exception('Tournament not started yet')
 
@@ -167,7 +183,7 @@ class Tournament(ABC):
         logging.debug(f'Tournament "{self.name}": Ending tournament')
 
         self._end_round()
-        self._update_ratings()
+        self._update_ratings(db)
         self._is_ended = True
 
     def _start_round(self):
@@ -188,18 +204,18 @@ class Tournament(ABC):
         for player in self._players:
             player.trigger_playing()
 
-    def _update_ratings(self):
-        # db_players = MainDB.load_players() TODO: remove circular import
-        #
-        # for i, new_rating in enumerate(self._get_new_ratings()):
-        #     db_id = db_players.index(self._players[i])
-        #     db_players[db_id].rating = new_rating
-        #
-        # MainDB.save_players(db_players)
-        pass
+    def _update_ratings(self, db):
+        db_players = db.load_players()
 
-    def _get_new_ratings(self):
-        ratings = [p.rating for p in self._players]
+        for i, new_rating in enumerate(self.new_ratings):
+            db_id = db_players.index(self._players[i])
+            db_players[db_id].rating = new_rating
+
+        db.save_players(db_players)
+
+    @property
+    def new_ratings(self) -> list[int]:
+        ratings = self.old_ratings.copy()
 
         for games in self._rounds:
             for game in games:
@@ -212,12 +228,10 @@ class Tournament(ABC):
                 elif game.result == Result.Black:
                     points = 0
                 else:
-                    raise Exception('Some game not ended yet')
+                    raise Exception('Some game not ended yet (when calculating new ratings)')
 
                 ratings[white_id], ratings[black_id] = elo_rating(ratings[white_id], ratings[black_id], points)
 
-        print([p.rating for p in self._players])
-        print(ratings)
         return ratings
 
     @abstractmethod

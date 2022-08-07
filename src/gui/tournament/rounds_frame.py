@@ -53,6 +53,8 @@ class RoundsFrame(tk.Frame):
         if tournament.is_ended():
             self._add_btn('Wyniki', 'red_flag.png', self.LAST_ITEM)
 
+        self.active_btn = self.LAST_ITEM if tournament.is_ended() else tournament.round_count
+
     def _add_btn(self, text: str, image_filename: str, i):
         image = utils.create_image(image_filename, (28, 28))
         btn = tk.Button(self, text=text, font=('verdana', 13), image=image, compound=tk.LEFT, command=lambda: self.__setattr__('active_btn', i))

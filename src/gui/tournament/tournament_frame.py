@@ -52,10 +52,9 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._grid_frame()
 
         if self.rounds_frame.is_first():
-            self.pairs_frame.update_first(sorted(self.tournament.players, key=lambda p: p.rating, reverse=True))
+            self.pairs_frame.update_first(self.tournament)
         elif self.rounds_frame.is_last():
-            pass  # TODO
-            self.pairs_frame.update_first(sorted(self.tournament.players, key=lambda p: p.rating))
+            self.pairs_frame.update_last(self.tournament)
         else:
             self.pairs_frame.update_pairing(self.active_round)
 
@@ -67,7 +66,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     @property
     def active_round(self):
         if self.rounds_frame.is_round():
-            return self.tournament.get_round(self.rounds_frame.get_active_round() - 1)
+            return self.tournament.get_round(self.rounds_frame.get_active_round())
 
     def set_result(self, result):
         if self.tournament is None:
@@ -102,7 +101,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             logging.warning('There is no tournament opened')
             return
 
-        self.tournament.end_tournament()
+        self.tournament.end_tournament(MainDB)
+        self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def browse_players(self):

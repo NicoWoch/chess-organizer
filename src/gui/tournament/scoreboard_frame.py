@@ -29,13 +29,13 @@ class ScoreboardFrame(tk.Frame):
         self.last_score = score_obj
         self.next_row += 1
 
-    def _add_player(self, player: Player, score: object):
+    def _add_player(self, player: Player, score: tuple):
         if self.last_score == score:
-            self._add_entry(self.last_pos, str(player), score)
+            self._add_entry(self.last_pos, str(player), ',  '.join(map(str, score)))
         else:
-            self._add_entry(self.last_pos + 1, str(player), score)
+            self._add_entry(self.last_pos + 1, str(player), ',  '.join(map(str, score)))
 
-    def update_scoreboard(self, scoreboard: list[tuple[Player, object]]):
+    def update_scoreboard(self, scoreboard: list[tuple[Player, tuple]]):
         for s in self.grid_slaves():
             s.destroy()
 
