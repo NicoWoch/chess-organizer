@@ -56,7 +56,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         elif self.rounds_frame.is_last():
             self.pairs_frame.update_last(self.tournament)
         else:
-            self.pairs_frame.update_pairing(self.active_round)
+            self.pairs_frame.update_pairing(self.tournament, self.rounds_frame.get_active_round())
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
