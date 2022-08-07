@@ -71,6 +71,16 @@ class Tournament(ABC):
         self._stats.append({Result.White: [], Result.Draw: [], Result.Black: []})
         self.old_ratings.append(player.rating)
 
+    def remove_player(self, player: Player):
+        if self._is_started:
+            raise Exception('Cannot remove player when tournament is running')
+
+        player_id = self._players.index(player)
+        del self._players[player_id]
+        del self._points[player_id]
+        del self._stats[player_id]
+        del self.old_ratings[player_id]
+
     def get_player_id(self, player: Player):
         return self._players.index(player)
 
@@ -115,6 +125,9 @@ class Tournament(ABC):
     def set_result(self, table_id: int, new_result: Result):
         if not self._is_started:
             raise Exception('Tournament not started')
+
+        if self._is_ended:
+            raise Exception('Tournament already ended')
 
         game = self.active_round[table_id]
 

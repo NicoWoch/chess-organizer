@@ -83,7 +83,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self.tournament.set_result(i, result)
 
         self.pairs_frame.table.remove_selection()
-
         self._update_frame()
 
     def next_round(self):
@@ -120,6 +119,19 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         for player in players:
             self.tournament.add_player(player)
 
+        self._update_frame()
+
+    def remove_players(self):
+        if not self.rounds_frame.is_first():
+            logging.warning('Tried to remove players when not first page is active')
+            return
+
+        selected_players = self.pairs_frame.get_selected_players()
+
+        for p in selected_players:
+            self.tournament.remove_player(p)
+
+        self.pairs_frame.table.remove_selection()
         self._update_frame()
 
     def browse_tournaments(self):

@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from typing import Optional
 
@@ -45,6 +46,19 @@ class PairsFrame(tk.Frame):
         self.table.style_even(background='#cfcfcf')
         self.table.style_odd(background='white')
 
+        self.first_page_players: list[Player] = []
+
+    def get_selected_players(self) -> list[Player]:
+        if self.table['columns'] != FIRST_COLUMNS[0]:
+            raise Exception('Cannot get selected player ids when not first page is active')
+
+        selected_players = []
+        for row_id in self.table.get_selected_ids():
+            player = self.first_page_players[row_id]
+            selected_players.append(player)
+
+        return selected_players
+
     def _update_rows(self, rows: list[tuple], cmp_slice: Optional[slice] = None):
         prev_row = None
         pos = 0
@@ -53,7 +67,7 @@ class PairsFrame(tk.Frame):
 
             if cmp_slice is None:
                 pos += 1
-            elif prev_row[cmp_slice] != row[cmp_slice]:
+            elif prev_row is None or prev_row[cmp_slice] != row[cmp_slice]:
                 pos += 1
 
             self.table.add_row(pos, *row)
@@ -68,9 +82,9 @@ class PairsFrame(tk.Frame):
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
 
-        sorted_players = sorted(tournament.players, key=lambda p: p.rating, reverse=True)
+        self.first_page_players = sorted(tournament.players, key=lambda p: p.rating, reverse=True)
 
-        self._update_rows([(player, player.rating) for player in sorted_players])
+        self._update_rows([(player, player.rating) for player in self.first_page_players])
         self._update_waiting([])
 
     def update_pairing(self, tournament: Tournament, round_id: int):
@@ -89,5 +103,5 @@ class PairsFrame(tk.Frame):
                 ',   '.join(map(str, tournament.get_points(i)))
             )
             for i in tournament.get_scoreboard_ids()
-        ])
+        ], slice(2, 3))
         self._update_waiting([])

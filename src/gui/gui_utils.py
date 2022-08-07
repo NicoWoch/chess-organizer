@@ -35,10 +35,15 @@ Action = namedtuple('Action', ('image_filename', 'cmd', 'side'))
 
 def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0):
     action_bar = tk.Frame(parent)
+    frames: dict[str, tk.Frame] = {tk.LEFT: tk.Frame(action_bar), tk.CENTER: tk.Frame(action_bar), tk.RIGHT: tk.Frame(action_bar)}
 
     for action in actions:
-        create_image_btn(action_bar, action.image_filename, size=image_size, cmd=action.cmd)\
-            .pack(side=action.side, padx=padx, pady=pady)
+        create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)\
+            .pack(side=tk.LEFT, padx=padx, pady=pady)
+
+    frames[tk.LEFT].pack(side=tk.LEFT)
+    frames[tk.CENTER].place(relx=0.5, y=0, relheight=1, anchor=tk.N)
+    frames[tk.RIGHT].pack(side=tk.RIGHT)
 
     return action_bar
 
