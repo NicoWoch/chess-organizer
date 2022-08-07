@@ -30,6 +30,9 @@ class DB:
     def _save_object(self, filepath: str, obj: Any):
         logging.debug(f'Saving object to file "{filepath}"')
 
+        if not os.path.exists(filepath):
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         try:
             file = open(filepath, 'wb')
             pickle.dump(obj, file)

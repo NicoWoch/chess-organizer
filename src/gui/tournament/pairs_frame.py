@@ -4,19 +4,14 @@ import src.gui.gui_utils as utils
 from src.algorithms.tournament import Game
 from src.player import Player
 
-FIRST_COLUMNS = [
-    ('#', 'Gracz', 'Ranking'),
-    (50, 350, 250)
-]
-
 PAIRING_COLUMNS = [
     ('#', 'Białe', 'Czarne', 'Punkty'),
     (50, 250, 250, 100)
 ]
 
-LAST_COLUMNS = [
-    ('#', 'Gracz', 'Stary Ranking', 'Nowy Ranking'),
-    (50, 350, 100, 100)
+LIST_COLUMNS = [
+    ('#', 'Gracz', 'Ranking'),
+    (50, 350, 250)
 ]
 
 
@@ -34,20 +29,14 @@ class PairsFrame(tk.Frame):
         self.table.style_even(background='#cfcfcf')
         self.table.style_odd(background='white')
 
-    def update_first(self, players: list[Player]):
-        self.table.set_columns(*FIRST_COLUMNS)
-
-        for i, player in enumerate(players):
-            self.table.add_row(i + 1, str(player), player.rating)
-
     def update_pairing(self, pairing: list[Game]):
         self.table.set_columns(*PAIRING_COLUMNS)
 
         for i, game in enumerate(pairing):
             self.table.add_row(i + 1, game.white, game.black, game.result.value)
 
-    def update_last(self, players: list[Player], old_ratings: list[int]):
-        self.table.set_columns(*LAST_COLUMNS)
+    def update_list(self, players: list[Player]):
+        self.table.set_columns(*LIST_COLUMNS)
 
         for i, player in enumerate(players):
-            self.table.add_row(i + 1, str(player), old_ratings[i], player.rating)
+            self.table.add_row(i + 1, str(player), player.rating)

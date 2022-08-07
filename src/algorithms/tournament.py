@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
-from src.algorithms.elo import elo_rating
 from src.player import Player
 
 
@@ -189,36 +188,8 @@ class Tournament(ABC):
             player.trigger_playing()
 
     def _update_ratings(self):
-        # db_players = MainDB.load_players() TODO: remove circular import
-        #
-        # for i, new_rating in enumerate(self._get_new_ratings()):
-        #     db_id = db_players.index(self._players[i])
-        #     db_players[db_id].rating = new_rating
-        #
-        # MainDB.save_players(db_players)
+        logging.error('Updating ratings comming soon')
         pass
-
-    def _get_new_ratings(self):
-        ratings = [p.rating for p in self._players]
-
-        for games in self._rounds:
-            for game in games:
-                white_id, black_id = self._players.index(game.white), self._players.index(game.black)
-
-                if game.result == Result.White:
-                    points = 1
-                elif game.result == Result.Draw:
-                    points = 0.5
-                elif game.result == Result.Black:
-                    points = 0
-                else:
-                    raise Exception('Some game not ended yet')
-
-                ratings[white_id], ratings[black_id] = elo_rating(ratings[white_id], ratings[black_id], points)
-
-        print([p.rating for p in self._players])
-        print(ratings)
-        return ratings
 
     @abstractmethod
     def _get_default_points(self) -> tuple: ...
