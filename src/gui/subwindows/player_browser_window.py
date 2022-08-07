@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 from collections.abc import Callable
+from copy import copy
 
 import src.gui.gui_utils as utils
 from src.config import Config
@@ -72,8 +73,11 @@ class PlayerBrowserWindow(tk.Toplevel):
         )
 
         def on_save():
-            self.players.append(new_player)
-            self.update_treeview()
+            if new_player not in self.players:
+                self.players.append(new_player)
+                self.update_treeview()
+            else:
+                logging.error('The same player already exists')
 
         PlayerEditorWindow(self, new_player, on_save)
 
@@ -90,8 +94,16 @@ class PlayerBrowserWindow(tk.Toplevel):
             logging.warning('Cannot edit more/less than one player')
             return
 
-        player = self.players[selection[0]]
-        PlayerEditorWindow(self, player, self.update_treeview)
+        player_copy = copy(self.players[selection[0]])
+
+        def on_save():
+            if player_copy not in self.players:
+                self.players[selection[0]] = player_copy
+                self.update_treeview()
+            else:
+                logging.error('The same player already exists')
+
+        PlayerEditorWindow(self, player_copy, on_save)
 
     def add_to_tournament_btn(self):
         selected_players = [self.players[idx] for idx in self.get_selection_gen()]
