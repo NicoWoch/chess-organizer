@@ -50,6 +50,8 @@ class MainWindow(tk.Tk):
 
         self._keys = []
         self.bind('<Key>', self._on_key_pressed)
+        self.bind('<Key-F11>', self._enable_fullscreen_mode)
+        self.bind('<Key-Escape>', self._disable_fullscreen_mode)
 
     def center_window(self):
         top = (self.winfo_screenheight() - Config.WINDOW_SIZE[1]) / 2
@@ -73,6 +75,12 @@ class MainWindow(tk.Tk):
             menubar.add_cascade(label='Developer', menu=devmenu)
 
         self.config(menu=menubar)
+
+    def _enable_fullscreen_mode(self, *_):
+        self.attributes('-fullscreen', True)
+
+    def _disable_fullscreen_mode(self, *_):
+        self.attributes('-fullscreen', False)
 
     def _show_dev_menu(self):
         self.make_menu(dev=True)

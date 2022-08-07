@@ -51,7 +51,7 @@ class TestRandom(unittest.TestCase):
         t.set_result(2, Result.Draw)
 
         games = t.active_round
-        t.end_tournament()
+        t.next_round()
         scoreboard = t.get_scoreboard()
 
         self.assertEqual(scoreboard[0][0], games[0].white)

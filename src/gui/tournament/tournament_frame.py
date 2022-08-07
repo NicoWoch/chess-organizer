@@ -37,26 +37,37 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self._update_frame()
 
-    def _grid_frame(self):
+    def _grid_frame(self, grid_scoreboard=True):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
         self.pairs_frame.grid(row=0, column=1, sticky='nesw')
-        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+
+        if grid_scoreboard:
+            self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+
+    def _ungrid_frame(self):
+        self.rounds_frame.grid_forget()
+        self.pairs_frame.grid_forget()
+        self.scoreboard_frame.grid_forget()
+
+    def _ungrid_scoreboard(self):
+        self.scoreboard_frame.grid_forget()
 
     def _update_frame(self, auto_save=True):
         if self.tournament is None:
-            self.rounds_frame.grid_forget()
-            self.pairs_frame.grid_forget()
-            self.scoreboard_frame.grid_forget()
+            self._ungrid_frame()
             return
 
-        self._grid_frame()
+        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
 
-        self.rounds_frame.update_btn_colors()
+        if not self.rounds_frame.is_round():
+            self._ungrid_scoreboard()
 
-        if self.active_round is None:
-            self.pairs_frame.update_list(sorted(self.tournament.players, key=lambda p: p.rating, reverse=True))
+        if self.rounds_frame.is_first():
+            self.pairs_frame.update_first(self.tournament)
+        elif self.rounds_frame.is_last():
+            self.pairs_frame.update_last(self.tournament)
         else:
-            self.pairs_frame.update_pairing(self.active_round)
+            self.pairs_frame.update_pairing(self.tournament, self.rounds_frame.get_active_round())
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
@@ -65,10 +76,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
     @property
     def active_round(self):
-        if self.rounds_frame.active_round_id == 0:
-            return None
-        else:
-            return self.tournament.get_round(self.rounds_frame.active_round_id - 1)
+        if self.rounds_frame.is_round():
+            return self.tournament.get_round(self.rounds_frame.get_active_round())
 
     def set_result(self, result):
         if self.tournament is None:
@@ -85,7 +94,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self.tournament.set_result(i, result)
 
         self.pairs_frame.table.remove_selection()
-
         self._update_frame()
 
     def next_round(self):
@@ -95,7 +103,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self.tournament.next_round()
 
-        self.rounds_frame.update_round_count(self.tournament.round_count)
+        self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def end_tournament(self):
@@ -103,7 +111,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             logging.warning('There is no tournament opened')
             return
 
-        self.tournament.end_tournament()
+        self.tournament.end_tournament(MainDB)
+        self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def browse_players(self):
@@ -123,6 +132,19 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self._update_frame()
 
+    def remove_players(self):
+        if not self.rounds_frame.is_first():
+            logging.warning('Tried to remove players when not first page is active')
+            return
+
+        selected_players = self.pairs_frame.get_selected_players()
+
+        for p in selected_players:
+            self.tournament.remove_player(p)
+
+        self.pairs_frame.table.remove_selection()
+        self._update_frame()
+
     def browse_tournaments(self):
         tournament_browser = TournamentBrowserWindow(self, self.open_tournament)
         tournament_browser.focus()
@@ -133,7 +155,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         update_title(self.winfo_toplevel(), self.tournament)
 
-        self.rounds_frame.update_round_count(self.tournament.round_count)
+        self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def auto_save_tournament(self):

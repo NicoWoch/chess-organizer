@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
+from src.algorithms.elo import elo_rating
 from src.player import Player
 
 
@@ -45,6 +46,8 @@ class Tournament(ABC):
         self._is_started = False
         self._is_ended = False
 
+        self.old_ratings: list[int] = []
+
         for player in players:
             self.add_player(player)
 
@@ -65,6 +68,26 @@ class Tournament(ABC):
         self._players.append(player)
         self._points.append(self._get_default_points())
         self._stats.append({Result.White: [], Result.Draw: [], Result.Black: []})
+        self.old_ratings.append(player.rating)
+
+    def remove_player(self, player: Player):
+        if self._is_started:
+            raise Exception('Cannot remove player when tournament is running')
+
+        player_id = self._players.index(player)
+        del self._players[player_id]
+        del self._points[player_id]
+        del self._stats[player_id]
+        del self.old_ratings[player_id]
+
+    def get_player_id(self, player: Player):
+        return self._players.index(player)
+
+    def get_points(self, player_id: int):
+        return self._points[player_id]
+
+    def get_stats(self, player_id: int):
+        return self._stats[player_id]
 
     def is_started(self):
         return self._is_started
@@ -92,12 +115,18 @@ class Tournament(ABC):
     def get_scoreboard(self) -> list[tuple[Player, tuple]]:
         return sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
 
+    def get_scoreboard_ids(self) -> list[int]:
+        return [self.get_player_id(player) for player, points in self.get_scoreboard()]
+
     def get_scoreboard_str(self, main_sep=' ', points_sep=', ') -> list[str]:
         return [str(player) + main_sep + points_sep.join(points) for player, points in self.get_scoreboard()]
 
     def set_result(self, table_id: int, new_result: Result):
         if not self._is_started:
             raise Exception('Tournament not started')
+
+        if self._is_ended:
+            raise Exception('Tournament already ended')
 
         game = self.active_round[table_id]
 
@@ -151,12 +180,12 @@ class Tournament(ABC):
         if self._is_ended:
             raise Exception('Tournament arleady ended')
 
-        logging.debug(f'Tournament "{self.name}": Pairing next round')
+        logging.debug(f'Tournament "{self.name}": Next round')
 
         self._end_round()
         self._start_round()
 
-    def end_tournament(self):
+    def end_tournament(self, db):
         if not self._is_started:
             raise Exception('Tournament not started yet')
 
@@ -166,7 +195,7 @@ class Tournament(ABC):
         logging.debug(f'Tournament "{self.name}": Ending tournament')
 
         self._end_round()
-        self._update_ratings()
+        self._update_ratings(db)
         self._is_ended = True
 
     def _start_round(self):
@@ -187,9 +216,35 @@ class Tournament(ABC):
         for player in self._players:
             player.trigger_playing()
 
-    def _update_ratings(self):
-        logging.error('Updating ratings comming soon')
-        pass
+    def _update_ratings(self, db):
+        db_players = db.load_players()
+
+        for i, new_rating in enumerate(self.new_ratings):
+            db_id = db_players.index(self._players[i])
+            db_players[db_id].rating = new_rating
+
+        db.save_players(db_players)
+
+    @property
+    def new_ratings(self) -> list[int]:
+        ratings = self.old_ratings.copy()
+
+        for games in self._rounds:
+            for game in games:
+                white_id, black_id = self._players.index(game.white), self._players.index(game.black)
+
+                if game.result == Result.White:
+                    points = 1
+                elif game.result == Result.Draw:
+                    points = 0.5
+                elif game.result == Result.Black:
+                    points = 0
+                else:
+                    raise Exception('Some game not ended yet (when calculating new ratings)')
+
+                ratings[white_id], ratings[black_id] = elo_rating(ratings[white_id], ratings[black_id], points)
+
+        return ratings
 
     @abstractmethod
     def _get_default_points(self) -> tuple: ...

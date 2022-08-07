@@ -1,4 +1,4 @@
-set APP_VERSION=V0.2-2
+set APP_VERSION=V0.2-3
 
 
 rem Compiling
@@ -26,5 +26,3 @@ rename dist\chess-organizer chess-organizer-%APP_VERSION%
 
 
 echo COMPILED SUCCESSFUL
-rem exit
-
