@@ -37,19 +37,30 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self._update_frame()
 
-    def _grid_frame(self):
+    def _grid_frame(self, grid_scoreboard=True):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
         self.pairs_frame.grid(row=0, column=1, sticky='nesw')
-        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+
+        if grid_scoreboard:
+            self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+
+    def _ungrid_frame(self):
+        self.rounds_frame.grid_forget()
+        self.pairs_frame.grid_forget()
+        self.scoreboard_frame.grid_forget()
+
+    def _ungrid_scoreboard(self):
+        self.scoreboard_frame.grid_forget()
 
     def _update_frame(self, auto_save=True):
         if self.tournament is None:
-            self.rounds_frame.grid_forget()
-            self.pairs_frame.grid_forget()
-            self.scoreboard_frame.grid_forget()
+            self._ungrid_frame()
             return
 
-        self._grid_frame()
+        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
+
+        if not self.rounds_frame.is_round():
+            self._ungrid_scoreboard()
 
         if self.rounds_frame.is_first():
             self.pairs_frame.update_first(self.tournament)

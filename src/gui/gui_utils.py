@@ -78,7 +78,7 @@ class Table(ttk.Treeview):
     def style_odd(self, **kwargs):
         self.tag_configure('odd', **kwargs)
 
-    def set_columns(self, names, sizes=None):
+    def set_columns(self, names, sizes=None, _repeat=True):
         self.clear_rows()
 
         if sizes is None:
@@ -99,6 +99,10 @@ class Table(ttk.Treeview):
 
             self.column(i, minwidth=minwidth, width=width, stretch=True, anchor=tk.CENTER)
             self.heading(i, text=name)
+
+        self.update()
+        if _repeat:
+            self.set_columns(names, sizes, _repeat=False)
 
     def clear_rows(self):
         self.delete(*self.get_children())
