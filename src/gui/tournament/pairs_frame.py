@@ -24,15 +24,23 @@ WAITING_COLUMNS = [
     ('PAUZA',),
     (1,)
 ]
-WAITING_SIZE = 0.3, 0.2
 
 
-class WaitingFrame(tk.Frame):
+class WaitingFrame(tk.Label):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self['font'] = ('Calibri', 18)
+        self['bg'] = 'white'
+        self['anchor'] = 'se'
+
     def set_players(self, players: list[Player]):
-        print(players)
+        assert len(players) <= 1, 'Only one player can be shown right now on pause'
+
+        if len(players) == 0:
+            self['text'] = ''
+        else:
+            self['text'] = f'PAUZA: {players[0]}'
 
 
 class PairsFrame(tk.Frame):
@@ -80,7 +88,7 @@ class PairsFrame(tk.Frame):
             prev_row = row
 
     def _place_waiting_frame(self):
-        self.waiting_frame.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
+        self.waiting_frame.place(relx=0.5, rely=0.9, relwidth=0.49, relheight=0.09)
 
     def _update_waiting(self, players: Optional[list[Player]]):
         if players is None:
