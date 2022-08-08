@@ -27,6 +27,14 @@ WAITING_COLUMNS = [
 WAITING_SIZE = 0.3, 0.2
 
 
+class WaitingFrame(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def set_players(self, players: list[Player]):
+        print(players)
+
+
 class PairsFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -36,9 +44,8 @@ class PairsFrame(tk.Frame):
         self.table = utils.Table(self, style_prefix='pairs_frame', style_theme='clam')
         self.table.place(relheight=1, relwidth=1)
 
-        self.waiting_table = utils.Table(self, style_prefix='pairs_frame')
-        self._place_waiting_table()
-        self.waiting_table.set_columns(*WAITING_COLUMNS)
+        self.waiting_frame = WaitingFrame(self)
+        self._place_waiting_frame()
 
         self.table.style_headings(font=('Calibri', 20, 'bold'))
         self.table.style_body(highlightthickness=0, bd=0, font=('Calibri', 14), rowheight=40)
@@ -72,19 +79,16 @@ class PairsFrame(tk.Frame):
             self.table.add_row(pos, *row)
             prev_row = row
 
-    def _place_waiting_table(self):
-        self.waiting_table.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
+    def _place_waiting_frame(self):
+        self.waiting_frame.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
 
     def _update_waiting(self, players: Optional[list[Player]]):
-        self.waiting_table.clear_rows()
-
         if players is None:
-            self.waiting_table.place_forget()
+            self.waiting_frame.place_forget()
             return
 
-        self._place_waiting_table()
-        for player in players:
-            self.waiting_table.add_row(player)
+        self._place_waiting_frame()
+        self.waiting_frame.set_players(players)
 
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
