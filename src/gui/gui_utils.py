@@ -60,8 +60,17 @@ class Table(ttk.Treeview):
             self.table_style.theme_use(style_theme)
 
         self['columns'] = ('x',)
+        self.column_sizes = None
 
         self.bind('<Button-3>', self.remove_selection)
+        self.bind('<Configure>', self._on_resize)
+        self.configure_after = None
+
+    def _on_resize(self, _):
+        if self.configure_after is not None:
+            self.after_cancel(self.configure_after)
+
+        self.configure_after = self.after(100, self.update_columns)
 
     def style_headings(self, **kwargs):
         self.table_style.configure(f'{self.table_style_name}.Heading', **kwargs)
@@ -78,6 +87,18 @@ class Table(ttk.Treeview):
     def style_odd(self, **kwargs):
         self.tag_configure('odd', **kwargs)
 
+    def update_columns(self):
+        rows = [self.item(row)['values'] for row in self.get_children()]
+        selected_rows = self.get_selected_ids()
+
+        self.set_columns(self['columns'], self.column_sizes)
+
+        for i, row in enumerate(rows):
+            self.add_row(*row)
+
+            if i in selected_rows:
+                self.selection_add(self.get_children()[-1])
+
     def set_columns(self, names, sizes=None, _repeat=True):
         self.clear_rows()
 
@@ -89,6 +110,7 @@ class Table(ttk.Treeview):
         size_factor = table_width / sizes_width
 
         self['columns'] = tuple(names)
+        self.column_sizes = sizes
         for i, (name, size) in enumerate(zip(names, sizes)):
             if isinstance(size, int):
                 minwidth, width = 20, int(size * size_factor)
