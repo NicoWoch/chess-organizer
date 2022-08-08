@@ -173,9 +173,19 @@ class Tournament(ABC):
         self._is_ended = True
 
     def _start_round(self):
-        pairs, pause = self._pair_round()
+        pairs, pauses = self._pair_round()
+
+        pause_points, _, _ = self._get_win_draw_lost_points()
+
+        for pause in pauses:
+            pause_id = self._players.index(pause)
+            self._points[pause_id] = (
+                self._points[pause_id][0] + pause_points,
+                self._points[pause_id][1], self._points[pause_id][2]
+            )
+
         self._rounds.append(pairs)
-        self._pausing_players.append(pause)
+        self._pausing_players.append(pauses)
 
         self._trigger_playing_to_players()
 

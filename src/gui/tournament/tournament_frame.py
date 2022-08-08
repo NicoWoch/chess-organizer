@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 from typing import Optional
 
+from src.algorithms.swiss_tournament import SwissTournament
 from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.db import MainDB
@@ -11,6 +12,7 @@ from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
+import math
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -36,6 +38,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.rowconfigure(0, weight=1)
 
         self._update_frame()
+
+        self._info_labels: list[tk.Label] = []
 
     def _grid_frame(self, grid_scoreboard=True):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
@@ -71,8 +75,29 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
+        if isinstance(self.tournament, SwissTournament):
+            self.__show_optimal_and_max_round_for_swiss()
+
         if auto_save:
             self.auto_save_tournament()
+
+    def __show_optimal_and_max_round_for_swiss(self):
+        players_count = len(self.tournament.players)
+
+        for label in self._info_labels:
+            label.destroy()
+
+        if players_count > 2:
+            optimum = math.ceil(math.log(players_count, 2))
+            maksimum = (math.factorial(players_count) // (2 * math.factorial(players_count - 2))) // (players_count // 2)
+
+            optimum_label = tk.Label(self, text=f'Optymalna ilość rund: {optimum}', bg='#bfbfbf', font=('Calibri', 9))
+            optimum_label.place(x=3, rely=1, y=-50, anchor=tk.W)
+
+            maximum_label = tk.Label(self, text=f'Maksymalna ilość rund: {maksimum}', bg='#bfbfbf', font=('Calibri', 9))
+            maximum_label.place(x=3, rely=1, y=-25, anchor=tk.W)
+
+            self._info_labels.extend([optimum_label, maximum_label])
 
     @property
     def active_round(self):

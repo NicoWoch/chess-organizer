@@ -110,10 +110,12 @@ class PairsFrame(tk.Frame):
     def update_last(self, tournament: Tournament):
         self.table.set_columns(*LAST_COLUMNS)
 
+        rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
+        rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
         self._update_rows([
             (
                 tournament.players[i],
-                f'{tournament.old_ratings[i]} -> {tournament.new_ratings[i]}',
+                f'{tournament.old_ratings[i]}  ({rating_deviations_str[i]})    ->    {tournament.new_ratings[i]}',
                 ',   '.join(map(str, tournament.get_points(i)))
             )
             for i in tournament.get_scoreboard_ids()
