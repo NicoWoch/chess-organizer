@@ -7,6 +7,7 @@ from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
+from src.gui.subwindows.error_window import WindowException
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame

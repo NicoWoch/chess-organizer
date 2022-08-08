@@ -7,10 +7,15 @@ from src import dummy_generator
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
+from src.gui.subwindows.error_window import ErrorWindow
 from src.gui.tournament.tournament_frame import TournamentFrame
 
 
-def show_error(_, exc: type, val, tb):
+def show_error(self, exc: type, val, tb):
+    if exc.__name__ == 'WindowException':
+        print('WINDOW SHOW')
+        ErrorWindow(self, val).mainloop()
+
     err_id = random.randint(0, 99)
     err_str = f'Raised "{exc.__name__}" <{err_id}>: {val}'
     tb_str = f'TRACEBACK: "{exc.__name__}" <{err_id}>: {val}\n\n' + ''.join(traceback.format_exception(exc, val, tb)) + '\n\n\n'
