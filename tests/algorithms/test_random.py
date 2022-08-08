@@ -1,7 +1,7 @@
 import unittest
 
 from src.algorithms.random_tournament import RandomTournament
-from src.algorithms.tournament import Result
+from src.algorithms.game import Result
 from src.player import Player, Gender
 
 
