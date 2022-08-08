@@ -1,6 +1,5 @@
 import src.pypair as pp
-from src.algorithms.tournament import Tournament
-from src.algorithms.game import Result, Game, Round
+from src.algorithms.tournament import Tournament, Result, Game, Round
 from src.player import Player
 
 

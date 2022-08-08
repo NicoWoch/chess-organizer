@@ -1,7 +1,6 @@
 import random
 
-from src.algorithms.tournament import Tournament
-from src.algorithms.game import Round, Result, Game
+from src.algorithms.tournament import Tournament, Round, Result, Game
 from src.player import Player
 
 

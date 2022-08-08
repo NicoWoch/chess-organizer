@@ -138,63 +138,6 @@ class Table(ttk.Treeview):
         self.update()
 
 
-class ResizingCanvas(tk.Canvas):
-    def __init__(self, parent, **kwargs):
-        tk.Canvas.__init__(self, parent, **kwargs)
-        self.bind("<Configure>", self.on_resize)
-
-        self.width = self.winfo_reqwidth()
-        self.height = self.winfo_reqheight()
-
-    def on_resize(self, event):
-        wscale = event.width/self.width
-        hscale = event.height/self.height
-        self.width = event.width
-        self.height = event.height
-
-        self.scale("all", 0, 0, wscale, hscale)
-
-
-class Rect:
-    def __init__(self, x1, y1, x2, y2):
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-
-    @property
-    def width(self):
-        return self.x2 - self.x1
-
-    @property
-    def height(self):
-        return self.y2 - self.y1
-
-    @property
-    def center(self):
-        return self.x1 + (self.width // 2), self.y1 + (self.height // 2)
-
-    @property
-    def n(self): return self.y1
-    @property
-    def e(self): return self.x2
-    @property
-    def s(self): return self.y2
-    @property
-    def w(self): return self.x1
-    @property
-    def nw(self): return self.w, self.n
-    @property
-    def ne(self): return self.e, self.n
-    @property
-    def sw(self): return self.w, self.s
-    @property
-    def se(self): return self.e, self.s
-
-    def __str__(self):
-        return f'Rect<{self.x1}, {self.y1}, {self.x2}, {self.y2}>'
-
-
 if __name__ == '__main__':  # GUI Testing
     root = tk.Tk()
     root.geometry('600x300')

@@ -1,9 +1,35 @@
 import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from enum import Enum
 
 from src.algorithms.elo import elo_rating
-from src.algorithms.game import Result, Round
 from src.player import Player
+
+
+class Result(Enum):
+    White = '2 - 0'
+    Black = '0 - 2'
+    Draw = '1 - 1'
+    Playing = '-'
+
+    def opposite(self):
+        if self == Result.White:
+            return Result.Black
+        elif self == Result.Black:
+            return Result.White
+        else:
+            return self
+
+
+@dataclass
+class Game:
+    white: Player
+    black: Player
+    result: Result
+
+
+Round = list[Game]
 
 
 class Tournament(ABC):
