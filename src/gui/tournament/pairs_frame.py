@@ -20,11 +20,6 @@ LAST_COLUMNS = [
     (50, 250, 230, 120)
 ]
 
-WAITING_COLUMNS = [
-    ('PAUZA',),
-    (1,)
-]
-
 
 class WaitingFrame(tk.Label):
     def __init__(self, parent):
