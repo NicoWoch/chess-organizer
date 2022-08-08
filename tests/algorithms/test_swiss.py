@@ -1,7 +1,7 @@
 import unittest
 
 from src.algorithms.swiss_tournament import SwissTournament
-from src.algorithms.game import Result, Round
+from src.algorithms.tournament import Result, Round
 from src.player import Player, Gender
 
 

@@ -2,7 +2,7 @@ import tkinter as tk
 from abc import ABC, abstractmethod
 
 import src.gui.gui_utils as utils
-from src.algorithms.game import Result
+from src.algorithms.tournament import Result
 
 
 class ActionBarListener(ABC):
