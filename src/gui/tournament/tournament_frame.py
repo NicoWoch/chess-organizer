@@ -41,6 +41,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
         self._info_labels: list[tk.Label] = []
+        self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
 
     def _grid_frame(self, grid_scoreboard=True):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
@@ -85,22 +86,24 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self.auto_save_tournament()
 
     def __show_swiss_info_labels(self):
-        players_count = len(self.tournament.players)
+        if not isinstance(self.tournament, SwissTournament):
+            return
 
-        for label in self._info_labels:
-            label.destroy()
+        def x():
+            players_count = len(self.tournament.players)
 
-        if players_count >= 2:
-            optimum = math.ceil(math.log(players_count, 2))
-            # maksimum = (math.factorial(players_count) // (2 * math.factorial(players_count - 2))) / (players_count // 2)
+            while self._info_labels:
+                self._info_labels.pop().place_forget()
 
-            optimum_label = tk.Label(self, text=f'Optymalna ilość rund: {optimum}', bg='#bfbfbf', font=('Calibri', 9))
-            optimum_label.place(x=3, rely=1, y=-25, anchor=tk.W)
+            if players_count >= 2:
+                optimum = math.ceil(math.log(players_count, 2))
 
-            # maximum_label = tk.Label(self, text=f'Maksymalna ilość rund: {maksimum}', bg='#bfbfbf', font=('Calibri', 9))
-            # maximum_label.place(x=3, rely=1, y=-25, anchor=tk.W)
+                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
+                optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
-            self._info_labels.extend([optimum_label])  # , maximum_label])
+                self._info_labels.append(optimum_label)
+
+        self.after(100, x)
 
     def set_result(self, result):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
