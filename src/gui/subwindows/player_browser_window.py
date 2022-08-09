@@ -3,8 +3,10 @@ import tkinter as tk
 from collections.abc import Callable
 from copy import copy
 
+from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
+from src.gui.subwindows.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
 import src.gui.gui_utils as utils
@@ -44,15 +46,16 @@ class PlayerBrowserWindow(BrowserWindow):
         )
 
         def on_save():
-            if new_player not in self.players:
-                self.players.append(new_player)
-                self.update_table()
-            else:
-                logging.error('The same player already exists')
+            assert new_player not in self.players, WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+
+            self.players.append(new_player)
+            self.update_table()
 
         PlayerEditorWindow(self, new_player, on_save)
 
     def minus_btn(self):
+        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
+
         for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
             del self.players[player_idx]
 
@@ -61,6 +64,9 @@ class PlayerBrowserWindow(BrowserWindow):
     def edit_btn(self):
         selection = list(self.table.get_selected_ids())
 
+        assert len(selection) != 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_EDIT)
+        assert len(selection) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_PLAYER_SELECTED)
+
         if len(selection) != 1:
             logging.warning('Cannot edit more/less than one player')
             return
@@ -68,16 +74,19 @@ class PlayerBrowserWindow(BrowserWindow):
         player_copy = copy(self.players[selection[0]])
 
         def on_save():
-            if player_copy not in self.players:
-                self.players[selection[0]] = player_copy
-                self.update_table()
-            else:
-                logging.error('The same player already exists')
+            assert player_copy not in self.players or \
+                   player_copy == self.players[selection[0]], WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+
+            self.players[selection[0]] = player_copy
+            self.update_table()
 
         PlayerEditorWindow(self, player_copy, on_save)
 
     def open_btn(self):
         selected_players = [self.players[idx] for idx in self.table.get_selected_ids()]
+
+        assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_OPEN)
+
         self.add_to_tournament(selected_players)
 
     def auto_save(self):
