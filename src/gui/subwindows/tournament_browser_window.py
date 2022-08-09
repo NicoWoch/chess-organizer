@@ -1,13 +1,12 @@
-import logging
 import tkinter as tk
 from collections.abc import Callable
 
+import src.gui.gui_utils as utils
 from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.error_window import WindowException
 from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
-import src.gui.gui_utils as utils
 
 
 class TournamentBrowserWindow(BrowserWindow):
@@ -75,5 +74,5 @@ class TournamentBrowserWindow(BrowserWindow):
 if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('0x0+0+0')
-    TournamentBrowserWindow(root, lambda x: print('Opening tournament:', x.name))
+    TournamentBrowserWindow(root, lambda x: print('Opening tournament:', x.name), lambda: 0)
     root.mainloop()

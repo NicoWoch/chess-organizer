@@ -182,7 +182,7 @@ class ResizingCanvas(tk.Canvas):
 
 class ToolTip:
     def __init__(self, widget, text=None):
-        def make_tooltip(event):
+        def make_tooltip():
             self.tooltip = tk.Toplevel()
             self.tooltip.overrideredirect(True)
 
@@ -193,10 +193,10 @@ class ToolTip:
             self.label = tk.Label(self.tooltip, text=self.text)
             self.label.pack()
 
-        def on_enter(event):
-            self._after_event = self.widget.after(500, lambda: make_tooltip(event))
+        def on_enter(_):
+            self._after_event = self.widget.after(500, lambda: make_tooltip())
 
-        def on_leave(event):
+        def on_leave(_):
             if self.tooltip is not None:
                 self.tooltip.destroy()
                 self.tooltip = None

@@ -1,8 +1,8 @@
 import tkinter as tk
 from typing import Any
 
-from src.algorithms.game import Result, Game, Round
 import src.gui.gui_utils as utils
+from src.algorithms.game import Result, Game
 from src.algorithms.tops import Tops
 from src.player import Gender, Player
 

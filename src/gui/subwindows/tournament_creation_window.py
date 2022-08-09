@@ -45,7 +45,7 @@ class TournamentCreationWindow(tk.Toplevel):
         main_frame.pack(fill='both', padx=15, pady=15)
 
     def _create(self, *_):
-        alg_class = next(alg.cls for alg in ALGORITHMS)
+        alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
         self.on_create(alg_class(self.name.get(), []))
         self.destroy()
 
