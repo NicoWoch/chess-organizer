@@ -33,13 +33,16 @@ def create_image_btn(parent, img_filename: str, size=None, cmd=lambda: None):
 Action = namedtuple('Action', ('image_filename', 'cmd', 'side'))
 
 
-def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0):
+def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0, tooltips=None):
     action_bar = tk.Frame(parent)
     frames: dict[str, tk.Frame] = {tk.LEFT: tk.Frame(action_bar), tk.CENTER: tk.Frame(action_bar), tk.RIGHT: tk.Frame(action_bar)}
 
-    for action in actions:
-        create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)\
-            .pack(side=tk.LEFT, padx=padx, pady=pady)
+    for i, action in enumerate(actions):
+        button = create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)
+        button.pack(side=tk.LEFT, padx=padx, pady=pady)
+
+        if tooltips:
+            ToolTip(button, text=tooltips[i])
 
     frames[tk.LEFT].pack(side=tk.LEFT)
     frames[tk.CENTER].place(relx=0.5, y=0, relheight=1, anchor=tk.N)
@@ -175,6 +178,40 @@ class ResizingCanvas(tk.Canvas):
         self.height = event.height
 
         self.scale("all", 0, 0, wscale, hscale)
+
+
+class ToolTip:
+    def __init__(self, widget, text=None):
+        def make_tooltip(event):
+            self.tooltip = tk.Toplevel()
+            self.tooltip.overrideredirect(True)
+
+            x = self.widget.winfo_rootx()
+            y = self.widget.winfo_rooty() + self.widget.winfo_height()
+            self.tooltip.geometry(f'+{x}+{y}')
+
+            self.label = tk.Label(self.tooltip, text=self.text)
+            self.label.pack()
+
+        def on_enter(event):
+            self._after_event = self.widget.after(500, lambda: make_tooltip(event))
+
+        def on_leave(event):
+            if self.tooltip is not None:
+                self.tooltip.destroy()
+                self.tooltip = None
+
+            if self._after_event is not None:
+                self.widget.after_cancel(self._after_event)
+                self._after_event = None
+
+        self.widget: tk.Frame = widget
+        self.text = text
+        self._after_event = None
+        self.tooltip = None
+
+        self.widget.bind('<Enter>', on_enter)
+        self.widget.bind('<Leave>', on_leave)
 
 
 class Rect:
