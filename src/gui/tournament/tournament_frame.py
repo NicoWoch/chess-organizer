@@ -180,8 +180,18 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
         assert not self.tournament.is_started(), WindowException(Config.ErrorMsg.CANNOT_ADD_PLAYER_WHEN_STARTED)
 
+        already_added_players = []
         for player in players:
+            if player in self.tournament.players:
+                already_added_players.append(player)
+                continue
+
             self.tournament.add_player(player)
+
+        if already_added_players:
+            ErrorWindow(self.winfo_toplevel(), WindowException(
+                Config.ErrorMsg.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
+            ))
 
         self._update_frame()
 

@@ -29,8 +29,11 @@ class Config:
         NOT_ALL_GAMES_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
         CANNOT_PAIR = 'Nie można utworzyć par.\nNajczęściej oznacza to że należy zakończyć turniej'
         TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
+
         PLAYER_NOT_FOUND = 'Program nie znalazł graczy:\n\n{players}\n\n' \
                            'Oznacza to że zostali oni usunięci i program\nnie będzie aktualizował ich rankingów'
+        PLAYER_ALREADY_ADDED = 'Gracze:\n\n{players}\n\n' \
+                               'Zostali już wcześniej dodani do turnieju'
 
         CANNOT_ADD_PLAYER_WHEN_STARTED = 'Nie można dodać graczy kiedy\nturniej jest rozpoczęty lub zakończony'
         CANNOT_REMOVE_PLAYER_WHEN_STARTED = 'Nie można usunąć graczy kiedy\nturniej jest rozpoczęty lub zakończony'
