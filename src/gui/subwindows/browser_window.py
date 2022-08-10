@@ -11,8 +11,8 @@ class BrowserWindow(tk.Toplevel, ABC):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.geometry('300x300+700+300')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.center_window(self, (300, 300))
 
         self.table = utils.Table(self, style_prefix='browser_window')
         self.table.place(x=0, y=0, relheight=1, height=-ACTION_BAR_HEIGHT, relwidth=1)

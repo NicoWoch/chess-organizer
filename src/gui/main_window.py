@@ -10,6 +10,7 @@ from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
 from src.gui.subwindows.error_window import ErrorWindow, WindowException
 from src.gui.tournament.tournament_frame import TournamentFrame
+import src.gui.gui_utils as utils
 
 
 def show_error(self, exc, val, tb):
@@ -38,6 +39,8 @@ class MainWindow(tk.Tk):
         self.title(Config.WINDOW_NAME)
         self.iconbitmap(Config.WINDOW_ICON_PATH)
 
+        utils.center_window(self, Config.WINDOW_SIZE)
+
         self.tournament_frame = TournamentFrame(self)
         self.action_bar_frame = ActionBarFrame(self, self.tournament_frame)
 
@@ -51,8 +54,6 @@ class MainWindow(tk.Tk):
         self.config(bg='black')
 
         self.make_menu()
-
-        self.center_window()
 
         self._keys = []
         self.bind('<Key>', self._on_key_pressed)

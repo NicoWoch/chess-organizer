@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 import tkinter.ttk as ttk
 from collections import namedtuple
+from typing import Union
 
 from PIL import Image, ImageTk
 
@@ -252,6 +253,12 @@ class Rect:
 
     def __str__(self):
         return f'Rect<{self.x1}, {self.y1}, {self.x2}, {self.y2}>'
+
+
+def center_window(window: Union[tk.Tk, tk.Toplevel], size, offset=(0, 0)):
+    top = (window.winfo_screenheight() - size[1]) // 2 + offset[1]
+    left = (window.winfo_screenwidth() - size[0]) // 2 + offset[0]
+    window.geometry('%dx%d+%d+%d' % (size[0], size[1], left, top))
 
 
 if __name__ == '__main__':  # GUI Testing
