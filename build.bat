@@ -6,7 +6,7 @@ rem Compiling
 pyinstaller --noconfirm ^
              --onedir ^
              --windowed ^
-             --icon ./images/icon.ico ^
+             --icon ./images/logo.ico ^
              ./chess-organizer.py
 
 robocopy images dist\chess-organizer\images
