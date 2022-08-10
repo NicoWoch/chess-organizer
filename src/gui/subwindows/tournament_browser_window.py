@@ -5,6 +5,7 @@ import src.gui.gui_utils as utils
 from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
+from src.gui.subwindows.confirm_window import confirm
 from src.gui.subwindows.error_window import WindowException
 from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
 
@@ -52,6 +53,16 @@ class TournamentBrowserWindow(BrowserWindow):
     def minus_btn(self):
         assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_DELETION)
 
+        tournament_count = len(self.table.get_selected_ids())
+        if tournament_count == 1:
+            tournament = self.tournaments[self.table.get_selected_ids()[0]]
+            confirm(self, f'usunąć turniej {tournament.name}', self._remove_selected_tournaments)
+        elif 1 < tournament_count < 5:
+            confirm(self, f'usunąć {tournament_count} turnieje', self._remove_selected_tournaments)
+        else:
+            confirm(self, f'usunąć {tournament_count} turniejów', self._remove_selected_tournaments)
+
+    def _remove_selected_tournaments(self):
         for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
             del self.tournaments[player_idx]
 

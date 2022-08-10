@@ -11,7 +11,11 @@ class ConfirmWindow(tk.Toplevel):
 
         self.title('Potwierdź')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
-        utils.center_window(self, (300, 110))
+
+        if len(msg) < 28:
+            utils.center_window(self, (300, 110))
+        else:
+            utils.center_window(self, (420, 110))
 
         self.on_confirm = on_confirm
 

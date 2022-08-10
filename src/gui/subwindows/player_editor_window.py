@@ -5,11 +5,6 @@ from src.config import Config
 from src.player import Player, Gender
 import src.gui.gui_utils as utils
 
-GROUPS = [
-    'A', 'B', 'C',
-    'default'
-]
-
 
 class PlayerEditorWindow(tk.Toplevel):
     def __init__(self, parent, player: Player, on_save: Callable):

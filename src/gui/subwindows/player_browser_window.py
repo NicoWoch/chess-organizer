@@ -6,6 +6,7 @@ from copy import copy
 from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
+from src.gui.subwindows.confirm_window import confirm
 from src.gui.subwindows.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
@@ -56,6 +57,14 @@ class PlayerBrowserWindow(BrowserWindow):
     def minus_btn(self):
         assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
 
+        player_count = len(self.table.get_selected_ids())
+        if player_count == 1:
+            player = self.players[self.table.get_selected_ids()[0]]
+            confirm(self, f'usunąć gracza {player}', self._remove_selected_players)
+        else:
+            confirm(self, f'usunąć {player_count} graczy', self._remove_selected_players)
+
+    def _remove_selected_players(self):
         for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
             del self.players[player_idx]
 
