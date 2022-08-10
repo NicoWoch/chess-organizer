@@ -54,3 +54,6 @@ class Player:
 
     def __str__(self):
         return f'{self.name} {self.surname}'
+
+    def __repr__(self):
+        return self.__str__()

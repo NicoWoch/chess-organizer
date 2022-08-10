@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from src.algorithms.elo import elo_rating
 from src.algorithms.game import Result, Round
@@ -74,8 +75,18 @@ class Tournament(ABC):
         return len(self._rounds)
 
     @property
-    def active_round(self) -> Round:
-        return self._rounds[-1] if len(self._rounds) > 0 else None
+    def active_round_id(self) -> Optional[int]:
+        if not self._is_started or self._is_ended:
+            return None
+
+        return len(self._rounds) - 1
+
+    @property
+    def active_round(self) -> Optional[Round]:
+        if not self._is_started or self._is_ended:
+            return None
+
+        return self._rounds[-1]
 
     def get_round(self, round_id) -> Round:
         return self._rounds[round_id]
@@ -84,6 +95,9 @@ class Tournament(ABC):
         return self._pausing_players[round_id]
 
     def has_round_ended(self) -> bool:
+        if not self.is_started():
+            return True
+
         return all(game.result != Result.Playing for game in self.active_round)
 
     def get_scoreboard(self) -> list[tuple[Player, tuple]]:
@@ -159,7 +173,7 @@ class Tournament(ABC):
         self._end_round()
         self._start_round()
 
-    def end_tournament(self, db):
+    def end_tournament(self):
         if not self._is_started:
             raise Exception('Tournament not started yet')
 
@@ -169,13 +183,22 @@ class Tournament(ABC):
         logging.debug(f'Tournament "{self.name}": Ending tournament')
 
         self._end_round()
-        self._update_ratings(db)
         self._is_ended = True
 
     def _start_round(self):
-        pairs, pause = self._pair_round()
+        pairs, pauses = self._pair_round()
+
+        pause_points, _, _ = self._get_win_draw_lost_points()
+
+        for pause in pauses:
+            pause_id = self._players.index(pause)
+            self._points[pause_id] = (
+                self._points[pause_id][0] + pause_points,
+                self._points[pause_id][1], self._points[pause_id][2]
+            )
+
         self._rounds.append(pairs)
-        self._pausing_players.append(pause)
+        self._pausing_players.append(pauses)
 
         self._trigger_playing_to_players()
 
@@ -189,15 +212,6 @@ class Tournament(ABC):
     def _trigger_playing_to_players(self):
         for player in self._players:
             player.trigger_playing()
-
-    def _update_ratings(self, db):
-        db_players = db.load_players()
-
-        for i, new_rating in enumerate(self.new_ratings):
-            db_id = db_players.index(self._players[i])
-            db_players[db_id].rating = new_rating
-
-        db.save_players(db_players)
 
     @property
     def new_ratings(self) -> list[int]:

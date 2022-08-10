@@ -1,4 +1,4 @@
-set APP_VERSION=V0.2-3
+set APP_VERSION=V0.3
 
 
 rem Compiling
@@ -6,10 +6,11 @@ rem Compiling
 pyinstaller --noconfirm ^
              --onedir ^
              --windowed ^
-             --icon ./images/icon.ico ^
+             --icon ./images/logo.ico ^
              ./chess-organizer.py
 
 robocopy images dist\chess-organizer\images
+copy license.md dist\chess-organizer
 
 mkdir dist\chess-organizer\logs
 echo . > dist\chess-organizer\logs\empty.txt

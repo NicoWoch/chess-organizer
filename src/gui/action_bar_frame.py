@@ -44,7 +44,16 @@ class ActionBarFrame(tk.Frame):
             utils.Action('red_flag.png', self.listener.end_tournament, tk.CENTER),
             utils.Action('player.png', self.listener.browse_players, tk.RIGHT),
             utils.Action('player_minus.png', self.listener.remove_players, tk.RIGHT),
-        ], (50, 50), padx=20).grid(sticky='nesw')
+        ], (50, 50), padx=20, tooltips=[
+            'Przeglądaj turnieje',
+            'Białe wygrały',
+            'Czarne wygrały',
+            'Remis',
+            'Następna runda',
+            'Koniec turnieju',
+            'Przeglądaj graczy',
+            'Usuń gracza',
+        ]).grid(sticky='nesw')
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)

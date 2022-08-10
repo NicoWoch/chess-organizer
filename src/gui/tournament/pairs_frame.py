@@ -20,11 +20,22 @@ LAST_COLUMNS = [
     (50, 250, 230, 120)
 ]
 
-WAITING_COLUMNS = [
-    ('PAUZA',),
-    (1,)
-]
-WAITING_SIZE = 0.3, 0.2
+
+class WaitingFrame(tk.Label):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self['font'] = ('Calibri', 18)
+        self['bg'] = 'white'
+        self['anchor'] = 'se'
+
+    def set_players(self, players: list[Player]):
+        assert len(players) <= 1, 'Only one player can be shown right now on pause'
+
+        if len(players) == 0:
+            self['text'] = ''
+        else:
+            self['text'] = f'PAUZA: {players[0]}'
 
 
 class PairsFrame(tk.Frame):
@@ -36,9 +47,8 @@ class PairsFrame(tk.Frame):
         self.table = utils.Table(self, style_prefix='pairs_frame', style_theme='clam')
         self.table.place(relheight=1, relwidth=1)
 
-        self.waiting_table = utils.Table(self, style_prefix='pairs_frame')
-        self._place_waiting_table()
-        self.waiting_table.set_columns(*WAITING_COLUMNS)
+        self.waiting_frame = WaitingFrame(self)
+        self._place_waiting_frame()
 
         self.table.style_headings(font=('Calibri', 20, 'bold'))
         self.table.style_body(highlightthickness=0, bd=0, font=('Calibri', 14), rowheight=40)
@@ -72,19 +82,16 @@ class PairsFrame(tk.Frame):
             self.table.add_row(pos, *row)
             prev_row = row
 
-    def _place_waiting_table(self):
-        self.waiting_table.place(relx=1 - WAITING_SIZE[0], rely=1 - WAITING_SIZE[1], relwidth=WAITING_SIZE[0], relheight=WAITING_SIZE[1])
+    def _place_waiting_frame(self):
+        self.waiting_frame.place(relx=0.5, rely=0.9, relwidth=0.49, relheight=0.09)
 
     def _update_waiting(self, players: Optional[list[Player]]):
-        self.waiting_table.clear_rows()
-
         if players is None:
-            self.waiting_table.place_forget()
+            self.waiting_frame.place_forget()
             return
 
-        self._place_waiting_table()
-        for player in players:
-            self.waiting_table.add_row(player)
+        self._place_waiting_frame()
+        self.waiting_frame.set_players(players)
 
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
@@ -103,10 +110,12 @@ class PairsFrame(tk.Frame):
     def update_last(self, tournament: Tournament):
         self.table.set_columns(*LAST_COLUMNS)
 
+        rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
+        rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
         self._update_rows([
             (
                 tournament.players[i],
-                f'{tournament.old_ratings[i]} -> {tournament.new_ratings[i]}',
+                f'{tournament.old_ratings[i]}  ({rating_deviations_str[i]})    ->    {tournament.new_ratings[i]}',
                 ',   '.join(map(str, tournament.get_points(i)))
             )
             for i in tournament.get_scoreboard_ids()

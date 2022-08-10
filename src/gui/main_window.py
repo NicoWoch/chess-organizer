@@ -4,22 +4,31 @@ import tkinter as tk
 import traceback
 
 from src import dummy_generator
+from src.algorithms.game import Result
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
+from src.gui.subwindows.info.about_window import AboutWindow
+from src.gui.subwindows.info.error_window import ErrorWindow, WindowException
+from src.gui.subwindows.info.license_window import LicenseWindow
 from src.gui.tournament.tournament_frame import TournamentFrame
+import src.gui.gui_utils as utils
 
 
-def show_error(_, exc: type, val, tb):
-    err_id = random.randint(0, 99)
-    err_str = f'Raised "{exc.__name__}" <{err_id}>: {val}'
-    tb_str = f'TRACEBACK: "{exc.__name__}" <{err_id}>: {val}\n\n' + ''.join(traceback.format_exception(exc, val, tb)) + '\n\n\n'
+def show_error(self, exc, val, tb):
+    if isinstance(val, AssertionError) and isinstance(val.args[0], WindowException):
+        logging.warning(f'WindowError: {val.args[0]}')
+        ErrorWindow(self, val.args[0]).mainloop()
+    else:
+        err_id = random.randint(0, 99)
+        err_str = f'Raised "{exc.__name__}" <{err_id}>: {val}'
+        tb_str = f'TRACEBACK: "{exc.__name__}" <{err_id}>: {val}\n\n' + ''.join(traceback.format_exception(exc, val, tb)) + '\n\n\n'
 
-    with open(Config.LOG_TB_FILE, 'a') as f:
-        f.write(tb_str)
+        with open(Config.LOG_TB_FILE, 'a') as f:
+            f.write(tb_str)
 
-    logging.error(err_str)
-    print(err_str)
+        logging.error(err_str)
+        print(err_str)
 
 tk.Tk.report_callback_exception = show_error
 
@@ -31,6 +40,8 @@ class MainWindow(tk.Tk):
         super().__init__()
         self.title(Config.WINDOW_NAME)
         self.iconbitmap(Config.WINDOW_ICON_PATH)
+
+        utils.center_window(self, Config.WINDOW_SIZE)
 
         self.tournament_frame = TournamentFrame(self)
         self.action_bar_frame = ActionBarFrame(self, self.tournament_frame)
@@ -46,8 +57,6 @@ class MainWindow(tk.Tk):
 
         self.make_menu()
 
-        self.center_window()
-
         self._keys = []
         self.bind('<Key>', self._on_key_pressed)
         self.bind('<Key-F11>', self._enable_fullscreen_mode)
@@ -60,6 +69,39 @@ class MainWindow(tk.Tk):
 
     def make_menu(self, dev=False):
         menubar = tk.Menu(self)
+
+        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label='Przeglądaj turnieje', command=self.tournament_frame.browse_tournaments)
+        file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
+        # file_menu.add_command(label='Eksportuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # file_menu.add_command(label='Importuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        menubar.add_cascade(label='Plik', menu=file_menu)
+
+        player_menu = tk.Menu(menubar, tearoff=0)
+        player_menu.add_command(label='Przeglądaj graczy',  command=self.tournament_frame.browse_players)
+        player_menu.add_command(label='Usuń graczy',        command=self.tournament_frame.remove_players)
+        # player_menu.add_command(label='Eksportuj graczy',   command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # player_menu.add_command(label='Importuj graczy',    command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        menubar.add_cascade(label='Gracz', menu=player_menu)
+
+        tournament_menu = tk.Menu(menubar, tearoff=0)
+
+        set_result_menu = tk.Menu(tournament_menu, tearoff=0)
+        set_result_menu.add_command(label='Biały wygrał',  command=lambda: self.tournament_frame.set_result(Result.White))
+        set_result_menu.add_command(label='Czarny wygrał', command=lambda: self.tournament_frame.set_result(Result.Black))
+        set_result_menu.add_command(label='Remis',         command=lambda: self.tournament_frame.set_result(Result.Draw))
+        set_result_menu.add_command(label='Jeszcze grają', command=lambda: self.tournament_frame.set_result(Result.Playing))
+        tournament_menu.add_cascade(label='Ustaw wynik', menu=set_result_menu)
+
+        tournament_menu.add_command(label='Następna runda',        command=self.tournament_frame.next_round)
+        tournament_menu.add_command(label='Zakończ turniej',  command=self.tournament_frame.end_tournament)
+        menubar.add_cascade(label='Turniej', menu=tournament_menu)
+
+        help_menu = tk.Menu(menubar, tearoff=0)
+        # help_menu.add_command(label='Sprawdź aktualizacje', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        help_menu.add_command(label='O programie', command=self._show_about_window)
+        help_menu.add_command(label='Licencja', command=self._show_license_window)
+        menubar.add_cascade(label='Pomoc', menu=help_menu)
 
         if dev:
             devmenu = tk.Menu(menubar, tearoff=0)
@@ -75,6 +117,12 @@ class MainWindow(tk.Tk):
             menubar.add_cascade(label='Developer', menu=devmenu)
 
         self.config(menu=menubar)
+
+    def _show_about_window(self):
+        AboutWindow(self)
+
+    def _show_license_window(self):
+        LicenseWindow(self)
 
     def _enable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', True)

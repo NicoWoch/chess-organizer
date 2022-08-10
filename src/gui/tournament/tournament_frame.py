@@ -2,15 +2,18 @@ import logging
 import tkinter as tk
 from typing import Optional
 
+from src.algorithms.swiss_tournament import SwissTournament
 from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
+from src.gui.subwindows.info.error_window import WindowException, ErrorWindow
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
+import math
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -37,6 +40,9 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self._update_frame()
 
+        self._info_labels: list[tk.Label] = []
+        self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
+
     def _grid_frame(self, grid_scoreboard=True):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
         self.pairs_frame.grid(row=0, column=1, sticky='nesw')
@@ -44,17 +50,19 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         if grid_scoreboard:
             self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
 
-    def _ungrid_frame(self):
-        self.rounds_frame.grid_forget()
-        self.pairs_frame.grid_forget()
-        self.scoreboard_frame.grid_forget()
+    def _forget_all(self):
+        for slave in self.grid_slaves():
+            slave.grid_forget()
+
+        for slave in self.place_slaves():
+            slave.place_forget()
 
     def _ungrid_scoreboard(self):
         self.scoreboard_frame.grid_forget()
 
     def _update_frame(self, auto_save=True):
         if self.tournament is None:
-            self._ungrid_frame()
+            self._forget_all()
             return
 
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
@@ -71,24 +79,45 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
+        if isinstance(self.tournament, SwissTournament):
+            self.__show_swiss_info_labels()
+
         if auto_save:
             self.auto_save_tournament()
 
-    @property
-    def active_round(self):
-        if self.rounds_frame.is_round():
-            return self.tournament.get_round(self.rounds_frame.get_active_round())
+    def __show_swiss_info_labels(self):
+        if not isinstance(self.tournament, SwissTournament):
+            return
+
+        def x():
+            players_count = len(self.tournament.players)
+
+            while self._info_labels:
+                self._info_labels.pop().place_forget()
+
+            if players_count >= 2:
+                optimum = math.ceil(math.log(players_count, 2))
+
+                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
+                optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
+
+                self._info_labels.append(optimum_label)
+
+        self.after(100, x)
 
     def set_result(self, result):
-        if self.tournament is None:
-            logging.warning('There is no tournament opened')
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert self.tournament.is_started(), WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED)
+        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+
+        if not self.rounds_frame.is_round():
             return
 
-        if self.active_round != self.tournament.active_round:
-            logging.warning('Tried to change game status in round that ended')
-            return
+        assert self.rounds_frame.get_active_round() == self.tournament.active_round_id, WindowException(Config.ErrorMsg.CANNOT_EDIT_IN_CLOSED_ROUND)
 
         selection = self.pairs_frame.table.get_selected_ids()
+
+        assert len(selection) > 0, WindowException(Config.ErrorMsg.TABLE_NOT_SELECTED)
 
         for i in selection:
             self.tournament.set_result(i, result)
@@ -97,47 +126,82 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
     def next_round(self):
-        if self.tournament is None:
-            logging.warning('There is no tournament opened')
-            return
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert len(self.tournament.players) >= 2, WindowException(Config.ErrorMsg.TOO_LESS_PLAYERS_IN_TOURNAMENT)
+        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+        assert self.tournament.has_round_ended(), WindowException(Config.ErrorMsg.NOT_ALL_GAMES_ENDED)
 
-        self.tournament.next_round()
+        try:
+            self.tournament.next_round()
+        except Exception:
+            raise AssertionError(WindowException(Config.ErrorMsg.CANNOT_PAIR))
 
         self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def end_tournament(self):
-        if self.tournament is None:
-            logging.warning('There is no tournament opened')
-            return
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert self.tournament.is_started(), WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED)
+        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+        assert self.tournament.has_round_ended(), WindowException(Config.ErrorMsg.NOT_ALL_GAMES_ENDED)
 
-        self.tournament.end_tournament(MainDB)
+        self.tournament.end_tournament()
+        self._update_ratings()
         self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
+
+    def _update_ratings(self):
+        db_players = MainDB.load_players()
+
+        not_found_players = []
+        for i, (player, new_rating) in enumerate(zip(self.tournament.players, self.tournament.new_ratings)):
+            if player not in db_players:
+                not_found_players.append(player)
+                continue
+
+            db_id = db_players.index(player)
+            db_players[db_id].rating = new_rating
+
+        MainDB.save_players(db_players)
+
+        if not_found_players:
+            self.after(100, lambda: self.__show_players_not_found_error(not_found_players))
+
+    def __show_players_not_found_error(self, players):
+        ErrorWindow(self.winfo_toplevel(), WindowException(
+            Config.ErrorMsg.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
+        )).mainloop()
 
     def browse_players(self):
         players_browser = PlayerBrowserWindow(self, self.add_players)
         players_browser.focus()
 
     def add_players(self, players):
-        if self.tournament is None:
-            logging.warning('There is no tournament opened')
-            return
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert not self.tournament.is_started(), WindowException(Config.ErrorMsg.CANNOT_ADD_PLAYER_WHEN_STARTED)
 
-        if self.tournament.is_started():
-            raise Exception('Cannot add player to started tournament')
-
+        already_added_players = []
         for player in players:
+            if player in self.tournament.players:
+                already_added_players.append(player)
+                continue
+
             self.tournament.add_player(player)
+
+        if already_added_players:
+            ErrorWindow(self.winfo_toplevel(), WindowException(
+                Config.ErrorMsg.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
+            ))
 
         self._update_frame()
 
     def remove_players(self):
-        if not self.rounds_frame.is_first():
-            logging.warning('Tried to remove players when not first page is active')
-            return
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert not self.tournament.is_started(), WindowException(Config.ErrorMsg.CANNOT_REMOVE_PLAYER_WHEN_STARTED)
 
         selected_players = self.pairs_frame.get_selected_players()
+
+        assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
 
         for p in selected_players:
             self.tournament.remove_player(p)
@@ -146,7 +210,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
     def browse_tournaments(self):
-        tournament_browser = TournamentBrowserWindow(self, self.open_tournament)
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament)
         tournament_browser.focus()
 
     def open_tournament(self, tournament):
@@ -154,8 +218,14 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.tournament = tournament
 
         update_title(self.winfo_toplevel(), self.tournament)
-
         self.rounds_frame.update_tournament(self.tournament)
+        self._update_frame()
+
+    def close_tournament(self):
+        logging.info(f'Closing tournament')
+        self.tournament = None
+
+        update_title(self.winfo_toplevel(), self.tournament)
         self._update_frame()
 
     def auto_save_tournament(self):

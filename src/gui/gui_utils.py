@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 import tkinter.ttk as ttk
 from collections import namedtuple
+from typing import Union
 
 from PIL import Image, ImageTk
 
@@ -33,13 +34,16 @@ def create_image_btn(parent, img_filename: str, size=None, cmd=lambda: None):
 Action = namedtuple('Action', ('image_filename', 'cmd', 'side'))
 
 
-def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0):
+def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0, tooltips=None):
     action_bar = tk.Frame(parent)
     frames: dict[str, tk.Frame] = {tk.LEFT: tk.Frame(action_bar), tk.CENTER: tk.Frame(action_bar), tk.RIGHT: tk.Frame(action_bar)}
 
-    for action in actions:
-        create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)\
-            .pack(side=tk.LEFT, padx=padx, pady=pady)
+    for i, action in enumerate(actions):
+        button = create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)
+        button.pack(side=tk.LEFT, padx=padx, pady=pady)
+
+        if tooltips:
+            ToolTip(button, text=tooltips[i])
 
     frames[tk.LEFT].pack(side=tk.LEFT)
     frames[tk.CENTER].place(relx=0.5, y=0, relheight=1, anchor=tk.N)
@@ -60,8 +64,17 @@ class Table(ttk.Treeview):
             self.table_style.theme_use(style_theme)
 
         self['columns'] = ('x',)
+        self.column_sizes = None
 
         self.bind('<Button-3>', self.remove_selection)
+        self.bind('<Configure>', self._on_resize)
+        self.configure_after = None
+
+    def _on_resize(self, _):
+        if self.configure_after is not None:
+            self.after_cancel(self.configure_after)
+
+        self.configure_after = self.after(100, self.update_columns)
 
     def style_headings(self, **kwargs):
         self.table_style.configure(f'{self.table_style_name}.Heading', **kwargs)
@@ -78,6 +91,18 @@ class Table(ttk.Treeview):
     def style_odd(self, **kwargs):
         self.tag_configure('odd', **kwargs)
 
+    def update_columns(self):
+        rows = [self.item(row)['values'] for row in self.get_children()]
+        selected_rows = self.get_selected_ids()
+
+        self.set_columns(self['columns'], self.column_sizes)
+
+        for i, row in enumerate(rows):
+            self.add_row(*row)
+
+            if i in selected_rows:
+                self.selection_add(self.get_children()[-1])
+
     def set_columns(self, names, sizes=None, _repeat=True):
         self.clear_rows()
 
@@ -89,6 +114,7 @@ class Table(ttk.Treeview):
         size_factor = table_width / sizes_width
 
         self['columns'] = tuple(names)
+        self.column_sizes = sizes
         for i, (name, size) in enumerate(zip(names, sizes)):
             if isinstance(size, int):
                 minwidth, width = 20, int(size * size_factor)
@@ -155,6 +181,40 @@ class ResizingCanvas(tk.Canvas):
         self.scale("all", 0, 0, wscale, hscale)
 
 
+class ToolTip:
+    def __init__(self, widget, text=None):
+        def make_tooltip():
+            self.tooltip = tk.Toplevel()
+            self.tooltip.overrideredirect(True)
+
+            x = self.widget.winfo_rootx()
+            y = self.widget.winfo_rooty() + self.widget.winfo_height()
+            self.tooltip.geometry(f'+{x}+{y}')
+
+            self.label = tk.Label(self.tooltip, text=self.text)
+            self.label.pack()
+
+        def on_enter(_):
+            self._after_event = self.widget.after(500, lambda: make_tooltip())
+
+        def on_leave(_):
+            if self.tooltip is not None:
+                self.tooltip.destroy()
+                self.tooltip = None
+
+            if self._after_event is not None:
+                self.widget.after_cancel(self._after_event)
+                self._after_event = None
+
+        self.widget: tk.Frame = widget
+        self.text = text
+        self._after_event = None
+        self.tooltip = None
+
+        self.widget.bind('<Enter>', on_enter)
+        self.widget.bind('<Leave>', on_leave)
+
+
 class Rect:
     def __init__(self, x1, y1, x2, y2):
         self.x1 = x1
@@ -193,6 +253,12 @@ class Rect:
 
     def __str__(self):
         return f'Rect<{self.x1}, {self.y1}, {self.x2}, {self.y2}>'
+
+
+def center_window(window: Union[tk.Tk, tk.Toplevel], size, offset=(0, 0)):
+    top = (window.winfo_screenheight() - size[1]) // 2 + offset[1]
+    left = (window.winfo_screenwidth() - size[0]) // 2 + offset[0]
+    window.geometry('%dx%d+%d+%d' % (size[0], size[1], left, top))
 
 
 if __name__ == '__main__':  # GUI Testing

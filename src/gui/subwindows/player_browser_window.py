@@ -1,94 +1,80 @@
 import logging
 import tkinter as tk
-import tkinter.ttk as ttk
 from collections.abc import Callable
 from copy import copy
 
-import src.gui.gui_utils as utils
 from src.config import Config
 from src.db import MainDB
+from src.gui.subwindows.browser_window import BrowserWindow
+from src.gui.subwindows.info.confirm_window import confirm
+from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
+import src.gui.gui_utils as utils
 
 
-class PlayerBrowserWindow(tk.Toplevel):
+class PlayerBrowserWindow(BrowserWindow):
     def __init__(self, parent, add_to_tournament: Callable):
         super().__init__(parent)
 
-        self.title('Wszyscy Gracze')
-        self.geometry('+500+300')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        self.title('Wszyscy gracze')
 
-        self.__photos = []
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
-        self.treeview = None
 
-        self.make_treeview()
-        self.make_action_bar()
+        self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking'), (1, 5, 5, 5))
+        self.update_table()
 
-    def make_treeview(self):
-        column_names = ('#', 'Imie', 'Nazwisko', 'Ranking')
-        column_sizes = (20, 100, 100, 100)
+    def make_action_bar(self):
+        return utils.create_image_action_bar(self, [
+            utils.Action('plus.png', self.plus_btn, tk.LEFT),
+            utils.Action('minus.png', self.minus_btn, tk.LEFT),
+            utils.Action('edit.png', self.edit_btn, tk.LEFT),
+            utils.Action('open.png', self.open_btn, tk.RIGHT),
+        ], (40, 40))
 
-        self.treeview = ttk.Treeview(self, columns=column_names, show='headings', height=10)
+    def update_table(self):
+        self.table.clear_rows()
 
-        for name, size in zip(column_names, column_sizes):
-            self.treeview.heading(name, text=name, anchor=tk.CENTER)
-            self.treeview.column(name, anchor=tk.CENTER, width=size)
-
-        self.treeview.pack(fill='x')
-
-        self.update_treeview()
-
-    def update_treeview(self):
-        for item in self.treeview.get_children():
-            self.treeview.delete(item)
-
-        for i, player in enumerate(self.players):
-            self.treeview.insert('', 'end', values=(i + 1, player.name, player.surname, player.rating))
+        for i, player in enumerate(self.players, start=1):
+            self.table.add_row(i, player.name, player.surname, player.rating)
 
         self.auto_save()
 
-    def get_selection_gen(self):
-        selected_players = self.treeview.selection()
-
-        for player_id in selected_players:
-            player_idx = self.treeview.item(player_id)['values'][0] - 1
-            yield player_idx
-
-    def make_action_bar(self):
-        action_bar = utils.create_image_action_bar(self, [
-            utils.Action('plus.png', self.add_player_btn, tk.LEFT),
-            utils.Action('minus.png', self.remove_players_btn, tk.LEFT),
-            utils.Action('edit.png', self.edit_player, tk.LEFT),
-            utils.Action('open.png', self.add_to_tournament_btn, tk.RIGHT),
-        ], (40, 40))
-
-        action_bar.pack(fill='x')
-
-    def add_player_btn(self):
+    def plus_btn(self):
         new_player = Player.create_player(
             name='', surname='', gender=Gender.Men, rating=1000
         )
 
         def on_save():
-            if new_player not in self.players:
-                self.players.append(new_player)
-                self.update_treeview()
-            else:
-                logging.error('The same player already exists')
+            assert new_player not in self.players, WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+
+            self.players.append(new_player)
+            self.update_table()
 
         PlayerEditorWindow(self, new_player, on_save)
 
-    def remove_players_btn(self):
-        for player_idx in sorted(self.get_selection_gen(), reverse=True):
+    def minus_btn(self):
+        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
+
+        player_count = len(self.table.get_selected_ids())
+        if player_count == 1:
+            player = self.players[self.table.get_selected_ids()[0]]
+            confirm(self, f'usunąć gracza {player}', self._remove_selected_players)
+        else:
+            confirm(self, f'usunąć {player_count} graczy', self._remove_selected_players)
+
+    def _remove_selected_players(self):
+        for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
             del self.players[player_idx]
 
-        self.update_treeview()
+        self.update_table()
 
-    def edit_player(self):
-        selection = list(self.get_selection_gen())
+    def edit_btn(self):
+        selection = list(self.table.get_selected_ids())
+
+        assert len(selection) != 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_EDIT)
+        assert len(selection) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_PLAYER_SELECTED)
 
         if len(selection) != 1:
             logging.warning('Cannot edit more/less than one player')
@@ -97,20 +83,24 @@ class PlayerBrowserWindow(tk.Toplevel):
         player_copy = copy(self.players[selection[0]])
 
         def on_save():
-            if player_copy not in self.players:
-                self.players[selection[0]] = player_copy
-                self.update_treeview()
-            else:
-                logging.error('The same player already exists')
+            assert player_copy not in self.players or \
+                   player_copy == self.players[selection[0]], WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+
+            self.players[selection[0]] = player_copy
+            self.update_table()
 
         PlayerEditorWindow(self, player_copy, on_save)
 
-    def add_to_tournament_btn(self):
-        selected_players = [self.players[idx] for idx in self.get_selection_gen()]
+    def open_btn(self):
+        selected_players = [self.players[idx] for idx in self.table.get_selected_ids()]
+
+        assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_OPEN)
+
         self.add_to_tournament(selected_players)
 
     def auto_save(self):
         MainDB.save_players(self.players)
+
 
 if __name__ == '__main__':
     root = tk.Tk()

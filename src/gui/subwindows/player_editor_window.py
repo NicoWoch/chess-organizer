@@ -3,11 +3,7 @@ from typing import Callable
 
 from src.config import Config
 from src.player import Player, Gender
-
-GROUPS = [
-    'A', 'B', 'C',
-    'default'
-]
+import src.gui.gui_utils as utils
 
 
 class PlayerEditorWindow(tk.Toplevel):
@@ -15,8 +11,8 @@ class PlayerEditorWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Gracz')
-        self.geometry('+500+500')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.center_window(self, (210, 250))
 
         self.player = player
         self.on_save = on_save
