@@ -1,7 +1,6 @@
 import tkinter as tk
 
 from src.config import Config
-import src.gui.gui_utils as utils
 
 
 class WindowException(Exception):

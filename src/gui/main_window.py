@@ -8,8 +8,9 @@ from src.algorithms.game import Result
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
-from src.gui.subwindows.about_window import AboutWindow
-from src.gui.subwindows.error_window import ErrorWindow, WindowException
+from src.gui.subwindows.info.about_window import AboutWindow
+from src.gui.subwindows.info.error_window import ErrorWindow, WindowException
+from src.gui.subwindows.info.license_window import LicenseWindow
 from src.gui.tournament.tournament_frame import TournamentFrame
 import src.gui.gui_utils as utils
 
@@ -99,6 +100,7 @@ class MainWindow(tk.Tk):
         help_menu = tk.Menu(menubar, tearoff=0)
         # help_menu.add_command(label='Sprawdź aktualizacje', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         help_menu.add_command(label='O programie', command=self._show_about_window)
+        help_menu.add_command(label='Licencja', command=self._show_license_window)
         menubar.add_cascade(label='Pomoc', menu=help_menu)
 
         if dev:
@@ -118,6 +120,9 @@ class MainWindow(tk.Tk):
 
     def _show_about_window(self):
         AboutWindow(self)
+
+    def _show_license_window(self):
+        LicenseWindow(self)
 
     def _enable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', True)

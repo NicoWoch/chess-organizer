@@ -5,8 +5,8 @@ import src.gui.gui_utils as utils
 from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
-from src.gui.subwindows.confirm_window import confirm
-from src.gui.subwindows.error_window import WindowException
+from src.gui.subwindows.info.confirm_window import confirm
+from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.tournament_creation_window import TournamentCreationWindow
 
 
