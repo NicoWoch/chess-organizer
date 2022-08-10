@@ -97,7 +97,7 @@ class MainWindow(tk.Tk):
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label='Sprawdź aktualizacje', command=print, state=tk.DISABLED)
+        # help_menu.add_command(label='Sprawdź aktualizacje', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         help_menu.add_command(label='O programie', command=self._show_about_window)
         menubar.add_cascade(label='Pomoc', menu=help_menu)
 
