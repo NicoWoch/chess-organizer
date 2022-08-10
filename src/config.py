@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Config:
     BASE_DIR = dirname(dirname(os.path.realpath(__file__)))
-    VERSION = 'V0.2'
+    VERSION = 'V0.3'
 
     __log_file_time = str(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
     LOG_FILE = os.path.join(BASE_DIR, 'logs', __log_file_time + '.log')
