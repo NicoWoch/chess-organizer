@@ -8,6 +8,7 @@ from src.algorithms.game import Result
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarFrame
+from src.gui.subwindows.about_window import AboutWindow
 from src.gui.subwindows.error_window import ErrorWindow, WindowException
 from src.gui.tournament.tournament_frame import TournamentFrame
 import src.gui.gui_utils as utils
@@ -71,15 +72,15 @@ class MainWindow(tk.Tk):
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label='Przeglądaj turnieje', command=self.tournament_frame.browse_tournaments)
         file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
-        file_menu.add_command(label='Eksportuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
-        file_menu.add_command(label='Importuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # file_menu.add_command(label='Eksportuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # file_menu.add_command(label='Importuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         menubar.add_cascade(label='Plik', menu=file_menu)
 
         player_menu = tk.Menu(menubar, tearoff=0)
         player_menu.add_command(label='Przeglądaj graczy',  command=self.tournament_frame.browse_players)
         player_menu.add_command(label='Usuń graczy',        command=self.tournament_frame.remove_players)
-        player_menu.add_command(label='Eksportuj graczy',   command=lambda: print('COMMING SOON'), state=tk.DISABLED)
-        player_menu.add_command(label='Importuj graczy',    command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # player_menu.add_command(label='Eksportuj graczy',   command=lambda: print('COMMING SOON'), state=tk.DISABLED)
+        # player_menu.add_command(label='Importuj graczy',    command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         menubar.add_cascade(label='Gracz', menu=player_menu)
 
         tournament_menu = tk.Menu(menubar, tearoff=0)
@@ -96,7 +97,9 @@ class MainWindow(tk.Tk):
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label='Pomoc', menu=help_menu, state=tk.DISABLED)
+        help_menu.add_command(label='Sprawdź aktualizacje', command=print, state=tk.DISABLED)
+        help_menu.add_command(label='O programie', command=self._show_about_window)
+        menubar.add_cascade(label='Pomoc', menu=help_menu)
 
         if dev:
             devmenu = tk.Menu(menubar, tearoff=0)
@@ -112,6 +115,9 @@ class MainWindow(tk.Tk):
             menubar.add_cascade(label='Developer', menu=devmenu)
 
         self.config(menu=menubar)
+
+    def _show_about_window(self):
+        AboutWindow(self)
 
     def _enable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', True)

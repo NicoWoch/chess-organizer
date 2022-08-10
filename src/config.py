@@ -12,7 +12,7 @@ class Config:
     LOG_TB_FILE = os.path.join(BASE_DIR, 'logs', __log_file_time + '.log-tb')
 
     WINDOW_NAME = f'Chess Organizer {VERSION}'
-    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'images/icon.ico')
+    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'images/logo.ico')
     WINDOW_SIZE = 1080, 640
 
     DB_PLAYERS = os.path.join(BASE_DIR, 'db/players.pickle')
