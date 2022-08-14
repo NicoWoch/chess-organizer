@@ -1,8 +1,11 @@
+from src.config import Config
+
+
 def probability(rating1: int, rating2: int) -> float:
     return 1 / (1 + pow(10, (rating2 - rating1) / 400))
 
 
-def elo_rating(rating_a: int, rating_b: int, white_points: float, k=20) -> tuple[int, int]:
+def elo_rating(rating_a: int, rating_b: int, white_points: float, k=Config.ELO_K_VALUE) -> tuple[int, int]:
     pa = probability(rating_a, rating_b)
     pb = probability(rating_b, rating_a)
 

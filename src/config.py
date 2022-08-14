@@ -20,6 +20,8 @@ class Config:
 
     GUI_IMAGES_DIR = os.path.join(BASE_DIR, 'images')
 
+    ELO_K_VALUE = 20
+
     class ErrorMsg:
         TOURNAMENT_NOT_OPENED = 'Nie otwarto tunieju'
         TABLE_NOT_SELECTED = 'Nie wybrano stołu'
