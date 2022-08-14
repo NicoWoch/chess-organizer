@@ -40,8 +40,8 @@ class MainWindow(tk.Tk):
         super().__init__()
         self.title(Config.WINDOW_NAME)
         self.iconbitmap(Config.WINDOW_ICON_PATH)
-
         utils.center_window(self, Config.WINDOW_SIZE)
+        self.minsize(800, 400)
 
         self.tournament_frame = TournamentFrame(self)
         self.action_bar_frame = ActionBarFrame(self, self.tournament_frame)

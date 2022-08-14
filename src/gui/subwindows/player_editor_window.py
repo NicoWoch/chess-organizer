@@ -13,6 +13,7 @@ class PlayerEditorWindow(tk.Toplevel):
         self.title('Gracz')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, (210, 250))
+        self.resizable(False, False)
 
         self.player = player
         self.on_save = on_save

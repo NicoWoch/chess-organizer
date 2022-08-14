@@ -22,6 +22,7 @@ class TournamentCreationWindow(tk.Toplevel):
         self.title('Stwóz turniej')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, (250, 150))
+        self.resizable(False, False)
 
         self.on_create = on_create
         self.name = tk.StringVar()

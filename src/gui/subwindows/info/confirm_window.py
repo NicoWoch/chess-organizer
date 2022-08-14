@@ -11,6 +11,7 @@ class ConfirmWindow(tk.Toplevel):
 
         self.title('Potwierdź')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
+        self.resizable(False, False)
 
         if len(msg) < 28:
             utils.center_window(self, (300, 110))

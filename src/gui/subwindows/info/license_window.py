@@ -12,6 +12,7 @@ class LicenseWindow(tk.Toplevel):
         self.title('Licencja')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, (600, 500))
+        self.minsize(600, 300)
 
         license_file = open(os.path.join(Config.BASE_DIR, 'license.md'))
 
