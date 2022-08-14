@@ -12,8 +12,8 @@ class Gender(Enum):
 
 @dataclass
 class Player:
-    name: str
-    surname: str
+    _name: str
+    _surname: str
     gender: Gender
     creation_date: datetime
     last_played: Optional[datetime]
@@ -21,18 +21,30 @@ class Player:
 
     _ratings_history: list[tuple[datetime, int]]
 
-    def __post_init__(self):
-        self.name = self.name.title()
-        self.surname = self.surname.title()
-
     @classmethod
     def create_player(cls, *, name: str, surname: str, gender: Gender, rating: int, group_name: str = ''):
         now = datetime.now().astimezone()
         return Player(
-            name, surname, gender,
+            name.title(), surname.title(), gender,
             now, None, group_name,
             [(now, rating)]
         )
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value.title()
+
+    @property
+    def surname(self):
+        return self._surname
+
+    @surname.setter
+    def surname(self, value: str):
+        self._surname = value.title()
 
     @property
     def rating(self) -> int:
