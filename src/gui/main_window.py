@@ -67,8 +67,12 @@ class MainWindow(tk.Tk):
         left = (self.winfo_screenwidth() - Config.WINDOW_SIZE[0]) / 2
         self.geometry('%dx%d+%d+%d' % (Config.WINDOW_SIZE[0], Config.WINDOW_SIZE[1], left, top))
 
-    def make_menu(self, dev=False):
+    def make_menu(self, *, empty_menu=False, dev=False):
         menubar = tk.Menu(self)
+
+        if empty_menu:
+            self.config(menu=menubar)
+            return
 
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label='Przeglądaj turnieje', command=self.tournament_frame.browse_tournaments)
@@ -126,9 +130,11 @@ class MainWindow(tk.Tk):
 
     def _enable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', True)
+        self.make_menu(empty_menu=True)
 
     def _disable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', False)
+        self.make_menu()
 
     def _show_dev_menu(self):
         self.make_menu(dev=True)
