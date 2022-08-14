@@ -75,6 +75,7 @@ class MainWindow(tk.Tk):
             return
 
         file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu.add_command(label='Stwórz turniej', command=lambda: self.tournament_frame.browse_tournaments(create=True))
         file_menu.add_command(label='Przeglądaj turnieje', command=self.tournament_frame.browse_tournaments)
         file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
         # file_menu.add_command(label='Eksportuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
@@ -95,7 +96,7 @@ class MainWindow(tk.Tk):
         set_result_menu.add_command(label='Czarny wygrał', command=lambda: self.tournament_frame.set_result(Result.Black))
         set_result_menu.add_command(label='Remis',         command=lambda: self.tournament_frame.set_result(Result.Draw))
         set_result_menu.add_command(label='Jeszcze grają', command=lambda: self.tournament_frame.set_result(Result.Playing))
-        tournament_menu.add_cascade(label='Ustaw wynik', menu=set_result_menu)
+        tournament_menu.add_cascade(label='Wynik', menu=set_result_menu)
 
         tournament_menu.add_command(label='Następna runda',        command=self.tournament_frame.next_round)
         tournament_menu.add_command(label='Zakończ turniej',  command=self.tournament_frame.end_tournament)

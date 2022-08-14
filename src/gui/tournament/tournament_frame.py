@@ -98,7 +98,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = math.ceil(math.log(players_count, 2))
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
+                optimum_label = tk.Label(self, text=f'Minimalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
                 optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
                 self._info_labels.append(optimum_label)
@@ -209,8 +209,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.pairs_frame.table.remove_selection()
         self._update_frame()
 
-    def browse_tournaments(self):
-        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament)
+    def browse_tournaments(self, create=False):
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament, auto_create=create)
         tournament_browser.focus()
 
     def open_tournament(self, tournament):

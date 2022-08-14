@@ -11,17 +11,22 @@ from src.gui.subwindows.tournament_creation_window import TournamentCreationWind
 
 
 class TournamentBrowserWindow(BrowserWindow):
-    def __init__(self, parent, open_tournament: Callable, close_tournament: Callable):
+    def __init__(self, parent, open_tournament: Callable, close_tournament: Callable, auto_create=False):
         super().__init__(parent)
 
         self.title('Wszystkie Turnieje')
+        utils.center_window(self, (450, 300))
+        self.minsize(450, 100)
 
         self.open_tournament = open_tournament
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
-        self.table.set_columns(('#', 'Nazwa', 'Liczba Graczy'), (1, 10, 4))
+        self.table.set_columns(('#', 'Nazwa', 'Liczba Graczy', 'Data'), (1, 12, 5, 8))
         self.update_table()
+
+        if auto_create:
+            self.after(100, lambda: self.plus_btn())
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
@@ -34,7 +39,8 @@ class TournamentBrowserWindow(BrowserWindow):
         self.table.clear_rows()
 
         for i, tournament in enumerate(self.tournaments, start=1):
-            self.table.add_row(i, tournament.name, len(tournament.players))
+            date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else ''
+            self.table.add_row(i, tournament.name, len(tournament.players), date)
 
         self.auto_save()
 
@@ -42,7 +48,7 @@ class TournamentBrowserWindow(BrowserWindow):
         def on_create(tournament):
             assert tournament.name not in [t.name for t in self.tournaments], WindowException(Config.ErrorMsg.TOURNAMENT_ALREADY_EXISTS)
 
-            self.tournaments.append(tournament)
+            self.tournaments.insert(0, tournament)
             self.update_table()
 
             self.open_tournament(tournament)

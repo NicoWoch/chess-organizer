@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import Optional
 
 from src.algorithms.elo import elo_rating
@@ -10,6 +11,7 @@ from src.player import Player
 class Tournament(ABC):
     def __init__(self, name: str, players: list[Player]):
         self.name = name
+        self.started_date: Optional[datetime] = None
 
         self._players: list[Player] = []
         self._points: list[tuple] = []
@@ -162,6 +164,7 @@ class Tournament(ABC):
     def next_round(self):
         if not self._is_started:
             self._start_round()
+            self.started_date = datetime.now().astimezone()
             self._is_started = True
             return
 

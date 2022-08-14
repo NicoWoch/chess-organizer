@@ -18,6 +18,8 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
+        utils.center_window(self, (300, 300))
+        self.minsize(300, 100)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()

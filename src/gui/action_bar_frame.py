@@ -22,7 +22,7 @@ class ActionBarListener(ABC):
     def remove_players(self): ...
 
     @abstractmethod
-    def browse_tournaments(self): ...
+    def browse_tournaments(self, create=False): ...
 
 
 class ActionBarFrame(tk.Frame):
@@ -36,7 +36,8 @@ class ActionBarFrame(tk.Frame):
 
     def make_gui(self):
         utils.create_image_action_bar(self, [
-            utils.Action('throphy.png', self.listener.browse_tournaments, tk.LEFT),
+            utils.Action('throphy.png', lambda: self.listener.browse_tournaments(create=True), tk.LEFT),
+            utils.Action('throphy_ended.png', self.listener.browse_tournaments, tk.LEFT),
             utils.Action('white_pawn.png', lambda: self.listener.set_result(Result.White), tk.CENTER),
             utils.Action('black_pawn.png', lambda: self.listener.set_result(Result.Black), tk.CENTER),
             utils.Action('draw_icon.png', lambda: self.listener.set_result(Result.Draw), tk.CENTER),
@@ -45,6 +46,7 @@ class ActionBarFrame(tk.Frame):
             utils.Action('player.png', self.listener.browse_players, tk.RIGHT),
             utils.Action('player_minus.png', self.listener.remove_players, tk.RIGHT),
         ], (50, 50), padx=20, tooltips=[
+            'Stwórz turniej',
             'Przeglądaj turnieje',
             'Białe wygrały',
             'Czarne wygrały',
