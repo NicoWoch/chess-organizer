@@ -15,7 +15,6 @@ class Player:
     name: str
     surname: str
     gender: Gender
-    title: str
     creation_date: datetime
     last_played: Optional[datetime]
     group_name: str
@@ -27,10 +26,10 @@ class Player:
         self.surname = self.surname.title()
 
     @classmethod
-    def create_player(cls, *, name: str, surname: str, gender: Gender, rating: int, title: str = '', group_name: str = ''):
+    def create_player(cls, *, name: str, surname: str, gender: Gender, rating: int, group_name: str = ''):
         now = datetime.now().astimezone()
         return Player(
-            name, surname, gender, title,
+            name, surname, gender,
             now, None, group_name,
             [(now, rating)]
         )

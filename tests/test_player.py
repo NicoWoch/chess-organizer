@@ -13,7 +13,7 @@ class TestPlayer(unittest.TestCase):
     def test_player_eq(self):
         player1 = Player.create_player(name='name', surname='surname', gender=Gender.Men, rating=1000, group_name='default')
         player2 = Player.create_player(
-            name='name', surname='surname', gender=Gender.Men, title='GM', rating=1999, group_name='default2'
+            name='name', surname='surname', gender=Gender.Men, rating=1999, group_name='default2'
         )
         self.assertEqual(player1, player2)
 

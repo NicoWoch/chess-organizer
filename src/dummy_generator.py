@@ -216,11 +216,7 @@ def get_random_player():
     surname = random.choice(SURNAMES)
     rating = random.randint(500, 2000)
 
-    title = random.choice(
-        [''] * 10 + ['GM', 'IM', '1k', '2k', '3k', '4k', '5k']
-    )
-
-    return Player.create_player(name=name, surname=surname, gender=gender, rating=rating, title=title)
+    return Player.create_player(name=name, surname=surname, gender=gender, rating=rating)
 
 
 def get_random_players(count):
