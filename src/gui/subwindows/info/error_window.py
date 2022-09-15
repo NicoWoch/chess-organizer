@@ -24,6 +24,8 @@ class ErrorWindow(tk.Toplevel):
         tk.Label(self, text=error.msg, foreground='red', font=('Times New Roman', 20, 'bold')) \
             .pack(fill='both', padx=10, pady=10)
 
+        self.after(5000, self.destroy)
+
 
 if __name__ == '__main__':
     root = tk.Tk()
