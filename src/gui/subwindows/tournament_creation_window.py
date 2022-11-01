@@ -5,13 +5,13 @@ from typing import Callable
 from src.algorithms.random_tournament import RandomTournament
 from src.algorithms.swiss_tournament import SwissTournament
 from src.config import Config
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 Alg = namedtuple('Alg', ('name', 'cls'))
 
 ALGORITHMS = [
     Alg('Swiss', SwissTournament),
-    Alg('Random', RandomTournament)
+    # Alg('Random', RandomTournament),
 ]
 
 

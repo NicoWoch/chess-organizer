@@ -3,7 +3,7 @@ from typing import Callable
 
 from src.config import Config
 from src.player import Player, Gender
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 class PlayerEditorWindow(tk.Toplevel):

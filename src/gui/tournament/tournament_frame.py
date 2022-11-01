@@ -25,9 +25,10 @@ def update_title(main_window: tk.Tk, tournament):
 
 
 class TournamentFrame(tk.Frame, ActionBarListener):
-    def __init__(self, parent):
+    def __init__(self, parent, register_subwindow):
         super().__init__(parent)
         self.tournament: Optional[Tournament] = None
+        self.register_subwindow = register_subwindow
 
         self.rounds_frame = RoundsFrame(self, lambda: self._update_frame(auto_save=False))
         self.pairs_frame = PairsFrame(self)
@@ -175,6 +176,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def browse_players(self):
         players_browser = PlayerBrowserWindow(self, self.add_players)
         players_browser.focus()
+        self.register_subwindow(players_browser)
 
     def add_players(self, players):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
@@ -212,6 +214,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def browse_tournaments(self, create=False):
         tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament, auto_create=create)
         tournament_browser.focus()
+        self.register_subwindow(tournament_browser)
 
     def open_tournament(self, tournament):
         logging.info(f'Changing opened tournament to ({tournament.name=})')

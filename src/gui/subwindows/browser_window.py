@@ -1,7 +1,7 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
 
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.config import Config
 
 ACTION_BAR_HEIGHT = 50

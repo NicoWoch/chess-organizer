@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Optional
 
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.algorithms.tournament import Tournament
 from src.player import Player
 

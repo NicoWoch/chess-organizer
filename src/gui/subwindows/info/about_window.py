@@ -1,5 +1,5 @@
 import tkinter as tk
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.config import Config
 
 ABOUT_TEXT = '''Program do zarządzania

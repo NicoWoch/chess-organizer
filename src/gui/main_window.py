@@ -12,7 +12,7 @@ from src.gui.subwindows.info.about_window import AboutWindow
 from src.gui.subwindows.info.error_window import ErrorWindow, WindowException
 from src.gui.subwindows.info.license_window import LicenseWindow
 from src.gui.tournament.tournament_frame import TournamentFrame
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 def show_error(self, exc, val, tb):
@@ -43,8 +43,9 @@ class MainWindow(tk.Tk):
         utils.center_window(self, Config.WINDOW_SIZE)
         self.minsize(800, 400)
 
-        self.tournament_frame = TournamentFrame(self)
+        self.tournament_frame = TournamentFrame(self, self._register_subwindow)
         self.action_bar_frame = ActionBarFrame(self, self.tournament_frame)
+        self.subwindows = []
 
         self.action_bar_frame.grid(row=0, column=0, sticky='nesw', pady=1)
         self.tournament_frame.grid(row=1, column=0, sticky='nesw')
@@ -58,9 +59,19 @@ class MainWindow(tk.Tk):
         self.make_menu()
 
         self._keys = []
+        self.bind('<Button-1>', self._remove_subwindows)
         self.bind('<Key>', self._on_key_pressed)
         self.bind('<Key-F11>', self._enable_fullscreen_mode)
         self.bind('<Key-Escape>', self._disable_fullscreen_mode)
+
+    def _remove_subwindows(self, *_):
+        for x in self.subwindows:
+            x.destroy()
+
+        self.subwindows.clear()
+
+    def _register_subwindow(self, window):
+        self.subwindows.append(window)
 
     def center_window(self):
         top = (self.winfo_screenheight() - Config.WINDOW_SIZE[1]) / 2
@@ -76,17 +87,13 @@ class MainWindow(tk.Tk):
 
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label='Stwórz turniej', command=lambda: self.tournament_frame.browse_tournaments(create=True))
-        file_menu.add_command(label='Przeglądaj turnieje', command=self.tournament_frame.browse_tournaments)
+        file_menu.add_command(label='Przeglądaj turnieje', command=lambda: self.tournament_frame.browse_tournaments())
         file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
-        # file_menu.add_command(label='Eksportuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
-        # file_menu.add_command(label='Importuj bazę danych', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         menubar.add_cascade(label='Plik', menu=file_menu)
 
         player_menu = tk.Menu(menubar, tearoff=0)
-        player_menu.add_command(label='Przeglądaj graczy',  command=self.tournament_frame.browse_players)
+        player_menu.add_command(label='Przeglądaj graczy',  command=lambda: self.tournament_frame.browse_players())
         player_menu.add_command(label='Usuń graczy',        command=self.tournament_frame.remove_players)
-        # player_menu.add_command(label='Eksportuj graczy',   command=lambda: print('COMMING SOON'), state=tk.DISABLED)
-        # player_menu.add_command(label='Importuj graczy',    command=lambda: print('COMMING SOON'), state=tk.DISABLED)
         menubar.add_cascade(label='Gracz', menu=player_menu)
 
         tournament_menu = tk.Menu(menubar, tearoff=0)
@@ -104,30 +111,17 @@ class MainWindow(tk.Tk):
 
         help_menu = tk.Menu(menubar, tearoff=0)
         # help_menu.add_command(label='Sprawdź aktualizacje', command=lambda: print('COMMING SOON'), state=tk.DISABLED)
-        help_menu.add_command(label='O programie', command=self._show_about_window)
-        help_menu.add_command(label='Licencja', command=self._show_license_window)
+        help_menu.add_command(label='O programie', command=self._show_window_cmd(AboutWindow, self))
+        help_menu.add_command(label='Licencja', command=self._show_window_cmd(LicenseWindow, self))
         menubar.add_cascade(label='Pomoc', menu=help_menu)
 
         if dev:
-            devmenu = tk.Menu(menubar, tearoff=0)
-
-            for func_name in dir(self):
-                func = getattr(self, func_name)
-
-                if func_name.startswith('_dev_') and callable(func):
-                    display_name = func_name[5:].replace('_', ' ').title()
-
-                    devmenu.add_command(label=display_name, command=func)
-
-            menubar.add_cascade(label='Developer', menu=devmenu)
+            self.make_dev_menu(menubar)
 
         self.config(menu=menubar)
 
-    def _show_about_window(self):
-        AboutWindow(self)
-
-    def _show_license_window(self):
-        LicenseWindow(self)
+    def _show_window_cmd(self, win_func, *args, **kwargs):
+        return lambda: self.subwindows.append(win_func(*args, **kwargs))
 
     def _enable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', True)
@@ -149,6 +143,19 @@ class MainWindow(tk.Tk):
         if self._keys == DEV_KEYS:
             logging.info('DEVELOPER MODE - ON')
             self.make_menu(dev=True)
+
+    def make_dev_menu(self, menubar):
+        devmenu = tk.Menu(menubar, tearoff=0)
+
+        for func_name in dir(self):
+            func = getattr(self, func_name)
+
+            if func_name.startswith('_dev_') and callable(func):
+                display_name = func_name[5:].replace('_', ' ').title()
+
+                devmenu.add_command(label=display_name, command=func)
+
+        menubar.add_cascade(label='Developer', menu=devmenu)
 
     def _dev_hide_menu(self):
         logging.info('DEVELOPER MODE - OFF')

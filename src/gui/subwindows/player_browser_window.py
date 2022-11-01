@@ -10,7 +10,7 @@ from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 class PlayerBrowserWindow(BrowserWindow):

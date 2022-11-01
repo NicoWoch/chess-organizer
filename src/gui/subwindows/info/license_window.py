@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 
 from src.config import Config
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 class LicenseWindow(tk.Toplevel):

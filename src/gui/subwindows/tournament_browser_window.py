@@ -1,7 +1,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.config import Config
 from src.db import MainDB
 from src.gui.subwindows.browser_window import BrowserWindow
