@@ -22,7 +22,7 @@ class TournamentBrowserWindow(BrowserWindow):
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
-        self.table.set_columns(('#', 'Nazwa', 'Liczba Graczy', 'Data'), (1, 12, 5, 8))
+        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data'), (1, 5, 2, 8))
         self.update_table()
 
         if auto_create:
@@ -57,11 +57,11 @@ class TournamentBrowserWindow(BrowserWindow):
         TournamentCreationWindow(self, on_create)
 
     def minus_btn(self):
-        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_DELETION)
+        assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_DELETION)
 
-        tournament_count = len(self.table.get_selected_ids())
+        tournament_count = len(self.table.get_selection())
         if tournament_count == 1:
-            tournament = self.tournaments[self.table.get_selected_ids()[0]]
+            tournament = self.tournaments[self.table.get_selection()[0]]
             confirm(self, f'usunąć turniej {tournament.name}', self._remove_selected_tournaments)
         elif 1 < tournament_count < 5:
             confirm(self, f'usunąć {tournament_count} turnieje', self._remove_selected_tournaments)
@@ -69,14 +69,14 @@ class TournamentBrowserWindow(BrowserWindow):
             confirm(self, f'usunąć {tournament_count} turniejów', self._remove_selected_tournaments)
 
     def _remove_selected_tournaments(self):
-        for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
+        for player_idx in sorted(self.table.get_selection(), reverse=True):
             del self.tournaments[player_idx]
 
         self.update_table()
         self.close_tournament()
 
     def open_btn(self):
-        selected_ids = list(self.table.get_selected_ids())
+        selected_ids = list(self.table.get_selection())
 
         assert len(selected_ids) != 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_OPEN)
         assert len(selected_ids) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_TOURNAMENT_SELECTED)

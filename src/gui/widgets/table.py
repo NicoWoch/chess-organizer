@@ -1,134 +1,170 @@
+import math
+import random
 import tkinter as tk
 from tkinter import ttk
+from typing import Union
 
 
-class Table(ttk.Treeview):
-    def __init__(self, parent, style_prefix='default', style_theme=None):
-        super().__init__(parent, show='headings')
+ParsableLabel = Union[int, str, tk.Button]
 
-        self.table_style = ttk.Style()
-        self.table_style_name = f'{style_prefix}.Treeview'
-        self['style'] = self.table_style_name
 
-        if style_theme is not None:
-            self.table_style.theme_use(style_theme)
+class Table(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-        self['columns'] = ('x',)
-        self.column_sizes = None
+        self._columns = []
+        self._sizes = []
+        self._sizes_sum = 0
+        self._rows = []
 
-        self.bind('<Button-3>', self.remove_selection)
-        self.bind('<Configure>', self._on_resize)
-        self.configure_after = None
+        self._checkmarks = True
+        self._selected_vars = []
 
-    def _on_resize(self, _):
-        if self.configure_after is not None:
-            self.after_cancel(self.configure_after)
+        self.style = {
+            'header': {
+                'bg': '#ccc',
+                'height': 30,
+                'font': 'Arial 15',
+                'padding': 5,
+            },
+            'row' : {
+                'bg': {
+                    'even': 'white',
+                    'odd': '#eee',
+                    'selected': 'lightblue',
+                },
+                'height': 25,
+                'font': 'Arial 13',
+                'selection_padding': 2,
+            },
+        }
 
-        self.configure_after = self.after(100, self.update_columns)
+        self.bind('<Button>', self.on_click)
+        self.redraw()
 
-    def style_headings(self, **kwargs):
-        self.table_style.configure(f'{self.table_style_name}.Heading', **kwargs)
+    def on_click(self, event: tk.Event):
+        widget_y = event.y_root - self.winfo_rooty()
+        row_idx = math.floor((widget_y - self.style['header']['height'] - self.style['header']['padding']) / (self.style['row']['height']))
 
-    def style_body(self, selected_fg='black', selected_bg='lightblue', **kwargs):
-        self.table_style.configure(self.table_style_name, **kwargs)
-        self.table_style.map(self.table_style_name,
-                             foreground=[('selected', selected_fg)],
-                             background=[('selected', selected_bg)])
+        if row_idx < 0 or row_idx >= len(self._rows):
+            return
 
-    def style_even(self, **kwargs):
-        self.tag_configure('even', **kwargs)
+        var = self._selected_vars[row_idx]
+        var.set(not var.get())
 
-    def style_odd(self, **kwargs):
-        self.tag_configure('odd', **kwargs)
+    def _col_pos_generator(self):
+        checkmarks_size = 1 if self._checkmarks else 0
 
-    def update_columns(self):
-        rows = [self.item(row)['values'] for row in self.get_children()]
-        selected_rows = self.get_selected_ids()
+        now_pos = checkmarks_size / (self._sizes_sum + checkmarks_size)
+        for col_size in self._sizes:
+            col_percent_size = col_size / (self._sizes_sum + checkmarks_size)
+            yield now_pos + col_percent_size / 2
+            now_pos += col_percent_size
 
-        self.set_columns(self['columns'], self.column_sizes)
+    def redraw(self):
+        for elem in self.place_slaves():
+            elem.destroy()
 
-        for i, row in enumerate(rows):
-            self.add_row(*row)
+        if len(self._columns) == 0:
+            return
 
-            if i in selected_rows:
-                self.selection_add(self.get_children()[-1])
+        header_style = self.style['header']
+        row_style = self.style['row']
 
-    def set_columns(self, names, sizes=None, _repeat=True):
-        self.clear_rows()
+        self.add_bindings(tk.Label(self, bg=header_style['bg'])) \
+            .place(relwidth=1, height=header_style['height'] + header_style['padding'])
 
+        for i, (col, col_pos) in enumerate(zip(self._columns, self._col_pos_generator())):
+            self.parse_label(col, header_style['font'], header_style['bg']) \
+                .place(relx=col_pos, y=2.5, height=header_style['height'], anchor='n')
+
+        for i, row in enumerate(self._rows):
+            y_pos = header_style['height'] + header_style['padding'] + (i * row_style['height'])
+            bg_color = row_style['bg']['selected'] if self._selected_vars[i].get() else \
+                       (row_style['bg']['odd'] if i % 2 == 0 else row_style['bg']['even'])
+
+            self.add_bindings(tk.Label(self, bg=bg_color)) \
+                .place(relwidth=1, y=y_pos - row_style['selection_padding'], height=row_style['height'] + row_style['selection_padding'] * 2)
+
+            if self._checkmarks:
+                self.add_bindings(tk.Checkbutton(self, variable=self._selected_vars[i], bg=bg_color)) \
+                    .place(y=y_pos, height=row_style['height'], anchor='nw')
+
+            for j, (item, col_pos) in enumerate(zip(row, self._col_pos_generator())):
+                self.parse_label(item, row_style['font'], bg_color).place(relx=col_pos, y=y_pos, height=row_style['height'], anchor='n')
+
+            self.rowconfigure(i, pad=2)
+
+    def parse_label(self, lbl: ParsableLabel, font, bg):
+        if isinstance(lbl, tk.Button):
+            copy_attrs = {'text', 'command'}
+            return tk.Button(self, {var: lbl[var] for var in copy_attrs})
+        else:
+            lbl = tk.Label(self, text=str(lbl), font=font, bg=bg)
+            return self.add_bindings(lbl)
+
+    def add_bindings(self, elem):
+        elem.bind('<Button>', self.on_click)
+        return elem
+
+    def set_columns(self, columns: list[ParsableLabel], sizes: list[int] = None):
         if sizes is None:
-            sizes = [1 for _ in names]
+            sizes = [1 for _ in columns]
 
-        table_width = self.winfo_width()
-        sizes_width = sum(sizes)
-        size_factor = table_width / sizes_width
+        assert len(columns) == len(sizes)
 
-        self['columns'] = tuple(names)
-        self.column_sizes = sizes
-        for i, (name, size) in enumerate(zip(names, sizes)):
-            if isinstance(size, int):
-                minwidth, width = 20, int(size * size_factor)
-            elif isinstance(size, tuple) and len(size) == 2:
-                minwidth, width = (int(x * 2) for x in size)
-            else:
-                raise ValueError('Unknown size type')
+        self._columns = columns
+        self._sizes = sizes
+        self._sizes_sum = sum(sizes)
+        self._rows = []
+        self._selected_vars = []
 
-            self.column(i, minwidth=minwidth, width=width, stretch=True, anchor=tk.CENTER)
-            self.heading(i, text=name)
+        self.redraw()
 
-        self.update()
-        if _repeat:
-            self.set_columns(names, sizes, _repeat=False)
+    def get_columns(self):
+        return self._columns
+
+    def add_row(self, *row: ParsableLabel):
+        assert len(row) == len(self._columns)
+
+        self._rows.append(row)
+        self._selected_vars.append(tk.BooleanVar(value=False))
+        self._selected_vars[-1].trace('w', lambda *_: self.redraw())
+
+        self.redraw()
 
     def clear_rows(self):
-        self.delete(*self.get_children())
+        self._rows = []
+        self._selected_vars = []
+        self.redraw()
 
-    def add_row(self, *values):
-        assert len(values) == len(self['columns']), 'Wrong amount of values in row'
+    def set_checkmarks_state(self, state: bool):
+        self._checkmarks = state
 
-        i = len(self.get_children())
-        tag = 'even' if i % 2 == 0 else 'odd'
-
-        self.insert('', 'end', values=(*values,), tags=(tag,))
-
-    def get_selected_ids(self):
+    def get_selection(self):
         selection = []
-        for item in self.selection():
-            selection.append(self.index(item))
+        for i, item in enumerate(self._selected_vars):
+            if item.get():
+                selection.append(i)
+
         return selection
 
     def remove_selection(self, *_):
-        for item in self.selection():
-            self.selection_remove(item)
-
-    def pack(self, *args, **kwargs):
-        super().pack(*args, **kwargs)
-        self.update()
-
-    def grid(self, *args, **kwargs):
-        super().grid(*args, **kwargs)
-        self.update()
-
-    def place(self, *args, **kwargs):
-        super().place(*args, **kwargs)
-        self.update()
+        for item in self._selected_vars:
+            item.set(False)
 
 
-if __name__ == '__main__':  # GUI Testing
+if __name__ == '__main__':
     root = tk.Tk()
     root.geometry('600x300')
-
-    t = Table(root, style_theme='clam')
-    t.grid(sticky='nesw')
-
-    t.style_headings(font='Arial 20')
-    t.style_body(font='Arial 15')
-    t.style_even(background='red')
+    t = Table(root)
+    t.place(relwidth=1, relheight=.5)
 
     t.set_columns(['a', 'b', 'c'], [1, 3, 2])
-
+    vals = ['12736', 1231, ':)', 'DFsfSDF', 'BleBleBle', tk.Button(text='click here', command=lambda: print('It works!'))]
     for _ in range(5):
-        t.add_row('RA', 'RB', 'RC')
+        random.shuffle(vals)
+        t.add_row(*vals[:3])
 
     def btn():
         t.set_columns(['a', 'b', 'c', 'd', 'e'])
@@ -137,7 +173,6 @@ if __name__ == '__main__':  # GUI Testing
         t.add_row(2, 3, 1, 5, 3)
 
 
-    tk.Button(root, text='CLICK ME', command=btn).grid(row=2)
+    tk.Button(root, text='CLICK ME', command=btn).place(relx=.5, rely=.5, anchor='n')
 
-    root.columnconfigure(0, weight=1)
     root.mainloop()

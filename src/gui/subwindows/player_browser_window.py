@@ -64,23 +64,23 @@ class PlayerBrowserWindow(BrowserWindow):
         PlayerEditorWindow(self, new_player, on_save)
 
     def minus_btn(self):
-        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
+        assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
 
-        player_count = len(self.table.get_selected_ids())
+        player_count = len(self.table.get_selection())
         if player_count == 1:
-            player = self.players[self.table.get_selected_ids()[0]]
+            player = self.players[self.table.get_selection()[0]]
             confirm(self, f'usunąć gracza {player}', self._remove_selected_players)
         else:
             confirm(self, f'usunąć {player_count} graczy', self._remove_selected_players)
 
     def _remove_selected_players(self):
-        for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
+        for player_idx in sorted(self.table.get_selection(), reverse=True):
             del self.players[player_idx]
 
         self.update_table()
 
     def edit_btn(self):
-        selection = list(self.table.get_selected_ids())
+        selection = list(self.table.get_selection())
 
         assert len(selection) != 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_EDIT)
         assert len(selection) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_PLAYER_SELECTED)
@@ -101,10 +101,10 @@ class PlayerBrowserWindow(BrowserWindow):
         PlayerEditorWindow(self, player_copy, on_save)
 
     def export_btn(self):
-        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
+        assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
 
         if filepath := asksaveasfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
-            selected_players = [self.players[i] for i in self.table.get_selected_ids()]
+            selected_players = [self.players[i] for i in self.table.get_selection()]
             MainDB.save_players(selected_players, path=filepath)
 
     def import_btn(self):
@@ -116,7 +116,7 @@ class PlayerBrowserWindow(BrowserWindow):
                     self.players.append(player)
 
     def open_btn(self):
-        selected_players = [self.players[idx] for idx in self.table.get_selected_ids()]
+        selected_players = [self.players[idx] for idx in self.table.get_selection()]
 
         assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_OPEN)
 

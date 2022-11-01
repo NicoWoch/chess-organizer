@@ -116,7 +116,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         assert self.rounds_frame.get_active_round() == self.tournament.active_round_id, WindowException(Config.ErrorMsg.CANNOT_EDIT_IN_CLOSED_ROUND)
 
-        selection = self.pairs_frame.table.get_selected_ids()
+        selection = self.pairs_frame.table.get_selection()
 
         assert len(selection) > 0, WindowException(Config.ErrorMsg.TABLE_NOT_SELECTED)
 

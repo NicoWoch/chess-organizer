@@ -44,25 +44,23 @@ class PairsFrame(tk.Frame):
 
         self.config(padx=20, pady=20, bg='#efefef')
 
-        self.table = Table(self, style_prefix='pairs_frame', style_theme='clam')
+        self.table = Table(self)
+        self.table.set_checkmarks_state(False)
+        self.table.header_fontsize = 20
+        self.table.fontsize = 14
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)
         self._place_waiting_frame()
 
-        self.table.style_headings(font=('Calibri', 20, 'bold'))
-        self.table.style_body(highlightthickness=0, bd=0, font=('Calibri', 14), rowheight=40)
-        self.table.style_even(background='#cfcfcf')
-        self.table.style_odd(background='white')
-
         self.first_page_players: list[Player] = []
 
     def get_selected_players(self) -> list[Player]:
-        if self.table['columns'] != FIRST_COLUMNS[0]:
+        if self.table.get_columns() != FIRST_COLUMNS[0]:
             raise Exception('Cannot get selected player ids when not first page is active')
 
         selected_players = []
-        for row_id in self.table.get_selected_ids():
+        for row_id in self.table.get_selection():
             player = self.first_page_players[row_id]
             selected_players.append(player)
 

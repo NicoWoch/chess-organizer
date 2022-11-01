@@ -13,7 +13,8 @@ class BrowserWindow(tk.Toplevel, ABC):
 
         self.iconbitmap(Config.WINDOW_ICON_PATH)
 
-        self.table = Table(self, style_prefix='browser_window')
+        self.table = Table(self)
+        self.table.header_fontsize = 18
         self.table.place(x=0, y=0, relheight=1, height=-ACTION_BAR_HEIGHT, relwidth=1)
 
         action_bar = self.make_action_bar()

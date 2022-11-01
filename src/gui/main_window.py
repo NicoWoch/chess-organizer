@@ -165,12 +165,24 @@ class MainWindow(tk.Tk):
         dummy_players = dummy_generator.get_random_players(5)
         MainDB.save_players(MainDB.load_players() + dummy_players)
 
+    def _dev_create_15_random_players(self):
+        dummy_players = dummy_generator.get_random_players(15)
+        MainDB.save_players(MainDB.load_players() + dummy_players)
+
     def _dev_clear_players(self):
         MainDB.save_players([])
 
     def _dev_create_dummy_tournament(self):
         tournaments = MainDB.load_tournaments()
         tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
+        MainDB.save_tournaments(tournaments)
+
+    def _dev_create_3_dummy_tournaments(self):
+        tournaments = MainDB.load_tournaments()
+
+        for _ in range(3):
+            tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
+
         MainDB.save_tournaments(tournaments)
 
     def _dev_clear_tournaments(self):
