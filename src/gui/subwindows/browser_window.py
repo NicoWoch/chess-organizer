@@ -1,8 +1,8 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
 
-from src.gui import utils
 from src.config import Config
+from src.gui.widgets.table import Table
 
 ACTION_BAR_HEIGHT = 50
 
@@ -13,7 +13,7 @@ class BrowserWindow(tk.Toplevel, ABC):
 
         self.iconbitmap(Config.WINDOW_ICON_PATH)
 
-        self.table = utils.Table(self, style_prefix='browser_window')
+        self.table = Table(self, style_prefix='browser_window')
         self.table.place(x=0, y=0, relheight=1, height=-ACTION_BAR_HEIGHT, relwidth=1)
 
         action_bar = self.make_action_bar()

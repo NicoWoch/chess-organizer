@@ -1,8 +1,8 @@
 import tkinter as tk
 from typing import Optional
 
-from src.gui import utils
 from src.algorithms.tournament import Tournament
+from src.gui.widgets.table import Table
 from src.player import Player
 
 FIRST_COLUMNS = [
@@ -44,7 +44,7 @@ class PairsFrame(tk.Frame):
 
         self.config(padx=20, pady=20, bg='#efefef')
 
-        self.table = utils.Table(self, style_prefix='pairs_frame', style_theme='clam')
+        self.table = Table(self, style_prefix='pairs_frame', style_theme='clam')
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)

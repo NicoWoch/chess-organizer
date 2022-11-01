@@ -2,15 +2,20 @@ import logging
 import tkinter as tk
 from collections.abc import Callable
 from copy import copy
+from tkinter.filedialog import asksaveasfilename, askopenfilename
 
 from src.config import Config
 from src.db import MainDB
+from src.gui import utils
 from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
-from src.gui import utils
+
+
+EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
+                          ('Gracze', '*.players')]
 
 
 class PlayerBrowserWindow(BrowserWindow):
@@ -18,8 +23,8 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
-        utils.center_window(self, (300, 300))
-        self.minsize(300, 100)
+        utils.center_window(self, (450, 300))
+        self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
@@ -32,6 +37,8 @@ class PlayerBrowserWindow(BrowserWindow):
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
             utils.Action('minus.png', self.minus_btn, tk.LEFT),
             utils.Action('edit.png', self.edit_btn, tk.LEFT),
+            utils.Action('import.png', self.import_btn, tk.LEFT),
+            utils.Action('export.png', self.export_btn, tk.LEFT),
             utils.Action('open.png', self.open_btn, tk.RIGHT),
         ], (40, 40))
 
@@ -92,6 +99,21 @@ class PlayerBrowserWindow(BrowserWindow):
             self.update_table()
 
         PlayerEditorWindow(self, player_copy, on_save)
+
+    def export_btn(self):
+        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
+
+        if filepath := asksaveasfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
+            selected_players = [self.players[i] for i in self.table.get_selected_ids()]
+            MainDB.save_players(selected_players, path=filepath)
+
+    def import_btn(self):
+        if filepath := askopenfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
+            players = MainDB.load_players(path=filepath)
+
+            for player in players:
+                if player not in self.players:
+                    self.players.append(player)
 
     def open_btn(self):
         selected_players = [self.players[idx] for idx in self.table.get_selected_ids()]
