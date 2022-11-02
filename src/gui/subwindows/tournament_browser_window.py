@@ -42,6 +42,7 @@ class TournamentBrowserWindow(BrowserWindow):
             date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else ''
             self.table.add_row(i, tournament.name, len(tournament.players), date)
 
+        self.table.redraw_rows()
         self.auto_save()
 
     def plus_btn(self):

@@ -55,6 +55,10 @@ class PairsFrame(tk.Frame):
 
         self.first_page_players: list[Player] = []
 
+    # TODO: add scrollbar to table
+    # TODO: move operations from navbar to table in browsers
+    # TODO: change opening/adding arrow to another icon
+
     def get_selected_players(self) -> list[Player]:
         if self.table.get_columns() != FIRST_COLUMNS[0]:
             raise Exception('Cannot get selected player ids when not first page is active')
@@ -79,6 +83,8 @@ class PairsFrame(tk.Frame):
 
             self.table.add_row(pos, *row)
             prev_row = row
+
+        self.table.redraw_rows()
 
     def _place_waiting_frame(self):
         self.waiting_frame.place(relx=0.5, rely=0.9, relwidth=0.49, relheight=0.09)

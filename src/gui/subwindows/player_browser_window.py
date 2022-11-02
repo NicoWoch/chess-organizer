@@ -48,6 +48,7 @@ class PlayerBrowserWindow(BrowserWindow):
         for i, player in enumerate(self.players, start=1):
             self.table.add_row(i, player.name, player.surname, player.rating)
 
+        self.table.redraw_rows()
         self.auto_save()
 
     def plus_btn(self):
