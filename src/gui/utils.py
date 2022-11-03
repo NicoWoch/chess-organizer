@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
-from collections import namedtuple
-from typing import Union
+from dataclasses import dataclass
+from typing import Union, Callable, Optional
 
 from PIL import Image, ImageTk
 
@@ -30,7 +30,12 @@ def create_image_btn(parent, img_filename: str, size=None, cmd=lambda: None):
     return tk.Button(parent, image=photo, command=cmd, borderwidth=0)
 
 
-Action = namedtuple('Action', ('image_filename', 'cmd', 'side'))
+@dataclass
+class Action:
+    image_filename: str
+    cmd: Callable
+    side: Union[tk.LEFT, tk.CENTER, tk.RIGHT]
+    size: Optional[tuple[int, int]] = None
 
 
 def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, pady=0, tooltips=None):
@@ -38,7 +43,8 @@ def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, p
     frames: dict[str, tk.Frame] = {tk.LEFT: tk.Frame(action_bar), tk.CENTER: tk.Frame(action_bar), tk.RIGHT: tk.Frame(action_bar)}
 
     for i, action in enumerate(actions):
-        button = create_image_btn(frames[action.side], action.image_filename, size=image_size, cmd=action.cmd)
+        size = action.size if action.size is not None else image_size
+        button = create_image_btn(frames[action.side], action.image_filename, size=size, cmd=action.cmd)
         button.pack(side=tk.LEFT, padx=padx, pady=pady)
 
         if tooltips:

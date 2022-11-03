@@ -15,14 +15,14 @@ class TournamentBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszystkie Turnieje')
-        utils.center_window(self, (450, 300))
+        utils.center_window(self, (450, 340))
         self.minsize(450, 100)
 
         self.open_tournament = open_tournament
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
-        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data'), (1, 5, 2, 8))
+        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data', ''), (1, 5, 2, 8, 1))
         self.update_table()
 
         if auto_create:
@@ -31,16 +31,23 @@ class TournamentBrowserWindow(BrowserWindow):
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('minus.png', self.minus_btn, tk.LEFT),
-            utils.Action('open.png', self.open_btn, tk.RIGHT),
-        ], (40, 40))
+            utils.Action('arrow_left.png', lambda: self.pager_btn(-1), tk.CENTER),
+            utils.Action('arrow_right.png', lambda: self.pager_btn(1), tk.CENTER),
+            utils.Action('open.png', self.open_btn, tk.RIGHT, size=(80, 40)),
+        ], (40, 40), tooltips=[
+            'Stwórz turniej',
+            'Wcześniejsza strona',
+            'Następna strona',
+            'Otwórz turniej',
+        ])
 
     def update_table(self):
         self.table.clear_rows()
 
-        for i, tournament in enumerate(self.tournaments, start=1):
-            date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else ''
-            self.table.add_row(i, tournament.name, len(tournament.players), date)
+        for i, tournament in enumerate(self.tournaments):
+            remove_btn = utils.create_image_btn(None, 'minus.png', (20, 20), cmd=lambda idx=i: self.remove_tournament(idx))
+            date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else '-'
+            self.table.add_row(i + 1, tournament.name, len(tournament.players), date, remove_btn)
 
         self.table.redraw_rows()
         self.auto_save()
@@ -57,24 +64,16 @@ class TournamentBrowserWindow(BrowserWindow):
 
         TournamentCreationWindow(self, on_create)
 
-    def minus_btn(self):
-        assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_DELETION)
+    def remove_tournament(self, index):
+        def remove():
+            del self.tournaments[index]
+            self.update_table()
+            self.close_tournament()
 
-        tournament_count = len(self.table.get_selection())
-        if tournament_count == 1:
-            tournament = self.tournaments[self.table.get_selection()[0]]
-            confirm(self, f'usunąć turniej {tournament.name}', self._remove_selected_tournaments)
-        elif 1 < tournament_count < 5:
-            confirm(self, f'usunąć {tournament_count} turnieje', self._remove_selected_tournaments)
-        else:
-            confirm(self, f'usunąć {tournament_count} turniejów', self._remove_selected_tournaments)
+        confirm(self, f'usunąć turniej {self.tournaments[index].name}', remove)
 
-    def _remove_selected_tournaments(self):
-        for player_idx in sorted(self.table.get_selection(), reverse=True):
-            del self.tournaments[player_idx]
-
-        self.update_table()
-        self.close_tournament()
+    def pager_btn(self, page_change):
+        self.table.page += page_change
 
     def open_btn(self):
         selected_ids = list(self.table.get_selection())

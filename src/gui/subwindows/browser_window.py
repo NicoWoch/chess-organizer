@@ -20,6 +20,9 @@ class BrowserWindow(tk.Toplevel, ABC):
         action_bar = self.make_action_bar()
         action_bar.place(x=0, rely=1, y=-ACTION_BAR_HEIGHT, height=ACTION_BAR_HEIGHT, relwidth=1)
 
+        self.bind('<Control-a>', lambda *_: self.table.select_all())
+        self.bind('<Control-d>', lambda *_: self.table.remove_selection())
+
     @abstractmethod
     def make_action_bar(self): ...
 

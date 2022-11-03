@@ -1,5 +1,5 @@
 import tkinter as tk
-from collections import Callable
+from collections.abc import Callable
 
 from src.gui import utils
 from src.algorithms.tournament import Tournament

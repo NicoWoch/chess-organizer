@@ -21,7 +21,7 @@ class PlayerEditorWindow(tk.Toplevel):
         self.player_label = tk.StringVar()
         self.name = tk.StringVar(value=player.name)
         self.surname = tk.StringVar(value=player.surname)
-        self.gender = tk.StringVar(value=player.gender.value)
+        self.gender = tk.StringVar(value=str(player.gender.value))
         self.rating = tk.IntVar(value=player.rating)
 
         self.update_player_label()

@@ -37,7 +37,7 @@ class Table(tk.Frame):
         self._sizes_sum = 0
         self._rows = []
         self._rows_frame = tk.Frame(self)
-        self.page = 0
+        self._page = 0
 
         self._checkmarks = True
         self._selected_vars = []
@@ -67,19 +67,38 @@ class Table(tk.Frame):
         self.update()
         return math.floor(self._rows_frame.winfo_height() / self.style['row']['height'])
 
+    def _get_page_rows_slice(self):
+        return slice(self._rows_on_page * self._page, self._rows_on_page * (self._page + 1))
+
     @property
     def _active_page_rows_enumerate(self):
-        return list(enumerate(self._rows))[self._rows_on_page * self.page:self._rows_on_page * (self.page + 1)]
+        return list(enumerate(self._rows))[self._rows_on_page * self._page:self._rows_on_page * (self._page + 1)]
 
-    def on_click(self, event: tk.Event):  # TODO: handle scroll
+    @property
+    def page(self):
+        return self._page
+
+    @page.setter
+    def page(self, value):
+        max_pages = (len(self._rows) - 1) // self._rows_on_page
+
+        if value < 0 or value > max_pages:
+            return
+
+        self._page = value
+        self.redraw_rows()
+
+    def on_click(self, event: tk.Event):
         widget_y = event.y_root - self.winfo_rooty()
         row_idx = math.floor((widget_y - self.style['header']['height'] - self.style['header']['padding']) / (self.style['row']['height']))
+        row_idx += self.page * self._rows_on_page
 
         if row_idx < 0 or row_idx >= len(self._rows):
             return
 
         var = self._selected_vars[row_idx]
         var.set(not var.get())
+        self.redraw_rows()
 
     def redraw_all(self):
         for elem in self.place_slaves():
@@ -98,9 +117,9 @@ class Table(tk.Frame):
             self.parse_label(self, col, header_style['font'], header_style['bg']) \
                 .place(relx=col_pos, y=2.5, height=header_style['height'], anchor='n')
 
-
-        self._rows_frame.place(y=self.style['header']['height'], relwidth=1,
-                               relheight=1, height=-self.style['header']['height'])
+        self._rows_frame.place_forget()
+        self._rows_frame.place(y=self.style['header']['height'] + self.style['header']['padding'], relwidth=1,
+                               relheight=1, height=-self.style['header']['height'] - self.style['header']['padding'])
         self.redraw_rows()
 
     def redraw_rows(self):
@@ -112,7 +131,7 @@ class Table(tk.Frame):
         for i, (j, row) in enumerate(self._active_page_rows_enumerate):
             y_pos = i * row_style['height']
 
-            bg_color = row_style['bg']['selected'] if self._selected_vars[i].get() else \
+            bg_color = row_style['bg']['selected'] if self._selected_vars[j].get() else \
                        (row_style['bg']['odd'] if i % 2 == 0 else row_style['bg']['even'])
 
             self.add_bindings(tk.Label(self._rows_frame, bg=bg_color)) \
@@ -139,8 +158,8 @@ class Table(tk.Frame):
 
     def parse_label(self, master, lbl: ParsableLabel, font, bg):
         if isinstance(lbl, tk.Button):
-            copy_attrs = {'text', 'command'}
-            return tk.Button(master, {var: lbl[var] for var in copy_attrs})
+            copy_attrs = {'text', 'command', 'image', 'borderwidth'}
+            return tk.Button(master, {var: lbl[var] for var in copy_attrs}, bg=bg)
         else:
             lbl = tk.Label(master, text=str(lbl), font=font, bg=bg)
             return self.add_bindings(lbl)
@@ -160,7 +179,7 @@ class Table(tk.Frame):
         self._sizes_sum = sum(sizes)
         self._rows = []
         self._selected_vars = []
-        self.page = 0
+        self._page = 0
 
         self.redraw_all()
 
@@ -172,7 +191,6 @@ class Table(tk.Frame):
 
         self._rows.append(row)
         self._selected_vars.append(tk.BooleanVar(value=False))
-        self._selected_vars[-1].trace('w', lambda *_: self.redraw_rows())
 
     def clear_rows(self):
         self._rows = []
@@ -190,9 +208,17 @@ class Table(tk.Frame):
 
         return selection
 
+    def select_all(self):
+        for item in self._selected_vars:
+            item.set(True)
+
+        self.redraw_rows()
+
     def remove_selection(self, *_):
         for item in self._selected_vars:
             item.set(False)
+
+        self.redraw_rows()
 
 
 if __name__ == '__main__':

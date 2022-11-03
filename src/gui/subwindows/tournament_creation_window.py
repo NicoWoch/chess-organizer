@@ -2,7 +2,6 @@ import tkinter as tk
 from collections import namedtuple
 from typing import Callable
 
-from src.algorithms.random_tournament import RandomTournament
 from src.algorithms.swiss_tournament import SwissTournament
 from src.config import Config
 from src.gui import utils

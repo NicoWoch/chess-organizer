@@ -26,7 +26,6 @@ class WaitingFrame(tk.Label):
         super().__init__(parent)
 
         self['font'] = ('Calibri', 18)
-        self['bg'] = 'white'
         self['anchor'] = 'se'
 
     def set_players(self, players: list[Player]):
@@ -54,10 +53,6 @@ class PairsFrame(tk.Frame):
         self._place_waiting_frame()
 
         self.first_page_players: list[Player] = []
-
-    # TODO: add scrollbar to table
-    # TODO: move operations from navbar to table in browsers
-    # TODO: change opening/adding arrow to another icon
 
     def get_selected_players(self) -> list[Player]:
         if self.table.get_columns() != FIRST_COLUMNS[0]:

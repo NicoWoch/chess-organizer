@@ -42,12 +42,12 @@ class Config:
         PLAYER_NOT_SELECTED = 'Nie wybrano gracza'
 
         TOURNAMENT_ALREADY_EXISTS = 'Ta nazwa jest już zajęta.\nWybierz inną'
-        TOURNAMENT_NOT_SELECTED_FOR_DELETION = 'Nie wybrano turnieju do usunięcia'
+        # TOURNAMENT_NOT_SELECTED_FOR_DELETION = 'Nie wybrano turnieju do usunięcia'
         MORE_THAN_ONE_TOURNAMENT_SELECTED = 'Wybrano więcej niż jeden turniej do otwarcia'
         TOURNAMENT_NOT_SELECTED_FOR_OPEN = 'Nie wybrano turnieju do otwarcia'
 
         PLAYER_ALREADY_EXISTS = 'Ten gracz już istnieje'
-        PLAYER_NOT_SELECTED_FOR_DELETION = 'Nie wybrano gracza do usunięcia'
-        MORE_THAN_ONE_PLAYER_SELECTED = 'Wybrano więcej niż jednego gracza'
-        PLAYER_NOT_SELECTED_FOR_EDIT = 'Nie wybrano gracza do edycji'
+        # PLAYER_NOT_SELECTED_FOR_DELETION = 'Nie wybrano gracza do usunięcia'
+        # MORE_THAN_ONE_PLAYER_SELECTED = 'Wybrano więcej niż jednego gracza'
+        # PLAYER_NOT_SELECTED_FOR_EDIT = 'Nie wybrano gracza do edycji'
         PLAYER_NOT_SELECTED_FOR_OPEN = 'Nie wybrano gracza do dodania'
