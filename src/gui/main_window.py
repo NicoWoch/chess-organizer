@@ -97,17 +97,19 @@ class MainWindow(tk.Tk):
         menubar.add_cascade(label='Gracz', menu=player_menu)
 
         tournament_menu = tk.Menu(menubar, tearoff=0)
-
         set_result_menu = tk.Menu(tournament_menu, tearoff=0)
         set_result_menu.add_command(label='Biały wygrał',  command=lambda: self.tournament_frame.set_result(Result.White))
         set_result_menu.add_command(label='Czarny wygrał', command=lambda: self.tournament_frame.set_result(Result.Black))
         set_result_menu.add_command(label='Remis',         command=lambda: self.tournament_frame.set_result(Result.Draw))
         set_result_menu.add_command(label='Jeszcze grają', command=lambda: self.tournament_frame.set_result(Result.Playing))
         tournament_menu.add_cascade(label='Wynik', menu=set_result_menu)
-
         tournament_menu.add_command(label='Następna runda',        command=self.tournament_frame.next_round)
         tournament_menu.add_command(label='Zakończ turniej',  command=self.tournament_frame.end_tournament)
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
+
+        print_menu = tk.Menu(menubar, tearoff=0)
+        print_menu.add_command(label='Drukuj najnowsze parowanie', command=self.tournament_frame.print_newest_pairings)
+        menubar.add_cascade(label='Drukowanie', menu=print_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
         # help_menu.add_command(label='Sprawdź aktualizacje', command=lambda: print('COMMING SOON'), state=tk.DISABLED)

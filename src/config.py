@@ -47,3 +47,5 @@ class Config:
 
         PLAYER_ALREADY_EXISTS = 'Ten gracz już istnieje'
         PLAYER_NOT_SELECTED_FOR_OPEN = 'Nie wybrano gracza do dodania'
+
+        TOURNAMENT_NOT_STARTED_OR_ENDED = 'Turniej nie jest rozpoczęty, bądź jest już zakończony'

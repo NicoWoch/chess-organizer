@@ -15,6 +15,8 @@ from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
 import math
 
+from src.pairing_printer import PairingPrinter
+
 
 def update_title(main_window: tk.Tk, tournament):
     if tournament is None:
@@ -99,7 +101,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = math.ceil(math.log(players_count, 2))
 
-                optimum_label = tk.Label(self, text=f'Minimalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
+                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
                 optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
                 self._info_labels.append(optimum_label)
@@ -247,3 +249,9 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             raise Exception('Tournament not found when autosaving')
 
         MainDB.save_tournaments(tournaments)
+
+    def print_newest_pairings(self):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert self.tournament.active_round is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED_OR_ENDED)
+        PairingPrinter(self.tournament.name, self.tournament.active_round_id + 1,
+                       self.tournament.active_round, self.tournament.get_waiting_players()[0]).show_html_page()

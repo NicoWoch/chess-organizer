@@ -21,7 +21,7 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
-        utils.center_window(self, (450, 340))
+        utils.center_window(self, (450, 470))
         self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
@@ -75,7 +75,7 @@ class PlayerBrowserWindow(BrowserWindow):
             del self.players[player_idx]
             self.update_table()
 
-        confirm(self, f'usunąć gracza {self.players[player_idx]}', remove)
+        confirm(self, f'usunąć gracza "{self.players[player_idx]}"', remove)
 
     def plus_btn(self):
         new_player = Player.create_player(

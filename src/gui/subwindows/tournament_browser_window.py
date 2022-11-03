@@ -15,14 +15,14 @@ class TournamentBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszystkie Turnieje')
-        utils.center_window(self, (450, 340))
-        self.minsize(450, 100)
+        utils.center_window(self, (500, 340))
+        self.minsize(500, 100)
 
         self.open_tournament = open_tournament
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
-        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data', ''), (1, 5, 2, 8, 1))
+        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data', ''), (1, 7, 2, 5, 1))
         self.update_table()
 
         if auto_create:
@@ -70,7 +70,7 @@ class TournamentBrowserWindow(BrowserWindow):
             self.update_table()
             self.close_tournament()
 
-        confirm(self, f'usunąć turniej {self.tournaments[index].name}', remove)
+        confirm(self, f'usunąć turniej "{self.tournaments[index].name}"', remove)
 
     def pager_btn(self, page_change):
         self.table.page += page_change
