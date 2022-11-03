@@ -1,29 +1,36 @@
-set APP_VERSION=V0.3
-
-
-rem Compiling
-
+rem Compiling With Pyinstaller
+mkdir dist
 pyinstaller --noconfirm ^
              --onedir ^
              --windowed ^
              --icon ./images/logo.ico ^
              ./chess-organizer.py
 
+
+rem Coping Essential Data
 robocopy images dist\chess-organizer\images
 copy license.md dist\chess-organizer
-
 mkdir dist\chess-organizer\logs
-echo . > dist\chess-organizer\logs\empty.txt
-
 mkdir dist\chess-organizer\db
-echo . > dist\chess-organizer\db\empty.txt
+
+
+rem Making Installator With InnoSetup
+"C:\Program Files (x86)\Inno Setup 6\iscc" /OC:\Users\48502\PycharmProjects\chess-organizer-desktop C:\Users\48502\PycharmProjects\chess-organizer-desktop\installer-setup.iss
+
+
+rem Zipping To Archive
+cd dist/chess-organizer
+7z a ../../chess-organizer.zip *
+cd ../..
 
 
 rem Cleaning
-
 rmdir /S /Q build
-rmdir /S /Q dist\chess-organizer-%APP_VERSION%
-rename dist\chess-organizer chess-organizer-%APP_VERSION%
+rmdir /S /Q dist
+rmdir /S /Q output
+mkdir output
+move chess-organizer.zip output
+move chess-organizer-installer.exe output
 
 
-echo COMPILED SUCCESSFUL
+echo Building Done
