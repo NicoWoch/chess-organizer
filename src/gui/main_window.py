@@ -16,7 +16,7 @@ from src.gui import utils
 
 
 def show_error(self, exc, val, tb):
-    if isinstance(val, AssertionError) and isinstance(val.args[0], WindowException):
+    if isinstance(val, AssertionError) and len(val.args) == 1 and isinstance(val.args[0], WindowException):
         logging.warning(f'WindowError: {val.args[0]}')
         ErrorWindow(self, val.args[0]).mainloop()
     else:
@@ -41,7 +41,7 @@ class MainWindow(tk.Tk):
         self.title(Config.WINDOW_NAME)
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, Config.WINDOW_SIZE)
-        self.minsize(800, 400)
+        self.minsize(900, 400)
 
         self.tournament_frame = TournamentFrame(self, self._register_subwindow)
         self.action_bar_frame = ActionBarFrame(self, self.tournament_frame)

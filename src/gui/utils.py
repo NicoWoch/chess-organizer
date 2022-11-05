@@ -152,3 +152,12 @@ def center_window(window: Union[tk.Tk, tk.Toplevel], size, offset=(0, 0)):
     top = (window.winfo_screenheight() - size[1]) // 2 + offset[1]
     left = (window.winfo_screenwidth() - size[0]) // 2 + offset[0]
     window.geometry('%dx%d+%d+%d' % (size[0], size[1], left, top))
+
+
+def update_styles(source: dict, overrides: dict):
+    for key, value in overrides.items():
+        if isinstance(value, dict):
+            update_styles(source[key], value)
+        else:
+            source[key] = overrides[key]
+

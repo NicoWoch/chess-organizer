@@ -2,11 +2,9 @@ import math
 import random
 import tkinter as tk
 from copy import deepcopy
-from typing import Union
+from typing import Any
 
 from src.gui.widgets.scrollable_frame import ScrollableFrame
-
-ParsableLabel = Union[int, str, tk.Button]
 
 DEFAULT_STYLE = {
     'header': {
@@ -17,7 +15,7 @@ DEFAULT_STYLE = {
     },
     'row': {
         'bg': {
-            'even': 'white',
+            'even': '#fff',
             'odd': '#eee',
             'selected': 'lightblue',
         },
@@ -27,13 +25,16 @@ DEFAULT_STYLE = {
     },
     'scrollbar': {
         'width': 18,
+        'speed': 1,
     }
 }
 
+Label = Any
+
 
 class Table(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
         self.style = deepcopy(DEFAULT_STYLE)
 
@@ -115,6 +116,8 @@ class Table(tk.Frame):
             self.rowconfigure(i, pad=2)
 
         self._rows_scroll_frame.height = len(self._rows) * row_style['height']
+        self._rows_scroll_frame.scrollbar_width = self.style['scrollbar']['width']
+        self._rows_scroll_frame.scrollbar_speed = self.style['scrollbar']['speed']
         self._rows_scroll_frame.update_window()
 
     def _col_pos_generator(self):
@@ -126,7 +129,7 @@ class Table(tk.Frame):
             yield now_pos + col_percent_size / 2
             now_pos += col_percent_size
 
-    def parse_label(self, master, lbl: ParsableLabel, font, bg):
+    def parse_label(self, master, lbl: Label, font, bg):
         if isinstance(lbl, tk.Button):
             copy_attrs = {'text', 'command', 'image', 'borderwidth'}
             return tk.Button(master, {var: lbl[var] for var in copy_attrs}, bg=bg)
@@ -138,7 +141,7 @@ class Table(tk.Frame):
         elem.bind('<Button>', self.on_click)
         return elem
 
-    def set_columns(self, columns: list[ParsableLabel], sizes: list[int] = None):
+    def set_columns(self, columns: list[Label], sizes: list[int] = None):
         if sizes is None:
             sizes = [1 for _ in columns]
 
@@ -155,8 +158,8 @@ class Table(tk.Frame):
     def get_columns(self):
         return self._columns
 
-    def add_row(self, *row: ParsableLabel):
-        assert len(row) == len(self._columns)
+    def add_row(self, *row: Label):
+        assert len(row) == len(self._columns), 'Bad amount of rows'
 
         self._rows.append(row)
         self._selected_vars.append(tk.BooleanVar(value=False))

@@ -38,7 +38,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=20)
-        self.columnconfigure(2, weight=1)
         self.rowconfigure(0, weight=1)
 
         self._update_frame()
@@ -52,6 +51,10 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         if grid_scoreboard:
             self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+            self.columnconfigure(2, weight=8)
+        else:
+            self.scoreboard_frame.grid_forget()
+            self.columnconfigure(2, weight=0)
 
     def _forget_all(self):
         for slave in self.grid_slaves():
@@ -60,18 +63,12 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         for slave in self.place_slaves():
             slave.place_forget()
 
-    def _ungrid_scoreboard(self):
-        self.scoreboard_frame.grid_forget()
-
     def _update_frame(self, auto_save=True):
         if self.tournament is None:
             self._forget_all()
             return
 
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
-
-        if not self.rounds_frame.is_round():
-            self._ungrid_scoreboard()
 
         if self.rounds_frame.is_first():
             self.pairs_frame.update_first(self.tournament)
