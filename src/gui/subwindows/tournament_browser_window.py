@@ -31,13 +31,9 @@ class TournamentBrowserWindow(BrowserWindow):
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('arrow_left.png', lambda: self.pager_btn(-1), tk.CENTER),
-            utils.Action('arrow_right.png', lambda: self.pager_btn(1), tk.CENTER),
             utils.Action('open.png', self.open_btn, tk.RIGHT, size=(80, 40)),
         ], (40, 40), tooltips=[
             'Stwórz turniej',
-            'Wcześniejsza strona',
-            'Następna strona',
             'Otwórz turniej',
         ])
 
@@ -71,9 +67,6 @@ class TournamentBrowserWindow(BrowserWindow):
             self.close_tournament()
 
         confirm(self, f'usunąć turniej "{self.tournaments[index].name}"', remove)
-
-    def pager_btn(self, page_change):
-        self.table.page += page_change
 
     def open_btn(self):
         selected_ids = list(self.table.get_selection())

@@ -21,7 +21,7 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
-        utils.center_window(self, (450, 470))
+        utils.center_window(self, (480, 550))
         self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
@@ -35,15 +35,11 @@ class PlayerBrowserWindow(BrowserWindow):
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
             utils.Action('import.png', self.import_btn, tk.LEFT),
             utils.Action('export.png', self.export_btn, tk.LEFT),
-            utils.Action('arrow_left.png', lambda: self.pager_btn(-1), tk.CENTER),
-            utils.Action('arrow_right.png', lambda: self.pager_btn(1), tk.CENTER),
             utils.Action('add.png', self.open_btn, tk.RIGHT, size=(80, 40)),
         ], (40, 40), tooltips=[
             'Stwórz gracza',
             'Importuj graczy',
             'Eksportuj graczy',
-            'Wcześniejsza strona',
-            'Następna strona',
             'Dodaj do turnieju',
         ])
 
@@ -104,9 +100,6 @@ class PlayerBrowserWindow(BrowserWindow):
         if filepath := asksaveasfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
             selected_players = [self.players[i] for i in self.table.get_selection()]
             MainDB.save_players(selected_players, path=filepath)
-
-    def pager_btn(self, page_change):
-        self.table.page += page_change
 
     def open_btn(self):
         selected_players = [self.players[idx] for idx in self.table.get_selection()]

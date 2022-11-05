@@ -1,97 +1,61 @@
 import math
 import random
 import tkinter as tk
+from copy import deepcopy
 from typing import Union
 
+from src.gui.widgets.scrollable_frame import ScrollableFrame
+
 ParsableLabel = Union[int, str, tk.Button]
+
+DEFAULT_STYLE = {
+    'header': {
+        'bg': '#ccc',
+        'height': 30,
+        'font': 'Arial 15',
+        'padding': 5,
+    },
+    'row': {
+        'bg': {
+            'even': 'white',
+            'odd': '#eee',
+            'selected': 'lightblue',
+        },
+        'height': 25,
+        'font': 'Arial 13',
+        'selection_padding': 2,
+    },
+    'scrollbar': {
+        'width': 18,
+    }
+}
 
 
 class Table(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.style = {
-            'header': {
-                'bg': '#ccc',
-                'height': 30,
-                'font': 'Arial 15',
-                'padding': 5,
-            },
-            'row': {
-                'bg': {
-                    'even': 'white',
-                    'odd': '#eee',
-                    'selected': 'lightblue',
-                },
-                'height': 25,
-                'font': 'Arial 13',
-                'selection_padding': 2,
-            },
-            'scrollbar': {
-                'width': 18,
-            }
-        }
+        self.style = deepcopy(DEFAULT_STYLE)
 
         self._columns = []
         self._sizes = []
         self._sizes_sum = 0
         self._rows = []
-        self._rows_frame = tk.Frame(self)
-        self._page = 0
+
+        self._rows_scroll_frame = ScrollableFrame(self, tk.Frame)
+        self._rows_frame = self._rows_scroll_frame.child_frame
 
         self._checkmarks = True
         self._selected_vars = []
 
         self.bind('<Button>', self.on_click)
 
-        configure_state = False
-
-        def set_configure(*_):
-            nonlocal configure_state
-            configure_state = True
-
-        def reset_configure(*_):
-            nonlocal configure_state
-
-            if configure_state:
-                self.redraw_rows()
-                configure_state = False
-
-        self.bind('<Configure>', set_configure)
-        self.winfo_toplevel().bind('<Enter>', reset_configure)
-
         self.redraw_all()
-
-    @property
-    def _rows_on_page(self):
-        self.update()
-        return math.floor(self._rows_frame.winfo_height() / self.style['row']['height'])
-
-    def _get_page_rows_slice(self):
-        return slice(self._rows_on_page * self._page, self._rows_on_page * (self._page + 1))
-
-    @property
-    def _active_page_rows_enumerate(self):
-        return list(enumerate(self._rows))[self._rows_on_page * self._page:self._rows_on_page * (self._page + 1)]
-
-    @property
-    def page(self):
-        return self._page
-
-    @page.setter
-    def page(self, value):
-        max_pages = (len(self._rows) - 1) // self._rows_on_page
-
-        if value < 0 or value > max_pages:
-            return
-
-        self._page = value
-        self.redraw_rows()
 
     def on_click(self, event: tk.Event):
         widget_y = event.y_root - self.winfo_rooty()
+        widget_y += self._rows_scroll_frame.get_scroll_amount()
         row_idx = math.floor((widget_y - self.style['header']['height'] - self.style['header']['padding']) / (self.style['row']['height']))
-        row_idx += self.page * self._rows_on_page
 
         if row_idx < 0 or row_idx >= len(self._rows):
             return
@@ -102,7 +66,7 @@ class Table(tk.Frame):
 
     def redraw_all(self):
         for elem in self.place_slaves():
-            if elem != self._rows_frame:
+            if elem != self._rows_scroll_frame:
                 elem.destroy()
 
         if len(self._columns) == 0:
@@ -117,9 +81,12 @@ class Table(tk.Frame):
             self.parse_label(self, col, header_style['font'], header_style['bg']) \
                 .place(relx=col_pos, y=2.5, height=header_style['height'], anchor='n')
 
-        self._rows_frame.place_forget()
-        self._rows_frame.place(y=self.style['header']['height'] + self.style['header']['padding'], relwidth=1,
-                               relheight=1, height=-self.style['header']['height'] - self.style['header']['padding'])
+        rows_start = self.style['header']['height'] + self.style['header']['padding']
+
+        self._rows_scroll_frame.place_forget()
+        self._rows_scroll_frame.place(y=rows_start, relwidth=1, relheight=1, height=-rows_start)
+
+        self.update()
         self.redraw_rows()
 
     def redraw_rows(self):
@@ -128,17 +95,17 @@ class Table(tk.Frame):
 
         row_style = self.style['row']
 
-        for i, (j, row) in enumerate(self._active_page_rows_enumerate):
+        for i, row in enumerate(self._rows):
             y_pos = i * row_style['height']
 
-            bg_color = row_style['bg']['selected'] if self._selected_vars[j].get() else \
+            bg_color = row_style['bg']['selected'] if self._selected_vars[i].get() else \
                        (row_style['bg']['odd'] if i % 2 == 0 else row_style['bg']['even'])
 
             self.add_bindings(tk.Label(self._rows_frame, bg=bg_color)) \
                 .place(relwidth=1, y=y_pos - row_style['selection_padding'], height=row_style['height'] + row_style['selection_padding'] * 2)
 
             if self._checkmarks:
-                self.add_bindings(tk.Checkbutton(self._rows_frame, variable=self._selected_vars[j], bg=bg_color)) \
+                self.add_bindings(tk.Checkbutton(self._rows_frame, variable=self._selected_vars[i], bg=bg_color)) \
                     .place(y=y_pos, height=row_style['height'], anchor='nw')
 
             for item, col_pos in zip(row, self._col_pos_generator()):
@@ -146,6 +113,9 @@ class Table(tk.Frame):
                     .place(relx=col_pos, y=y_pos, height=row_style['height'], anchor='n')
 
             self.rowconfigure(i, pad=2)
+
+        self._rows_scroll_frame.height = len(self._rows) * row_style['height']
+        self._rows_scroll_frame.update_window()
 
     def _col_pos_generator(self):
         checkmarks_size = 1 if self._checkmarks else 0
@@ -179,7 +149,6 @@ class Table(tk.Frame):
         self._sizes_sum = sum(sizes)
         self._rows = []
         self._selected_vars = []
-        self._page = 0
 
         self.redraw_all()
 

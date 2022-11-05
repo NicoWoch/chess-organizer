@@ -253,5 +253,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def print_newest_pairings(self):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
         assert self.tournament.active_round is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED_OR_ENDED)
-        PairingPrinter(self.tournament.name, self.tournament.active_round_id + 1,
-                       self.tournament.active_round, self.tournament.get_waiting_players()[0]).show_html_page()
+        PairingPrinter(self.tournament.name, self.tournament.active_round_id + 1, self.tournament.active_round,
+                       self.tournament.get_waiting_players()[0] if self.tournament.get_waiting_players() else None) \
+            .show_html_page()

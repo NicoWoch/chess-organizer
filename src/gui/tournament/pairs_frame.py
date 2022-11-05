@@ -45,8 +45,8 @@ class PairsFrame(tk.Frame):
 
         self.table = Table(self)
         self.table.set_checkmarks_state(False)
-        self.table.header_fontsize = 20
-        self.table.fontsize = 14
+        self.table.style['header']['font'] = 'Arial 18'
+        self.table.style['row']['font'] = 'Arial 13'
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)
