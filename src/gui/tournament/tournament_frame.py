@@ -1,6 +1,7 @@
 import logging
+import math
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Literal
 
 from src.algorithms.swiss_tournament import SwissTournament
 from src.algorithms.tournament import Tournament
@@ -13,7 +14,7 @@ from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
-import math
+from src.pdf import pdf
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -25,9 +26,10 @@ def update_title(main_window: tk.Tk, tournament):
 
 
 class TournamentFrame(tk.Frame, ActionBarListener):
-    def __init__(self, parent):
+    def __init__(self, parent, register_subwindow):
         super().__init__(parent)
         self.tournament: Optional[Tournament] = None
+        self.register_subwindow = register_subwindow
 
         self.rounds_frame = RoundsFrame(self, lambda: self._update_frame(auto_save=False))
         self.pairs_frame = PairsFrame(self)
@@ -35,7 +37,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=20)
-        self.columnconfigure(2, weight=1)
         self.rowconfigure(0, weight=1)
 
         self._update_frame()
@@ -49,6 +50,10 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         if grid_scoreboard:
             self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
+            self.columnconfigure(2, weight=8)
+        else:
+            self.scoreboard_frame.grid_forget()
+            self.columnconfigure(2, weight=0)
 
     def _forget_all(self):
         for slave in self.grid_slaves():
@@ -57,18 +62,12 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         for slave in self.place_slaves():
             slave.place_forget()
 
-    def _ungrid_scoreboard(self):
-        self.scoreboard_frame.grid_forget()
-
     def _update_frame(self, auto_save=True):
         if self.tournament is None:
             self._forget_all()
             return
 
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
-
-        if not self.rounds_frame.is_round():
-            self._ungrid_scoreboard()
 
         if self.rounds_frame.is_first():
             self.pairs_frame.update_first(self.tournament)
@@ -115,7 +114,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         assert self.rounds_frame.get_active_round() == self.tournament.active_round_id, WindowException(Config.ErrorMsg.CANNOT_EDIT_IN_CLOSED_ROUND)
 
-        selection = self.pairs_frame.table.get_selected_ids()
+        selection = self.pairs_frame.table.get_selection()
 
         assert len(selection) > 0, WindowException(Config.ErrorMsg.TABLE_NOT_SELECTED)
 
@@ -175,6 +174,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def browse_players(self):
         players_browser = PlayerBrowserWindow(self, self.add_players)
         players_browser.focus()
+        self.register_subwindow(players_browser)
 
     def add_players(self, players):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
@@ -209,9 +209,10 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.pairs_frame.table.remove_selection()
         self._update_frame()
 
-    def browse_tournaments(self):
-        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament)
+    def browse_tournaments(self, create=False):
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament, auto_create=create)
         tournament_browser.focus()
+        self.register_subwindow(tournament_browser)
 
     def open_tournament(self, tournament):
         logging.info(f'Changing opened tournament to ({tournament.name=})')
@@ -244,3 +245,32 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             raise Exception('Tournament not found when autosaving')
 
         MainDB.save_tournaments(tournaments)
+
+    def make_pdf_starting_list(self, action: Literal['print', 'save']):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+
+        fpdf = pdf.make_starting_list_pdf(self.tournament.name, self.tournament.players)
+        self.__run_pdf_action(fpdf, action)
+
+    def make_pdf_active_pairings(self, action: Literal['print', 'save']):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert self.rounds_frame.is_round(), WindowException(Config.ErrorMsg.NOT_ON_PAGE_WITH_PAIRS)
+
+        round_id = self.rounds_frame.get_active_round()
+        pairings = self.tournament.get_round(round_id)
+        pause_players = self.tournament.get_waiting_players(round_id)
+
+        fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
+        self.__run_pdf_action(fpdf, action)
+
+    def make_pdf_results(self, action: Literal['print', 'save']):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+
+        fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
+        self.__run_pdf_action(fpdf, action)
+
+    def __run_pdf_action(self, fpdf, action):
+        if action == 'print':
+            pdf.show_pdf_in_browser(fpdf)
+        elif action == 'save':
+            pdf.save_pdf_with_dialog(fpdf)

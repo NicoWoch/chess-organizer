@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 
 from src.config import Config
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 class LicenseWindow(tk.Toplevel):
@@ -12,6 +12,7 @@ class LicenseWindow(tk.Toplevel):
         self.title('Licencja')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, (600, 500))
+        self.minsize(600, 300)
 
         license_file = open(os.path.join(Config.BASE_DIR, 'license.md'))
 

@@ -1,4 +1,5 @@
 import logging
+import locale
 
 from src.config import Config
 from src.gui.main_window import MainWindow
@@ -12,6 +13,8 @@ def main():
         filename=Config.LOG_FILE)
 
     logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL + 1)
+
+    locale.setlocale(locale.LC_TIME, 'PL_pl')
 
     MainWindow().mainloop()
 

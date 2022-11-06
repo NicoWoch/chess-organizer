@@ -2,16 +2,15 @@ import tkinter as tk
 from collections import namedtuple
 from typing import Callable
 
-from src.algorithms.random_tournament import RandomTournament
 from src.algorithms.swiss_tournament import SwissTournament
 from src.config import Config
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 Alg = namedtuple('Alg', ('name', 'cls'))
 
 ALGORITHMS = [
     Alg('Swiss', SwissTournament),
-    Alg('Random', RandomTournament)
+    # Alg('Random', RandomTournament),
 ]
 
 
@@ -22,6 +21,7 @@ class TournamentCreationWindow(tk.Toplevel):
         self.title('Stwóz turniej')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
         utils.center_window(self, (250, 150))
+        self.resizable(False, False)
 
         self.on_create = on_create
         self.name = tk.StringVar()

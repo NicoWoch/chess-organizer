@@ -1,16 +1,19 @@
-import logging
 import tkinter as tk
 from collections.abc import Callable
 from copy import copy
+from tkinter.filedialog import asksaveasfilename, askopenfilename
 
 from src.config import Config
 from src.db import MainDB
+from src.gui import utils
 from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender
-import src.gui.gui_utils as utils
+
+EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
+                          ('Gracze', '*.players')]
 
 
 class PlayerBrowserWindow(BrowserWindow):
@@ -18,28 +21,57 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
+        utils.center_window(self, (480, 550))
+        self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
 
-        self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking'), (1, 5, 5, 5))
+        self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking', '', ''), (1, 5, 5, 5, 1, 1))
         self.update_table()
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('minus.png', self.minus_btn, tk.LEFT),
-            utils.Action('edit.png', self.edit_btn, tk.LEFT),
-            utils.Action('open.png', self.open_btn, tk.RIGHT),
-        ], (40, 40))
+            utils.Action('import.png', self.import_btn, tk.LEFT),
+            utils.Action('export.png', self.export_btn, tk.LEFT),
+            utils.Action('add.png', self.open_btn, tk.RIGHT, size=(80, 40)),
+        ], (40, 40), tooltips=[
+            'Stwórz gracza',
+            'Importuj graczy',
+            'Eksportuj graczy',
+            'Dodaj do turnieju',
+        ])
 
     def update_table(self):
         self.table.clear_rows()
 
-        for i, player in enumerate(self.players, start=1):
-            self.table.add_row(i, player.name, player.surname, player.rating)
+        for i, player in enumerate(self.players):
+            edit_btn = utils.create_image_btn(None, 'edit.png', (20, 20), cmd=lambda idx=i: self.edit_player(idx))
+            remove_btn = utils.create_image_btn(None, 'minus.png', (20, 20), cmd=lambda idx=i: self.remove_player(idx))
+            self.table.add_row(i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn)
 
+        self.table.redraw_rows()
         self.auto_save()
+
+    def edit_player(self, player_idx: int):
+        player_copy = copy(self.players[player_idx])
+
+        def on_save():
+            assert player_copy not in self.players or \
+                   player_copy == self.players[player_idx], WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+
+            self.players[player_idx] = player_copy
+            self.update_table()
+
+        PlayerEditorWindow(self, player_copy, on_save)
+
+    def remove_player(self, player_idx: int):
+        def remove():
+            del self.players[player_idx]
+            self.update_table()
+
+        confirm(self, f'usunąć gracza "{self.players[player_idx]}"', remove)
 
     def plus_btn(self):
         new_player = Player.create_player(
@@ -54,45 +86,23 @@ class PlayerBrowserWindow(BrowserWindow):
 
         PlayerEditorWindow(self, new_player, on_save)
 
-    def minus_btn(self):
-        assert len(self.table.get_selected_ids()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_DELETION)
+    def import_btn(self):
+        if filepath := askopenfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
+            players = MainDB.load_players(path=filepath)
 
-        player_count = len(self.table.get_selected_ids())
-        if player_count == 1:
-            player = self.players[self.table.get_selected_ids()[0]]
-            confirm(self, f'usunąć gracza {player}', self._remove_selected_players)
-        else:
-            confirm(self, f'usunąć {player_count} graczy', self._remove_selected_players)
+            for player in players:
+                if player not in self.players:
+                    self.players.append(player)
 
-    def _remove_selected_players(self):
-        for player_idx in sorted(self.table.get_selected_ids(), reverse=True):
-            del self.players[player_idx]
+    def export_btn(self):
+        assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
 
-        self.update_table()
-
-    def edit_btn(self):
-        selection = list(self.table.get_selected_ids())
-
-        assert len(selection) != 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_EDIT)
-        assert len(selection) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_PLAYER_SELECTED)
-
-        if len(selection) != 1:
-            logging.warning('Cannot edit more/less than one player')
-            return
-
-        player_copy = copy(self.players[selection[0]])
-
-        def on_save():
-            assert player_copy not in self.players or \
-                   player_copy == self.players[selection[0]], WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
-
-            self.players[selection[0]] = player_copy
-            self.update_table()
-
-        PlayerEditorWindow(self, player_copy, on_save)
+        if filepath := asksaveasfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
+            selected_players = [self.players[i] for i in self.table.get_selection()]
+            MainDB.save_players(selected_players, path=filepath)
 
     def open_btn(self):
-        selected_players = [self.players[idx] for idx in self.table.get_selected_ids()]
+        selected_players = [self.players[idx] for idx in self.table.get_selection()]
 
         assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED_FOR_OPEN)
 

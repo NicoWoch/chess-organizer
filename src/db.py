@@ -47,20 +47,31 @@ class DB:
         if len(tournaments) != 0:
             assert isinstance(tournaments[0], Tournament), f'Tournaments Testing Error ({type(tournaments[0]) = } != Tournament)'
 
-    def load_players(self) -> list[Player]:
-        if self.players_cache is not None:
+    def load_players(self, path=None) -> list[Player]:
+        if path is None:
+            path = Config.DB_PLAYERS
+
+        if self.players_cache is not None and path == Config.DB_PLAYERS:
             logging.debug('Loading players from cache')
             return self.players_cache
 
-        players = self._load_object(Config.DB_PLAYERS, [])
+        players = self._load_object(path, [])
         self._test_players(players)
-        self.players_cache = players
+
+        if path == Config.DB_PLAYERS:
+            self.players_cache = players
+
         return players
 
-    def save_players(self, players: list[Player]):
+    def save_players(self, players: list[Player], path=None):
+        if path is None:
+            path = Config.DB_PLAYERS
+
         self._test_players(players)
-        self.players_cache = players
-        self._save_object(Config.DB_PLAYERS, players)
+        self._save_object(path, players)
+
+        if path == Config.DB_PLAYERS:
+            self.players_cache = players
 
     def load_tournaments(self) -> list[Tournament]:
         if self.tournaments_cache is not None:

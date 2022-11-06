@@ -3,7 +3,7 @@ from typing import Callable
 
 from src.config import Config
 from src.player import Player, Gender
-import src.gui.gui_utils as utils
+from src.gui import utils
 
 
 class PlayerEditorWindow(tk.Toplevel):
@@ -12,7 +12,8 @@ class PlayerEditorWindow(tk.Toplevel):
 
         self.title('Gracz')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
-        utils.center_window(self, (210, 250))
+        utils.center_window(self, (210, 220))
+        self.resizable(False, False)
 
         self.player = player
         self.on_save = on_save
@@ -20,9 +21,8 @@ class PlayerEditorWindow(tk.Toplevel):
         self.player_label = tk.StringVar()
         self.name = tk.StringVar(value=player.name)
         self.surname = tk.StringVar(value=player.surname)
-        self.gender = tk.StringVar(value=player.gender.value)
+        self.gender = tk.StringVar(value=str(player.gender.value))
         self.rating = tk.IntVar(value=player.rating)
-        self.title = tk.StringVar(value=player.title)
 
         self.update_player_label()
         self.make_main_frame()
@@ -36,10 +36,9 @@ class PlayerEditorWindow(tk.Toplevel):
         self.make_entry(main_frame, 2, 'Nazwisko', self.surname, bind=self.update_player_label)
         self.make_option_menu(main_frame, 3, 'Płeć', self.gender, [x.value for x in Gender])
         self.make_entry(main_frame, 4, 'Ranking', self.rating)
-        self.make_entry(main_frame, 5, 'Tytuł', self.title)
 
         tk.Button(main_frame, text='Zapisz', command=self.save, height=2)\
-            .grid(row=6, column=0, columnspan=2, pady=10, sticky='nesw')
+            .grid(row=5, column=0, columnspan=2, pady=10, sticky='nesw')
 
         main_frame.pack(fill='both', padx=15, pady=15)
 
@@ -57,7 +56,7 @@ class PlayerEditorWindow(tk.Toplevel):
         tk.Label(main_frame, text=label)\
             .grid(row=i, column=0)
         tk.OptionMenu(main_frame, var, *options)\
-            .grid(row=i, column=1)
+            .grid(row=i, column=1, sticky='nesw')
 
     def update_player_label(self, *_):
         self.player_label.set(f'Gracz {self.name.get()} {self.surname.get()}')
@@ -67,7 +66,6 @@ class PlayerEditorWindow(tk.Toplevel):
         self.player.surname = self.surname.get()
         self.player.gender = Gender(self.gender.get())
         self.player.rating = self.rating.get()
-        self.player.title = self.title.get()
 
         self.on_save()
         self.destroy()

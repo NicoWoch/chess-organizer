@@ -1,7 +1,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.config import Config
 
 
@@ -11,6 +11,7 @@ class ConfirmWindow(tk.Toplevel):
 
         self.title('Potwierdź')
         self.iconbitmap(Config.WINDOW_ICON_PATH)
+        self.resizable(False, False)
 
         if len(msg) < 28:
             utils.center_window(self, (300, 110))

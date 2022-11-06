@@ -1,7 +1,7 @@
 import tkinter as tk
 from typing import Any
 
-import src.gui.gui_utils as utils
+from src.gui import utils
 from src.algorithms.game import Result, Game
 from src.algorithms.tops import Tops
 from src.player import Gender, Player
@@ -64,9 +64,9 @@ class TopsFrame(utils.ResizingCanvas):
         for y_in in y_ins:
             for y_out in y_outs:
                 half_x = (x_in + x_out) // 2
-                self.create_line(x_in, y_in, half_x, y_in, width=3, arrow='first' if is_arrow_left else None, arrowshape=arrowshape)
+                self.create_line(x_in, y_in, half_x, y_in, width=3, arrow='first' if is_arrow_left else ..., arrowshape=arrowshape)
                 self.create_line(half_x, y_in, half_x, y_out, width=3)
-                self.create_line(half_x, y_out, x_out, y_out, width=3, arrow='last' if not is_arrow_left else None, arrowshape=arrowshape)
+                self.create_line(half_x, y_out, x_out, y_out, width=3, arrow='last' if not is_arrow_left else ..., arrowshape=arrowshape)
 
     def make_board_row(self, round_id: int, start_table_id: int, x: int, columns: tuple[int, ...], outline='blue'):
         x -= GAME_SIZE[0] // 2
