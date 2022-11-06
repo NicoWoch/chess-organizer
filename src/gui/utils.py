@@ -11,7 +11,7 @@ PHOTOS = []
 
 
 def create_image(img_filename: str, size=None):
-    img_path = os.path.join(Config.GUI_IMAGES_DIR, img_filename)
+    img_path = os.path.join(Config.IMAGES_DIR, img_filename)
 
     if size is not None:
         img = Image.open(img_path).convert('RGBA')

@@ -1,24 +1,23 @@
-import os
-from os.path import dirname
+import os.path
 from datetime import datetime
 
 
 class Config:
-    BASE_DIR = dirname(dirname(os.path.realpath(__file__)))
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     VERSION = 'V0.4'
 
-    __log_file_time = str(datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
-    LOG_FILE = os.path.join(BASE_DIR, 'logs', __log_file_time + '.log')
-    LOG_TB_FILE = os.path.join(BASE_DIR, 'logs', __log_file_time + '.log-tb')
-
     WINDOW_NAME = f'Chess Organizer {VERSION}'
-    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'images/logo.ico')
+    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.ico')
     WINDOW_SIZE = 1080, 640
 
-    DB_PLAYERS = os.path.join(BASE_DIR, 'db/players.pickle')
-    DB_TOURNAMENTS = os.path.join(BASE_DIR, 'db/tournaments.pickle')
+    LOG_DIR = os.path.join(BASE_DIR, 'data/logs')
+    DB_DIR = os.path.join(BASE_DIR, 'data/db')
+    IMAGES_DIR = os.path.join(BASE_DIR, 'data/images')
+    TEMP_DIR = os.path.join(BASE_DIR, 'data/temp')
 
-    GUI_IMAGES_DIR = os.path.join(BASE_DIR, 'images')
+    DB_PLAYERS = os.path.join(DB_DIR, 'players.pkl')
+    DB_TOURNAMENTS = os.path.join(DB_DIR, 'tournaments.pkl')
+    LOG_FILE = os.path.join(LOG_DIR, datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log')
 
     ELO_K_VALUE = 20
 
@@ -48,4 +47,4 @@ class Config:
         PLAYER_ALREADY_EXISTS = 'Ten gracz już istnieje'
         PLAYER_NOT_SELECTED_FOR_OPEN = 'Nie wybrano gracza do dodania'
 
-        TOURNAMENT_NOT_STARTED_OR_ENDED = 'Turniej nie jest rozpoczęty, bądź jest już zakończony'
+        NOT_ON_PAGE_WITH_PAIRS = 'Brak wybranej rundy.\nProszę wybierz rundę i spróbuj ponownie'

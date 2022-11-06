@@ -2,7 +2,6 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Chess Organizer"
-#define MyAppVersion "0.4"
 #define MyAppPublisher "Nicolas Wochnik"
 #define MyAppExeName "chess-organizer.exe"
 
@@ -21,7 +20,7 @@ LicenseFile=C:\Users\48502\PycharmProjects\chess-organizer-desktop\dist\chess-or
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputBaseFilename=chess-organizer-installer
-SetupIconFile=C:\Users\48502\PycharmProjects\chess-organizer-desktop\dist\chess-organizer\images\logo.ico
+SetupIconFile=C:\Users\48502\PycharmProjects\chess-organizer-desktop\data\images\installer-logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

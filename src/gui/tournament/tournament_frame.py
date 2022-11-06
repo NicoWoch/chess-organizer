@@ -1,6 +1,7 @@
 import logging
+import math
 import tkinter as tk
-from typing import Optional
+from typing import Optional, Literal
 
 from src.algorithms.swiss_tournament import SwissTournament
 from src.algorithms.tournament import Tournament
@@ -13,9 +14,7 @@ from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
-import math
-
-from src.pairing_printer import PairingPrinter
+from src.pdf import pdf
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -247,9 +246,31 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         MainDB.save_tournaments(tournaments)
 
-    def print_newest_pairings(self):
+    def make_pdf_starting_list(self, action: Literal['print', 'save']):
         assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert self.tournament.active_round is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED_OR_ENDED)
-        PairingPrinter(self.tournament.name, self.tournament.active_round_id + 1, self.tournament.active_round,
-                       self.tournament.get_waiting_players()[0] if self.tournament.get_waiting_players() else None) \
-            .show_html_page()
+
+        fpdf = pdf.make_starting_list_pdf(self.tournament.name, self.tournament.players)
+        self.__run_pdf_action(fpdf, action)
+
+    def make_pdf_active_pairings(self, action: Literal['print', 'save']):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        assert self.rounds_frame.is_round(), WindowException(Config.ErrorMsg.NOT_ON_PAGE_WITH_PAIRS)
+
+        round_id = self.rounds_frame.get_active_round()
+        pairings = self.tournament.get_round(round_id)
+        pause_players = self.tournament.get_waiting_players(round_id)
+
+        fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
+        self.__run_pdf_action(fpdf, action)
+
+    def make_pdf_results(self, action: Literal['print', 'save']):
+        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+
+        fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
+        self.__run_pdf_action(fpdf, action)
+
+    def __run_pdf_action(self, fpdf, action):
+        if action == 'print':
+            pdf.show_pdf_in_browser(fpdf)
+        elif action == 'save':
+            pdf.save_pdf_with_dialog(fpdf)

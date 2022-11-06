@@ -1,5 +1,4 @@
 import logging
-import random
 import tkinter as tk
 import traceback
 
@@ -7,12 +6,12 @@ from src import dummy_generator
 from src.algorithms.game import Result
 from src.config import Config
 from src.db import MainDB
+from src.gui import utils
 from src.gui.action_bar_frame import ActionBarFrame
 from src.gui.subwindows.info.about_window import AboutWindow
 from src.gui.subwindows.info.error_window import ErrorWindow, WindowException
 from src.gui.subwindows.info.license_window import LicenseWindow
 from src.gui.tournament.tournament_frame import TournamentFrame
-from src.gui import utils
 
 
 def show_error(self, exc, val, tb):
@@ -20,12 +19,10 @@ def show_error(self, exc, val, tb):
         logging.warning(f'WindowError: {val.args[0]}')
         ErrorWindow(self, val.args[0]).mainloop()
     else:
-        err_id = random.randint(0, 99)
-        err_str = f'Raised "{exc.__name__}" <{err_id}>: {val}'
-        tb_str = f'TRACEBACK: "{exc.__name__}" <{err_id}>: {val}\n\n' + ''.join(traceback.format_exception(exc, val, tb)) + '\n\n\n'
+        err_str = f'Raised "{exc.__name__}": {val}\n' \
+                  f'--- Traceback ---\n' + ''.join(traceback.format_exception(exc, val, tb))
 
-        with open(Config.LOG_TB_FILE, 'a') as f:
-            f.write(tb_str)
+        ErrorWindow(self, WindowException(f'Unhandled {exc.__name__} error\n"{val}"')).mainloop()
 
         logging.error(err_str)
         print(err_str)
@@ -108,7 +105,12 @@ class MainWindow(tk.Tk):
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
 
         print_menu = tk.Menu(menubar, tearoff=0)
-        print_menu.add_command(label='Drukuj najnowsze parowanie', command=self.tournament_frame.print_newest_pairings)
+        print_menu.add_command(label='Drukuj listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('print'))
+        print_menu.add_command(label='Drukuj parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('print'))
+        print_menu.add_command(label='Drukuj wyniki', command=lambda: self.tournament_frame.make_pdf_results('print'))
+        print_menu.add_command(label='Zapisz listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('save'))
+        print_menu.add_command(label='Zapisz parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('save'))
+        print_menu.add_command(label='Zapisz wyniki', command=lambda: self.tournament_frame.make_pdf_results('save'))
         menubar.add_cascade(label='Drukowanie', menu=print_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
