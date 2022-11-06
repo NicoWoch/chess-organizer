@@ -1,4 +1,4 @@
-set APP_VERSION = "0.4"
+set APP_VERSION="0.4"
 
 
 @REM Cleaning Develop Temporary Files And Logs
