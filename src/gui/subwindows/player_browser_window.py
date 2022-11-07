@@ -94,6 +94,9 @@ class PlayerBrowserWindow(BrowserWindow):
                 if player not in self.players:
                     self.players.append(player)
 
+            self.update_table()
+            self.winfo_toplevel().lift()
+
     def export_btn(self):
         assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
 
