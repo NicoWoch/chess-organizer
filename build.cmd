@@ -1,9 +1,11 @@
 set APP_VERSION="0.4"
 
 
-@REM Cleaning Develop Temporary Files And Logs
+@REM Cleaning Develop Files
 del /Q data\temp\*
 del /Q data\logs\*
+del data\fonts\Roboto.cw127.pkl
+del data\fonts\Roboto.pkl
 
 
 @REM Removing old output folder
