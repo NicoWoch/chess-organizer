@@ -2,7 +2,7 @@ import tkinter as tk
 from typing import Optional
 
 from src.algorithms.tournament import Tournament
-from src.gui.widgets.table import Table
+from src.gui.widgets.table import Table, colourfull_label
 from src.player import Player
 
 FIRST_COLUMNS = [
@@ -112,12 +112,20 @@ class PairsFrame(tk.Frame):
 
         rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
         rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
+
         self._update_rows([
             (
                 tournament.players[i],
-                f'{tournament.old_ratings[i]}  ({rating_deviations_str[i]})    ->    {tournament.new_ratings[i]}',
+                self.__create_ratings_label(tournament.old_ratings[i], tournament.new_ratings[i], rating_deviations_str[i]),
                 ',   '.join(map(str, tournament.get_points(i)))
             )
             for i in tournament.get_scoreboard_ids()
         ], slice(2, 3))
         self._update_waiting(None)
+
+    def __create_ratings_label(self, old_rating: int, new_rating: int, deviation_str: str):
+        return colourfull_label(f'{old_rating}  ({deviation_str})    ->     {new_rating}', (
+            (len(f'{old_rating}  ('),
+             len(f'{old_rating}  ({deviation_str}'),
+             ('green' if new_rating > old_rating else ('red' if new_rating < old_rating else 'black'))),
+        ))
