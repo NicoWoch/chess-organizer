@@ -83,7 +83,7 @@ class PairsFrame(tk.Frame):
         self.table.redraw_rows()
 
     def _place_waiting_frame(self):
-        self.waiting_frame.place(relx=0.5, rely=0.9, relwidth=0.49, relheight=0.09)
+        self.waiting_frame.place(rely=0.9, relwidth=1, relheight=0.09)
 
     def _update_waiting(self, players: Optional[list[Player]]):
         if players is None:

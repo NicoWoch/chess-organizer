@@ -101,7 +101,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = math.ceil(math.log(players_count, 2))
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', font=('Calibri', 9))
+                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}', font=('Calibri', 9))
                 optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
                 self._info_labels.append(optimum_label)

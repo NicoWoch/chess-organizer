@@ -81,5 +81,5 @@ class RoundsFrame(tk.Frame):
         image = utils.create_image(image_path, (28, 28))
         btn = tk.Button(self._buttons_frame, text=text, font='verdana 13', image=image, bg='white', height=20,
                         compound=tk.LEFT, command=lambda: self.set_active_btn(idx))
-        btn.place(y=i * 50, relwidth=1, height=50)
+        btn.place(y=i * 50, relwidth=1, width=-10, height=50)
         self._buttons[idx] = btn
