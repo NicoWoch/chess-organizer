@@ -30,6 +30,9 @@ class PlayerBrowserWindow(BrowserWindow):
         self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking', '', ''), (1, 5, 5, 5, 1, 1))
         self.update_table()
 
+        self.bind('<Control-a>', lambda *_: self.table.select_all())
+        self.bind('<Control-d>', lambda *_: self.table.remove_selection())
+
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
