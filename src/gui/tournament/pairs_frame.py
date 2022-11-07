@@ -47,6 +47,7 @@ class PairsFrame(tk.Frame):
         self.table.set_checkmarks_state(False)
         self.table.style['header']['font'] = 'Arial 18'
         self.table.style['row']['font'] = 'Arial 13'
+        self.table.style['one_select'] = True
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)

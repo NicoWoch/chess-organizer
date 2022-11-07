@@ -26,7 +26,8 @@ DEFAULT_STYLE = {
     'scrollbar': {
         'width': 18,
         'speed': 1,
-    }
+    },
+    'one_select': False,
 }
 
 Label = Any
@@ -61,8 +62,16 @@ class Table(tk.Frame):
         if row_idx < 0 or row_idx >= len(self._rows):
             return
 
-        var = self._selected_vars[row_idx]
-        var.set(not var.get())
+        selected_var = self._selected_vars[row_idx]
+
+        if self.style['one_select']:
+            for var in self._selected_vars:
+                var.set(False)
+
+            selected_var.set(True)
+        else:
+            selected_var.set(not selected_var.get())
+
         self.redraw_rows()
 
     def redraw_all(self):
