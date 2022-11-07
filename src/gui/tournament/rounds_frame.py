@@ -19,6 +19,8 @@ class RoundsFrame(tk.Frame):
         self._active_button = None
         self._on_round_change = on_round_change
 
+        self._scroll_frame.config(relief='groove', borderwidth=3)
+
         self._scroll_frame.place(relwidth=1, relheight=1)
 
     def is_registration(self) -> bool:
