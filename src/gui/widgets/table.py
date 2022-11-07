@@ -63,14 +63,12 @@ class Table(tk.Frame):
             return
 
         selected_var = self._selected_vars[row_idx]
+        selected_var.set(not selected_var.get())
 
         if self.style['one_select']:
             for var in self._selected_vars:
-                var.set(False)
-
-            selected_var.set(True)
-        else:
-            selected_var.set(not selected_var.get())
+                if var != selected_var:
+                    var.set(False)
 
         self.redraw_rows()
 
