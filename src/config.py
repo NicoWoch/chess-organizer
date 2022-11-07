@@ -48,3 +48,4 @@ class Config:
         PLAYER_NOT_SELECTED_FOR_OPEN = 'Nie wybrano gracza do dodania'
 
         NOT_ON_PAGE_WITH_PAIRS = 'Brak wybranej rundy.\nProszę wybierz rundę i spróbuj ponownie'
+        PLAYER_IMPORTING_ERROR = 'Błąd importowania graczy.\nNiepoprawny plik'

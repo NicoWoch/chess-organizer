@@ -1,6 +1,7 @@
 import tkinter as tk
 from collections.abc import Callable
 from copy import copy
+from pickle import UnpicklingError
 from tkinter.filedialog import asksaveasfilename, askopenfilename
 
 from src.config import Config
@@ -91,7 +92,10 @@ class PlayerBrowserWindow(BrowserWindow):
 
     def import_btn(self):
         if filepath := askopenfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
-            players = MainDB.load_players(path=filepath)
+            try:
+                players = MainDB.load_players(path=filepath)
+            except UnpicklingError:
+                raise AssertionError(WindowException(Config.ErrorMsg.PLAYER_IMPORTING_ERROR))
 
             for player in players:
                 if player not in self.players:
