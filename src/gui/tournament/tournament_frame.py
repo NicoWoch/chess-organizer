@@ -36,7 +36,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.scoreboard_frame = ScoreboardFrame(self)
 
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=20)
+        self.columnconfigure(1, weight=7)
         self.rowconfigure(0, weight=1)
 
         self._update_frame()
@@ -44,15 +44,17 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._info_labels: list[tk.Label] = []
         self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
 
-    def _grid_frame(self, grid_scoreboard=True):
+    def _grid_frame(self, grid_scoreboard):
         self.rounds_frame.grid(row=0, column=0, sticky='nesw')
         self.pairs_frame.grid(row=0, column=1, sticky='nesw')
 
         if grid_scoreboard:
             self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
-            self.columnconfigure(2, weight=8)
+            self.columnconfigure(1, weight=5)
+            self.columnconfigure(2, weight=2)
         else:
             self.scoreboard_frame.grid_forget()
+            self.columnconfigure(1, weight=7)
             self.columnconfigure(2, weight=0)
 
     def _forget_all(self):
@@ -69,12 +71,14 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
 
-        if self.rounds_frame.is_first():
+        if self.rounds_frame.is_registration():
             self.pairs_frame.update_first(self.tournament)
-        elif self.rounds_frame.is_last():
+        elif self.rounds_frame.is_results():
             self.pairs_frame.update_last(self.tournament)
         else:
             self.pairs_frame.update_pairing(self.tournament, self.rounds_frame.get_active_round())
+
+        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
@@ -97,7 +101,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = math.ceil(math.log(players_count, 2))
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', bg='#bfbfbf', font=('Calibri', 9))
+                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', font=('Calibri', 9))
                 optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
                 self._info_labels.append(optimum_label)
