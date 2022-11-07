@@ -26,7 +26,7 @@ class ScrollableFrame(tk.Frame):
         if self._configure_after is not None:
             self.after_cancel(self._configure_after)
 
-        self._configure_after = self.after(500, self.update_window)
+        self._configure_after = self.after(100, self.update_window)
 
     def _handle_scroll(self, event):
         if self._has_scrollbar:

@@ -22,6 +22,8 @@ class TournamentBrowserWindow(BrowserWindow):
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
+        self.table.set_checkmarks_state(False)
+        self.table.style['one_select'] = True
         self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data', ''), (1, 7, 2, 5, 1))
         self.update_table()
 

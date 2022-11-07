@@ -26,10 +26,30 @@ DEFAULT_STYLE = {
     'scrollbar': {
         'width': 18,
         'speed': 1,
-    }
+    },
+    'one_select': False,
 }
 
 Label = Any
+
+
+def colourfull_label(text: str, colors=(), width=35):
+    def generate_func(master, font, bg):
+        textarea = tk.Text(master, bg=bg, font=font, width=width, borderwidth=0, cursor='arrow')
+        textarea.insert('end', text)
+
+        textarea.tag_configure('center', justify='center')
+        textarea.tag_add('center', '1.0', 'end')
+
+        for i, (start, end, fg) in enumerate(colors):
+            textarea.tag_configure(f'color{i}', foreground=fg)
+            textarea.tag_add(f'color{i}', f'1.{start}', f'1.{end}')
+
+        textarea['state'] = 'disabled'
+        return textarea
+
+    generate_func.table_gen_flag = True
+    return generate_func
 
 
 class Table(tk.Frame):
@@ -61,8 +81,14 @@ class Table(tk.Frame):
         if row_idx < 0 or row_idx >= len(self._rows):
             return
 
-        var = self._selected_vars[row_idx]
-        var.set(not var.get())
+        selected_var = self._selected_vars[row_idx]
+        selected_var.set(not selected_var.get())
+
+        if self.style['one_select']:
+            for var in self._selected_vars:
+                if var != selected_var:
+                    var.set(False)
+
         self.redraw_rows()
 
     def redraw_all(self):
@@ -130,7 +156,9 @@ class Table(tk.Frame):
             now_pos += col_percent_size
 
     def parse_label(self, master, lbl: Label, font, bg):
-        if isinstance(lbl, tk.Button):
+        if callable(lbl) and hasattr(lbl, 'table_gen_flag') and lbl.table_gen_flag:
+            return self.add_bindings(lbl(master, font, bg))
+        elif isinstance(lbl, tk.Button):
             copy_attrs = {'text', 'command', 'image', 'borderwidth'}
             return tk.Button(master, {var: lbl[var] for var in copy_attrs}, bg=bg)
         else:

@@ -2,7 +2,7 @@ import tkinter as tk
 from typing import Optional
 
 from src.algorithms.tournament import Tournament
-from src.gui.widgets.table import Table
+from src.gui.widgets.table import Table, colourfull_label
 from src.player import Player
 
 FIRST_COLUMNS = [
@@ -47,6 +47,7 @@ class PairsFrame(tk.Frame):
         self.table.set_checkmarks_state(False)
         self.table.style['header']['font'] = 'Arial 18'
         self.table.style['row']['font'] = 'Arial 13'
+        self.table.style['one_select'] = True
         self.table.place(relheight=1, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)
@@ -95,7 +96,7 @@ class PairsFrame(tk.Frame):
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
 
-        self.first_page_players = sorted(tournament.players, key=lambda p: p.rating, reverse=True)
+        self.first_page_players = sorted(tournament.players, key=lambda p: (p.name, p.surname))
 
         self._update_rows([(player, player.rating) for player in self.first_page_players])
         self._update_waiting(None)
@@ -111,12 +112,20 @@ class PairsFrame(tk.Frame):
 
         rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
         rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
+
         self._update_rows([
             (
                 tournament.players[i],
-                f'{tournament.old_ratings[i]}  ({rating_deviations_str[i]})    ->    {tournament.new_ratings[i]}',
+                self.__create_ratings_label(tournament.old_ratings[i], tournament.new_ratings[i], rating_deviations_str[i]),
                 ',   '.join(map(str, tournament.get_points(i)))
             )
             for i in tournament.get_scoreboard_ids()
         ], slice(2, 3))
         self._update_waiting(None)
+
+    def __create_ratings_label(self, old_rating: int, new_rating: int, deviation_str: str):
+        return colourfull_label(f'{old_rating}  ({deviation_str})    ->     {new_rating}', (
+            (len(f'{old_rating}  ('),
+             len(f'{old_rating}  ({deviation_str}'),
+             ('green' if new_rating > old_rating else ('red' if new_rating < old_rating else 'black'))),
+        ))

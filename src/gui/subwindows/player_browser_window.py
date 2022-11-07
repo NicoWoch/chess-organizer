@@ -30,6 +30,9 @@ class PlayerBrowserWindow(BrowserWindow):
         self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking', '', ''), (1, 5, 5, 5, 1, 1))
         self.update_table()
 
+        self.bind('<Control-a>', lambda *_: self.table.select_all())
+        self.bind('<Control-d>', lambda *_: self.table.remove_selection())
+
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
             utils.Action('plus.png', self.plus_btn, tk.LEFT),
@@ -93,6 +96,9 @@ class PlayerBrowserWindow(BrowserWindow):
             for player in players:
                 if player not in self.players:
                     self.players.append(player)
+
+            self.update_table()
+            self.winfo_toplevel().lift()
 
     def export_btn(self):
         assert len(self.table.get_selection()) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)

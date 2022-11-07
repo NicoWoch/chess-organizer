@@ -21,7 +21,7 @@ SCOREBOARD_STYLE = {
 
 class ScoreboardFrame(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, relief='groove', borderwidth=3)
 
         self.table = Table(self)
         utils.update_styles(self.table.style, SCOREBOARD_STYLE)
