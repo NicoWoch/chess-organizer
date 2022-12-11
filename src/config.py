@@ -33,7 +33,6 @@ class Config:
         ROUND_NOT_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
 
 
-        TABLE_NOT_SELECTED = 'Nie wybrano stołu'
         CANNOT_EDIT_IN_CLOSED_ROUND = 'Nie można edytować wyników w zamkniętej rundzie'
         TOO_LESS_PLAYERS_IN_TOURNAMENT = 'Zbyt mała ilość graczy w turnieju.\nProszę dodać przynajmniej dwóch graczy'
         CANNOT_PAIR = 'Nie można utworzyć par.\nNajczęściej oznacza to że należy zakończyć turniej'
@@ -46,11 +45,9 @@ class Config:
         PLAYER_NOT_SELECTED = 'Nie wybrano gracza'
 
         TOURNAMENT_ALREADY_EXISTS = 'Ta nazwa jest już zajęta.\nWybierz inną'
-        MORE_THAN_ONE_TOURNAMENT_SELECTED = 'Wybrano więcej niż jeden turniej do otwarcia'
         TOURNAMENT_NOT_SELECTED_FOR_OPEN = 'Nie wybrano turnieju do otwarcia'
 
         PLAYER_ALREADY_EXISTS = 'Ten gracz już istnieje'
-        PLAYER_NOT_SELECTED_FOR_OPEN = 'Nie wybrano gracza do dodania'
 
         NOT_ON_PAGE_WITH_PAIRS = 'Brak wybranej rundy.\nProszę wybierz rundę i spróbuj ponownie'
         PLAYER_IMPORTING_ERROR = 'Błąd importowania graczy.\nNiepoprawny plik'
