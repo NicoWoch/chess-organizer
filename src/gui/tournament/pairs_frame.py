@@ -29,12 +29,12 @@ class WaitingFrame(tk.Label):
         self['anchor'] = 'se'
 
     def set_players(self, players: list[Player]):
-        assert len(players) <= 1, 'Only one player can be shown right now on pause'
-
         if len(players) == 0:
             self['text'] = ''
+        elif len(players) == 1:
+            self['text'] = f'Pauza: {players[0]}'
         else:
-            self['text'] = f'PAUZA: {players[0]}'
+            self['text'] = f'Pauza: {players[0]} + {len(players) - 1} graczy'
 
 
 class PairsFrame(tk.Frame):
@@ -105,21 +105,21 @@ class PairsFrame(tk.Frame):
         self.table.set_columns(*PAIRING_COLUMNS)
 
         self._update_rows([(game.white, game.black, game.result.value) for game in tournament.get_round(round_id)])
-        self._update_waiting(tournament.get_waiting_players(round_id))
+        self._update_waiting(tournament.get_pause(round_id))
 
     def update_last(self, tournament: Tournament):
         self.table.set_columns(*LAST_COLUMNS)
 
-        rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
+        rating_deviations = [new - old for old, new in zip(tournament.ratings_before, tournament.ratings_after)]
         rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
 
         self._update_rows([
             (
-                tournament.players[i],
-                self.__create_ratings_label(tournament.old_ratings[i], tournament.new_ratings[i], rating_deviations_str[i]),
+                player,
+                self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i], rating_deviations_str[i]),
                 ',   '.join(map(str, tournament.get_points(i)))
             )
-            for i in tournament.get_scoreboard_ids()
+            for i, player, points in tournament.get_scoreboard_with_ids()
         ], slice(2, 3))
         self._update_waiting(None)
 

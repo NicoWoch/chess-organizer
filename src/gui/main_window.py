@@ -3,7 +3,7 @@ import tkinter as tk
 import traceback
 
 from src import dummy_generator
-from src.algorithms.game import Result
+from src.algorithms.constants import Result
 from src.config import Config
 from src.db import MainDB
 from src.gui import utils
@@ -15,14 +15,14 @@ from src.gui.tournament.tournament_frame import TournamentFrame
 
 
 def show_error(self, exc, val, tb):
-    if isinstance(val, AssertionError) and len(val.args) == 1 and isinstance(val.args[0], WindowException):
-        logging.warning(f'WindowError: {val.args[0]}')
-        ErrorWindow(self, val.args[0]).mainloop()
+    if isinstance(val, WindowException):
+        logging.warning(f'WindowError: {val}')
+        ErrorWindow(self, val).mainloop()
     else:
         err_str = f'Raised "{exc.__name__}": {val}\n' \
                   f'--- Traceback ---\n' + ''.join(traceback.format_exception(exc, val, tb))
 
-        ErrorWindow(self, WindowException(f'Unhandled {exc.__name__} error\n"{val}"')).mainloop()
+        ErrorWindow(self, WindowException(f'Unhandled {exc.__name__} error\n"{val}"'))
 
         logging.error(err_str)
         print(err_str)

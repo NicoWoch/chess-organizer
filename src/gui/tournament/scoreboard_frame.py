@@ -1,5 +1,6 @@
 import tkinter as tk
 
+from src.algorithms.constants import Points
 from src.gui import utils
 from src.gui.widgets.table import Table
 from src.player import Player
@@ -39,16 +40,16 @@ class ScoreboardFrame(tk.Frame):
         self.last_pos = 0
         self.last_score = None
 
-    def _add_player(self, player: Player, score: tuple):
-        if self.last_score == score:
+    def _add_player(self, player: Player, score: Points):
+        if self.last_score == score.big_points:
             self.table.add_row(self.last_pos, str(player), str(score))
         else:
             self.table.add_row(self.last_pos + 1, str(player), str(score))
             self.last_pos += 1
 
-        self.last_score = score
+        self.last_score = score.big_points
 
-    def update_scoreboard(self, scoreboard: list[tuple[Player, tuple]]):
+    def update_scoreboard(self, scoreboard: list[tuple[Player, Points]]):
         self.last_pos = 0
         self.last_score = None
 

@@ -10,7 +10,6 @@ Alg = namedtuple('Alg', ('name', 'cls'))
 
 ALGORITHMS = [
     Alg('Swiss', SwissTournament),
-    # Alg('Random', RandomTournament),
 ]
 
 
@@ -47,7 +46,7 @@ class TournamentCreationWindow(tk.Toplevel):
 
     def _create(self, *_):
         alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
-        self.on_create(alg_class(self.name.get(), []))
+        self.on_create(alg_class(self.name.get()))
         self.destroy()
 
 

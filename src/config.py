@@ -20,24 +20,29 @@ class Config:
     LOG_FILE = os.path.join(LOG_DIR, datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log')
 
     ELO_K_VALUE = 20
+    WIN_POINTS = 1
+    DRAW_POINTS = .5
+    LOSE_POINTS = 0
+    PAUSE_POINTS = 1
 
     class ErrorMsg:
         TOURNAMENT_NOT_OPENED = 'Nie otwarto tunieju'
+        TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
+        TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'
+        TOURNAMENT_STARTED = 'Turniej jest już rozpoczęty'
+        ROUND_NOT_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
+
+
         TABLE_NOT_SELECTED = 'Nie wybrano stołu'
         CANNOT_EDIT_IN_CLOSED_ROUND = 'Nie można edytować wyników w zamkniętej rundzie'
         TOO_LESS_PLAYERS_IN_TOURNAMENT = 'Zbyt mała ilość graczy w turnieju.\nProszę dodać przynajmniej dwóch graczy'
-        TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'
-        NOT_ALL_GAMES_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
         CANNOT_PAIR = 'Nie można utworzyć par.\nNajczęściej oznacza to że należy zakończyć turniej'
-        TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
 
         PLAYER_NOT_FOUND = 'Program nie znalazł graczy:\n\n{players}\n\n' \
                            'Oznacza to że zostali oni usunięci i program\nnie będzie aktualizował ich rankingów'
         PLAYER_ALREADY_ADDED = 'Gracze:\n\n{players}\n\n' \
                                'Zostali już wcześniej dodani do turnieju'
 
-        CANNOT_ADD_PLAYER_WHEN_STARTED = 'Nie można dodać graczy kiedy\nturniej jest rozpoczęty lub zakończony'
-        CANNOT_REMOVE_PLAYER_WHEN_STARTED = 'Nie można usunąć graczy kiedy\nturniej jest rozpoczęty lub zakończony'
         PLAYER_NOT_SELECTED = 'Nie wybrano gracza'
 
         TOURNAMENT_ALREADY_EXISTS = 'Ta nazwa jest już zajęta.\nWybierz inną'
