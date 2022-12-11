@@ -25,6 +25,7 @@ class WaitingFrame(tk.Label):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self['background'] = '#eee'
         self['font'] = ('Calibri', 18)
         self['anchor'] = 'se'
 
@@ -32,9 +33,9 @@ class WaitingFrame(tk.Label):
         if len(players) == 0:
             self['text'] = ''
         elif len(players) == 1:
-            self['text'] = f'Pauza: {players[0]}'
+            self['text'] = f'Pauza:   {players[0]}'
         else:
-            self['text'] = f'Pauza: {players[0]} + {len(players) - 1} graczy'
+            self['text'] = f'Pauza:   {players[0]} + {len(players) - 1} graczy'
 
 
 class PairsFrame(tk.Frame):
@@ -48,7 +49,7 @@ class PairsFrame(tk.Frame):
         self.table.style['header']['font'] = 'Arial 18'
         self.table.style['row']['font'] = 'Arial 13'
         self.table.style['one_select'] = True
-        self.table.place(relheight=1, relwidth=1)
+        self.table.place(relheight=.95, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)
         self._place_waiting_frame()
@@ -83,7 +84,7 @@ class PairsFrame(tk.Frame):
         self.table.redraw_rows()
 
     def _place_waiting_frame(self):
-        self.waiting_frame.place(rely=0.9, relwidth=1, relheight=0.09)
+        self.waiting_frame.place(rely=0.95, relwidth=1, relheight=0.05)
 
     def _update_waiting(self, players: Optional[list[Player]]):
         if players is None:
