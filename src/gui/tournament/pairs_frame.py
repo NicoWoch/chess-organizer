@@ -118,7 +118,7 @@ class PairsFrame(tk.Frame):
             (
                 player,
                 self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i], rating_deviations_str[i]),
-                ',   '.join(map(str, tournament.get_points(i)))
+                str(points)
             )
             for i, player, points in tournament.get_scoreboard_with_ids()
         ], slice(2, 3))
