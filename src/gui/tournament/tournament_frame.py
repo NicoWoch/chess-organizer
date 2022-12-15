@@ -7,6 +7,7 @@ from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
+from src.gui.subwindows.info.confirm_window import ConfirmWindow
 from src.gui.subwindows.info.error_window import WindowException, ErrorWindow
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
@@ -172,10 +173,13 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.__assert_tournament_running()
         self.__assert_has_round_ended()
 
-        self.tournament.end_tournament()
-        self._update_ratings()
-        self.rounds_frame.update_tournament(self.tournament)
-        self._update_frame()
+        def confirmed():
+            self.tournament.end_tournament()
+            self._update_ratings()
+            self.rounds_frame.update_tournament(self.tournament)
+            self._update_frame()
+
+        ConfirmWindow(self.winfo_toplevel(), Config.ErrorMsg.END_THE_TOURNAMENT, confirmed)
 
     def _update_ratings(self):
         db_players = MainDB.load_players()

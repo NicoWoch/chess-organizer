@@ -31,7 +31,7 @@ class Config:
         TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'
         TOURNAMENT_STARTED = 'Turniej jest już rozpoczęty'
         ROUND_NOT_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
-
+        END_THE_TOURNAMENT = 'zakończyć turniej'
 
         CANNOT_EDIT_IN_CLOSED_ROUND = 'Nie można edytować wyników w zamkniętej rundzie'
         TOO_LESS_PLAYERS_IN_TOURNAMENT = 'Zbyt mała ilość graczy w turnieju.\nProszę dodać przynajmniej dwóch graczy'
