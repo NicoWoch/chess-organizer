@@ -46,15 +46,15 @@ class RoundsFrame(tk.Frame):
         self._on_round_change()
 
     def update_tournament(self, tournament: Tournament):
-        for item in self._buttons_frame.slaves():
+        for item in self._buttons_frame.place_slaves():
             item.destroy()
 
         self._buttons = {}
         self._create_buttons(tournament)
 
-        if not tournament.is_started():
+        if not tournament.is_started:
             self._active_button = self.REGISTRATION
-        elif tournament.is_ended():
+        elif tournament.is_ended:
             self._active_button = self.RESULTS
         else:
             self._active_button = tournament.round_count - 1
@@ -70,10 +70,10 @@ class RoundsFrame(tk.Frame):
         for i in range(tournament.round_count):
             self._add_button(i + 1, i, f'Runda {i + 1}', 'white_queen.png')
 
-        if tournament.is_ended():
+        if tournament.is_ended:
             self._add_button(tournament.round_count + 1, self.RESULTS, 'Wyniki', 'red_flag.png')
 
-        btn_count = tournament.round_count + tournament.is_ended() + 1
+        btn_count = tournament.round_count + tournament.is_ended + 1
         btn_height = 50
         self._scroll_frame.height = btn_height * btn_count + 6
 
@@ -81,5 +81,5 @@ class RoundsFrame(tk.Frame):
         image = utils.create_image(image_path, (28, 28))
         btn = tk.Button(self._buttons_frame, text=text, font='verdana 13', image=image, bg='white', height=20,
                         compound=tk.LEFT, command=lambda: self.set_active_btn(idx))
-        btn.place(y=i * 50, relwidth=1, height=50)
+        btn.place(y=i * 50, relwidth=1, width=-10, height=50)
         self._buttons[idx] = btn

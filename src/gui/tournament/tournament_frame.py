@@ -1,13 +1,13 @@
 import logging
-import math
 import tkinter as tk
 from typing import Optional, Literal
 
-from src.algorithms.swiss_tournament import SwissTournament
+from src.algorithms.swiss_tournament import SwissTournament, get_optimal_swiss_rounds
 from src.algorithms.tournament import Tournament
 from src.config import Config
 from src.db import MainDB
 from src.gui.action_bar_frame import ActionBarListener
+from src.gui.subwindows.info.confirm_window import ConfirmWindow
 from src.gui.subwindows.info.error_window import WindowException, ErrorWindow
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
@@ -99,28 +99,58 @@ class TournamentFrame(tk.Frame, ActionBarListener):
                 self._info_labels.pop().place_forget()
 
             if players_count >= 2:
-                optimum = math.ceil(math.log(players_count, 2))
+                optimum = get_optimal_swiss_rounds(self.tournament.players_count)
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość rund:\n{optimum}', font=('Calibri', 9))
+                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}', font=('Calibri', 9))
                 optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
 
                 self._info_labels.append(optimum_label)
 
         self.after(100, x)
 
+    def __assert_tournament_opened(self):
+        if self.tournament is None:
+            raise WindowException(Config.Messages.TOURNAMENT_NOT_OPENED)
+
+    def __assert_tournament_running(self):
+        self.__assert_tournament_opened()
+
+        if not self.tournament.is_started:
+            raise WindowException(Config.Messages.TOURNAMENT_NOT_STARTED)
+        elif self.tournament.is_ended:
+            raise WindowException(Config.Messages.TOURNAMENT_HAS_ENDED)
+
+    def __assert_tournament_not_started(self):
+        self.__assert_tournament_opened()
+
+        if self.tournament.is_started:
+            raise WindowException(Config.Messages.TOURNAMENT_STARTED)
+
+    def __assert_has_round_ended(self):
+        self.__assert_tournament_opened()
+
+        if self.tournament.is_ended:
+            raise WindowException(Config.Messages.TOURNAMENT_HAS_ENDED)
+
+        if self.tournament.is_started and not self.tournament.has_round_ended():
+            raise WindowException(Config.Messages.ROUND_NOT_ENDED)
+
+    def __assert_can_make_next_round(self):
+        self.__assert_has_round_ended()
+
+        if self.tournament.players_count < 2:
+            raise WindowException(Config.Messages.TOO_LESS_PLAYERS_IN_TOURNAMENT)
+
     def set_result(self, result):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert self.tournament.is_started(), WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED)
-        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+        self.__assert_tournament_running()
 
         if not self.rounds_frame.is_round():
             return
 
-        assert self.rounds_frame.get_active_round() == self.tournament.active_round_id, WindowException(Config.ErrorMsg.CANNOT_EDIT_IN_CLOSED_ROUND)
+        if self.rounds_frame.get_active_round() != self.tournament.round_count - 1:
+            raise WindowException(Config.Messages.CANNOT_EDIT_IN_CLOSED_ROUND)
 
         selection = self.pairs_frame.table.get_selection()
-
-        assert len(selection) > 0, WindowException(Config.ErrorMsg.TABLE_NOT_SELECTED)
 
         for i in selection:
             self.tournament.set_result(i, result)
@@ -129,35 +159,33 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
     def next_round(self):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert len(self.tournament.players) >= 2, WindowException(Config.ErrorMsg.TOO_LESS_PLAYERS_IN_TOURNAMENT)
-        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
-        assert self.tournament.has_round_ended(), WindowException(Config.ErrorMsg.NOT_ALL_GAMES_ENDED)
+        self.__assert_can_make_next_round()
 
         try:
             self.tournament.next_round()
         except Exception:
-            raise AssertionError(WindowException(Config.ErrorMsg.CANNOT_PAIR))
+            raise AssertionError(WindowException(Config.Messages.CANNOT_PAIR))
 
         self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
 
     def end_tournament(self):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert self.tournament.is_started(), WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED)
-        assert not self.tournament.is_ended(), WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
-        assert self.tournament.has_round_ended(), WindowException(Config.ErrorMsg.NOT_ALL_GAMES_ENDED)
+        self.__assert_tournament_running()
+        self.__assert_has_round_ended()
 
-        self.tournament.end_tournament()
-        self._update_ratings()
-        self.rounds_frame.update_tournament(self.tournament)
-        self._update_frame()
+        def confirmed():
+            self.tournament.end_tournament()
+            self._update_ratings()
+            self.rounds_frame.update_tournament(self.tournament)
+            self._update_frame()
+
+        ConfirmWindow(self.winfo_toplevel(), Config.Messages.END_THE_TOURNAMENT, confirmed)
 
     def _update_ratings(self):
         db_players = MainDB.load_players()
 
         not_found_players = []
-        for i, (player, new_rating) in enumerate(zip(self.tournament.players, self.tournament.new_ratings)):
+        for i, (player, new_rating) in enumerate(zip(self.tournament.players, self.tournament.ratings_after)):
             if player not in db_players:
                 not_found_players.append(player)
                 continue
@@ -172,7 +200,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
     def __show_players_not_found_error(self, players):
         ErrorWindow(self.winfo_toplevel(), WindowException(
-            Config.ErrorMsg.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
+            Config.Messages.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
         )).mainloop()
 
     def browse_players(self):
@@ -181,8 +209,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.register_subwindow(players_browser)
 
     def add_players(self, players):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert not self.tournament.is_started(), WindowException(Config.ErrorMsg.CANNOT_ADD_PLAYER_WHEN_STARTED)
+        self.__assert_tournament_not_started()
 
         already_added_players = []
         for player in players:
@@ -194,18 +221,15 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         if already_added_players:
             ErrorWindow(self.winfo_toplevel(), WindowException(
-                Config.ErrorMsg.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
+                Config.Messages.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
             ))
 
         self._update_frame()
 
     def remove_players(self):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert not self.tournament.is_started(), WindowException(Config.ErrorMsg.CANNOT_REMOVE_PLAYER_WHEN_STARTED)
+        self.__assert_tournament_not_started()
 
         selected_players = self.pairs_frame.get_selected_players()
-
-        assert len(selected_players) > 0, WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
 
         for p in selected_players:
             self.tournament.remove_player(p)
@@ -251,24 +275,25 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         MainDB.save_tournaments(tournaments)
 
     def make_pdf_starting_list(self, action: Literal['print', 'save']):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        self.__assert_tournament_opened()
 
         fpdf = pdf.make_starting_list_pdf(self.tournament.name, self.tournament.players)
         self.__run_pdf_action(fpdf, action)
 
     def make_pdf_active_pairings(self, action: Literal['print', 'save']):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
-        assert self.rounds_frame.is_round(), WindowException(Config.ErrorMsg.NOT_ON_PAGE_WITH_PAIRS)
+        self.__assert_tournament_opened()
+        if not self.rounds_frame.is_round():
+            raise WindowException(Config.Messages.NOT_ON_PAGE_WITH_PAIRS)
 
         round_id = self.rounds_frame.get_active_round()
         pairings = self.tournament.get_round(round_id)
-        pause_players = self.tournament.get_waiting_players(round_id)
+        pause_players = self.tournament.get_pause(round_id)
 
         fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
         self.__run_pdf_action(fpdf, action)
 
     def make_pdf_results(self, action: Literal['print', 'save']):
-        assert self.tournament is not None, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+        self.__assert_tournament_opened()
 
         fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
         self.__run_pdf_action(fpdf, action)

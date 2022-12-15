@@ -25,16 +25,17 @@ class WaitingFrame(tk.Label):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self['background'] = '#eee'
         self['font'] = ('Calibri', 18)
         self['anchor'] = 'se'
 
     def set_players(self, players: list[Player]):
-        assert len(players) <= 1, 'Only one player can be shown right now on pause'
-
         if len(players) == 0:
             self['text'] = ''
+        elif len(players) == 1:
+            self['text'] = f'Pauza:   {players[0]}'
         else:
-            self['text'] = f'PAUZA: {players[0]}'
+            self['text'] = f'Pauza:   {players[0]} + {len(players) - 1} graczy'
 
 
 class PairsFrame(tk.Frame):
@@ -48,7 +49,7 @@ class PairsFrame(tk.Frame):
         self.table.style['header']['font'] = 'Arial 18'
         self.table.style['row']['font'] = 'Arial 13'
         self.table.style['one_select'] = True
-        self.table.place(relheight=1, relwidth=1)
+        self.table.place(relheight=.95, relwidth=1)
 
         self.waiting_frame = WaitingFrame(self)
         self._place_waiting_frame()
@@ -66,24 +67,17 @@ class PairsFrame(tk.Frame):
 
         return selected_players
 
-    def _update_rows(self, rows: list[tuple], cmp_slice: Optional[slice] = None):
-        prev_row = None
-        pos = 0
-        while rows:
-            row = rows.pop(0)
-
-            if cmp_slice is None:
-                pos += 1
-            elif prev_row is None or prev_row[cmp_slice] != row[cmp_slice]:
-                pos += 1
-
-            self.table.add_row(pos, *row)
-            prev_row = row
+    def _update_rows(self, rows: list[tuple], add_indexes=True):
+        for i, row in enumerate(rows, start=1):
+            if add_indexes:
+                self.table.add_row(i, *row)
+            else:
+                self.table.add_row(*row)
 
         self.table.redraw_rows()
 
     def _place_waiting_frame(self):
-        self.waiting_frame.place(relx=0.5, rely=0.9, relwidth=0.49, relheight=0.09)
+        self.waiting_frame.place(rely=0.95, relwidth=1, relheight=0.05)
 
     def _update_waiting(self, players: Optional[list[Player]]):
         if players is None:
@@ -96,7 +90,7 @@ class PairsFrame(tk.Frame):
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
 
-        self.first_page_players = sorted(tournament.players, key=lambda p: (p.name, p.surname))
+        self.first_page_players = sorted(tournament.players, key=lambda p: (p.surname, p.name))
 
         self._update_rows([(player, player.rating) for player in self.first_page_players])
         self._update_waiting(None)
@@ -105,22 +99,21 @@ class PairsFrame(tk.Frame):
         self.table.set_columns(*PAIRING_COLUMNS)
 
         self._update_rows([(game.white, game.black, game.result.value) for game in tournament.get_round(round_id)])
-        self._update_waiting(tournament.get_waiting_players(round_id))
+        self._update_waiting(tournament.get_pause(round_id))
 
     def update_last(self, tournament: Tournament):
         self.table.set_columns(*LAST_COLUMNS)
 
-        rating_deviations = [new - old for old, new in zip(tournament.old_ratings, tournament.new_ratings)]
+        rating_deviations = [new - old for old, new in zip(tournament.ratings_before, tournament.ratings_after)]
         rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
+        ratings_labels = {
+            tournament.players[i]:
+                self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i], rating_deviations_str[i])
+            for i in range(tournament.players_count)
+        }
 
-        self._update_rows([
-            (
-                tournament.players[i],
-                self.__create_ratings_label(tournament.old_ratings[i], tournament.new_ratings[i], rating_deviations_str[i]),
-                ',   '.join(map(str, tournament.get_points(i)))
-            )
-            for i in tournament.get_scoreboard_ids()
-        ], slice(2, 3))
+        self._update_rows([(pos, player, ratings_labels[player], str(points))
+                           for pos, player, points in tournament.get_scoreboard()], add_indexes=False)
         self._update_waiting(None)
 
     def __create_ratings_label(self, old_rating: int, new_rating: int, deviation_str: str):

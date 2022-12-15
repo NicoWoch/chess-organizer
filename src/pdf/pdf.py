@@ -4,7 +4,7 @@ from tkinter.filedialog import asksaveasfile
 
 from fpdf import FPDF
 
-from src.algorithms.game import Game, Result
+from src.algorithms.constants import Game, Result, Points
 from src.config import Config
 from src.pdf.table_generator import PdfTableGenerator
 from src.player import Player
@@ -13,9 +13,9 @@ from src.player import Player
 def make_starting_list_pdf(tournament_name: str, players: list[Player]) -> FPDF:
     table = [['#', 'Gracz', 'Ranking']]
 
-    for i, player in enumerate(players):
+    for i, player in enumerate(sorted(players, key=lambda p: (p.surname, p.name)), start=1):
         table.append([
-            i + 1,
+            i,
             player,
             player.rating,
         ])
@@ -51,22 +51,8 @@ def make_pairings_pdf(tournament_name: str, round_id: int, pairs: list[Game], pa
     ).generate_fpdf()
 
 
-def make_results_pdf(tournament_name: str, scoreboard: list[tuple[Player, tuple]]) -> FPDF:
-    table = [['#', 'Gracz', 'Wynik']]
-
-    position = 0
-    last_score = None
-    for player, score in scoreboard:
-        if last_score != score:
-            position += 1
-
-        last_score = score
-
-        table.append([
-            position,
-            player,
-            ', '.join(map(str, score)),
-        ])
+def make_results_pdf(tournament_name: str, scoreboard: list[tuple[int, Player, Points]]) -> FPDF:
+    table = [['#', 'Gracz', 'Wynik'], *((pos, str(player), str(points)) for pos, player, points in scoreboard)]
 
     return PdfTableGenerator(
         tournament_name, 'Wyniki',

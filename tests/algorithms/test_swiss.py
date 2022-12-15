@@ -1,200 +1,210 @@
+import functools
+import math
+import random
 import unittest
+from typing import Callable
 
+from src.algorithms.constants import Result
 from src.algorithms.swiss_tournament import SwissTournament
-from src.algorithms.game import Result, Round
-from src.player import Player, Gender
+from src.dummy_generator import get_random_players
+
+RNG = random.Random(29)
+REPEAT_TIMES_MULTIPLIER = 1
 
 
-def get_dummy():
-    dummy_players = [
-        Player.create_player(name='Adam', surname='Nowak', gender=Gender.Men, rating=1200),
-        Player.create_player(name='Anna', surname='Nowak', gender=Gender.Women, rating=1100),
-        Player.create_player(name='Maximum', surname='Engine', gender=Gender.Other, rating=3000),
-        Player.create_player(name='Marcin', surname='Nowak', gender=Gender.Men, rating=800),
-        Player.create_player(name='Maximum2', surname='Engine2', gender=Gender.Other, rating=3200),
-        Player.create_player(name='Ryszard', surname='Nowak', gender=Gender.Men, rating=990),
-        Player.create_player(name='2Adam', surname='Nowak', gender=Gender.Men, rating=1200),
-        Player.create_player(name='2Anna', surname='Nowak', gender=Gender.Women, rating=1100),
-        Player.create_player(name='2Maximum', surname='Engine', gender=Gender.Other, rating=3000),
-        Player.create_player(name='2Marcin', surname='Nowak', gender=Gender.Men, rating=800),
-        Player.create_player(name='2Maximum2', surname='Engine2', gender=Gender.Other, rating=3200),
-        Player.create_player(name='2Ryszard', surname='Nowak', gender=Gender.Men, rating=990),
-        Player.create_player(name='3Adam', surname='Nowak', gender=Gender.Men, rating=1200),
-        Player.create_player(name='3Anna', surname='Nowak', gender=Gender.Women, rating=1100),
-        Player.create_player(name='3Maximum', surname='Engine', gender=Gender.Other, rating=3000),
-        Player.create_player(name='3Marcin', surname='Nowak', gender=Gender.Men, rating=800),
-        Player.create_player(name='3Maximum2', surname='Engine2', gender=Gender.Other, rating=3200),
-        Player.create_player(name='3Ryszard', surname='Nowak', gender=Gender.Men, rating=990),
-        Player.create_player(name='4Adam', surname='Nowak', gender=Gender.Men, rating=1200),
-        Player.create_player(name='4Anna', surname='Nowak', gender=Gender.Women, rating=1100),
-        Player.create_player(name='4Maximum', surname='Engine', gender=Gender.Other, rating=3000),
-        Player.create_player(name='4Marcin', surname='Nowak', gender=Gender.Men, rating=800),
-        Player.create_player(name='4Maximum2', surname='Engine2', gender=Gender.Other, rating=3200),
-        Player.create_player(name='4Ryszard', surname='Nowak', gender=Gender.Men, rating=990),
-    ]
-    return dummy_players
+def repeat_random_test(times: int):
+    def decorator(func: Callable):
+        @functools.wraps(func)
+        def inner(self):
+            for _ in range(times * REPEAT_TIMES_MULTIPLIER):
+                self.setUp()
+                func(self)
+
+        return inner
+
+    return decorator
 
 
 class TestSwiss(unittest.TestCase):
-    def assert_round(self, round_: Round, pairs: list[tuple[Player, Player]]):
-        for game in round_:
-            for i, pair in enumerate(pairs):
-                if game.white in pair and game.black in pair:
-                    del pairs[i]
-                    break
-            else:
-                self.fail(f'Bad pair {game.white} with {game.black}')
+    def setUp(self):
+        self.tournament = SwissTournament('tournament')
 
-    def test_no_error(self):
-        players = get_dummy()[:24]
-        t = SwissTournament('t1', players)
+    def __add_dummy_players(self, count: int):
+        while True:
+            players = sorted(get_random_players(count, rng=RNG), key=lambda p: p.rating, reverse=True)
 
-        for _ in range(3):
-            t.next_round()
-            for i in range(12):
-                t.set_result(i, Result.Black)
-                t.set_result(i, Result.Draw)
-                t.set_result(i, Result.Playing)
-                t.set_result(i, Result.White)
+            if len(set(p.rating for p in players)) != len([p.rating for p in players]):
+                continue
 
-    def test_pairing_1(self):
-        players = get_dummy()[:4]
-        t = SwissTournament('t2', players)
+            if len(set(players)) != len(players):
+                continue
 
-        t.next_round()
-        t.set_result(0, Result.White)
-        t.set_result(1, Result.White)
-        games = t.active_round
+            break
 
-        t.next_round()
-        self.assert_round(t.active_round, [
-            (games[0].white, games[1].white),
-            (games[0].black, games[1].black)
-        ])
+        self.tournament.add_players(players)
 
-    def test_pausing_player(self):
-        players = get_dummy()[:23]
-        t = SwissTournament('t3', players)
+    def __assert_next_round(self, round_by_names: list[tuple[int, int]], pauses: set[int]):
+        self.tournament.next_round()
 
-        t.next_round()
-        for i in range(11):
-            t.set_result(i, Result.White)
+        self.assertEqual(len(self.tournament.last_round), len(round_by_names), msg='Bad length of pairs')
 
-        pauses = [t.get_waiting_players()[0]]
+        for i, expected_pair in enumerate(round_by_names):
+            true_white_id = self.tournament.players.index(self.tournament.last_round[i].white)
+            true_black_id = self.tournament.players.index(self.tournament.last_round[i].black)
 
-        for _ in range(3):
-            t.next_round()
-            for i in range(11):
-                t.set_result(i, Result.White)
+            self.assertEqual((true_white_id, true_black_id), expected_pair, msg=f'Bad pair on table {i}')
 
-            pause = t.get_waiting_players()[0]
-            self.assertNotIn(pause, pauses)
+        self.assertEqual(len(self.tournament.get_pause()), len(pauses), msg='Bad length of pause')
+        self.assertEqual(set(self.tournament.players.index(p) for p in self.tournament.get_pause()), pauses, msg='Bad pause players')
 
-            pauses.append(pause)
+    def test_no_error_to_40_players(self):
+        for no_players in range(5, 40):
+            prefered_rounds_count = math.ceil(math.log2(no_players))
+            games_in_round = no_players // 2
 
-    def test_scoreboard_with_points(self):
-        players = get_dummy()[:4]
+            self.tournament = SwissTournament(f'tournament {no_players}')
+            self.__add_dummy_players(no_players)
 
-        t = SwissTournament('t4', players)
+            pause = set()
+            for round_no in range(prefered_rounds_count):
+                error_message = f'Fail while testing tournament with {no_players} players on {round_no + 1} round'
+                self.tournament.next_round()
 
-        t.next_round()
+                self.assertEqual(len(self.tournament.last_round), games_in_round, msg=error_message)
 
-        # Testing replace results
-        t.set_result(0, Result.Draw)
-        t.set_result(1, Result.Black)
-        t.set_result(0, Result.Playing)
+                if no_players % 2 == 0:
+                    self.assertEqual(len(self.tournament.get_pause()), 0, msg=error_message)
+                else:
+                    self.assertEqual(len(self.tournament.get_pause()), 1, msg=error_message)
+                    self.assertNotIn(self.tournament.get_pause()[0], pause, msg=error_message)
+                    pause.add(self.tournament.get_pause()[0])
 
-        t.set_result(0, Result.White)
-        t.set_result(1, Result.Draw)
+                for i in range(games_in_round):
+                    self.tournament.set_result(i, RNG.choice([Result.White, Result.Draw, Result.Black]))
 
-        games = t.active_round
-        t.next_round()
+    @repeat_random_test(3)
+    def test_pairing_first_round_1(self):
+        self.__add_dummy_players(4)
 
-        scoreboard = t.get_scoreboard()
+        self.__assert_next_round([
+            (0, 2),
+            (1, 3),
+        ], set())
 
-        self.assertEqual(scoreboard[0][0], games[0].white)
-        self.assertEqual(scoreboard[-1][0], games[0].black)
+    @repeat_random_test(3)
+    def test_pairing_first_round_2(self):
+        self.__add_dummy_players(7)
 
-        self.assertEqual(scoreboard[0][1], (2, 0, 0))
-        self.assertEqual(scoreboard[1][1], (1, 1, 0))
-        self.assertEqual(scoreboard[2][1], (1, 1, 0))
-        self.assertEqual(scoreboard[3][1], (0, 0, 2))
+        self.__assert_next_round([
+            (0, 3),
+            (1, 4),
+            (2, 5),
+        ], {6})
 
-    def set_player_win(self, t: SwissTournament, player: Player):
-        for i, game in enumerate(t.active_round):
-            if player == game.white:
-                t.set_result(i, Result.White)
-            elif player == game.black:
-                t.set_result(i, Result.Black)
-        else:
-            ValueError('Player not found')
+    def __set_next_round_results(self, results: list[Result]):
+        self.tournament.next_round()
 
-    def set_player_lost(self, t: SwissTournament, player: Player):
-        for i, game in enumerate(t.active_round):
-            if player == game.white:
-                t.set_result(i, Result.Black)
-            elif player == game.black:
-                t.set_result(i, Result.White)
-        else:
-            ValueError('Player not found')
+        for i, result in enumerate(results):
+            self.tournament.set_result(i, result)
 
-    def test_points_1(self):
-        players = get_dummy()[:4]
+    @repeat_random_test(5)
+    def test_pairing_second_round_1(self):
+        self.__add_dummy_players(7)
 
-        t = SwissTournament('t5', players)
-        t.next_round()
+        self.__set_next_round_results([Result.Black, Result.White, Result.White])
 
-        # Testing replace results
-        t.set_result(0, Result.Draw)
-        t.set_result(1, Result.Black)
-        t.set_result(0, Result.Playing)
+        self.__assert_next_round([
+            (3, 1),
+            (6, 2),
+            (4, 0),
+        ], {5})
 
-        t.set_result(0, Result.White)
-        t.set_result(1, Result.Draw)
+    @repeat_random_test(5)
+    def test_pairing_second_round_2(self):
+        self.__add_dummy_players(8)
 
-        g1 = t.active_round
-        a, b = g1[0].white, g1[0].black
+        self.__set_next_round_results([Result.Black, Result.White, Result.Draw, Result.Black])
 
-        t.next_round()
-        self.set_player_lost(t, a)
-        self.set_player_lost(t, b)
+        self.__assert_next_round([
+            (4, 1),
+            (7, 2),
+            (6, 3),
+            (5, 0),
+        ], set())
 
-        t.next_round()
-        scoreboard = t.get_scoreboard()
 
-        self.assertEqual(scoreboard[0][1], (3, 9, 0))
-        self.assertEqual(scoreboard[1][1], (3, 3, 0))
-        self.assertEqual(scoreboard[2][1], (2, 0, 3))
-        self.assertEqual(scoreboard[3][1], (0, 0, 5))
+    @repeat_random_test(5)
+    def test_pairing_second_round_3(self):
+        self.__add_dummy_players(8)
 
-    def test_points_2(self):
-        players = get_dummy()[:4]
+        self.__set_next_round_results([Result.Black, Result.Draw, Result.Draw, Result.Draw])
 
-        t = SwissTournament('t6', players)
-        t.next_round()
+        self.__assert_next_round([
+            (4, 1),
+            (5, 2),
+            (6, 3),
+            (7, 0),
+        ], set())
 
-        # Testing replace results
-        t.set_result(0, Result.Draw)
-        t.set_result(1, Result.Black)
-        t.set_result(0, Result.Playing)
+    @repeat_random_test(5)
+    def test_pairing_second_round_4(self):
+        self.__add_dummy_players(11)
 
-        t.set_result(0, Result.Black)
-        t.set_result(1, Result.Draw)
+        self.__set_next_round_results([Result.White, Result.White, Result.Draw, Result.White, Result.Draw])
 
-        g1 = t.active_round
-        a, b = g1[0].white, g1[0].black
+        self.__assert_next_round([
+            (1, 0),
+            (10, 3),
+            (9, 2),
+            (7, 4),
+            (6, 5),
+        ], {8})
 
-        t.next_round()
-        self.set_player_win(t, a)
-        self.set_player_lost(t, b)
+    @repeat_random_test(10)
+    def test_pairing_third_round_1(self):
+        self.__add_dummy_players(8)
 
-        t.next_round()
-        scoreboard = t.get_scoreboard()
+        self.__set_next_round_results([Result.Black, Result.Draw, Result.Draw, Result.Draw])
+        self.__set_next_round_results([Result.Draw, Result.Draw, Result.White, Result.Black])
 
-        self.assertEqual(scoreboard[0][1], (3, 7, 0))
-        self.assertEqual(scoreboard[1][1], (2, 6, 3))
-        self.assertEqual(scoreboard[2][1], (2, 3, 2))
-        self.assertEqual(scoreboard[3][1], (1, 3, 2))
+        self.__assert_next_round([
+            (6, 4),
+            (1, 0),
+            (2, 7),
+            (3, 5),
+        ], set())
+
+    @repeat_random_test(5)
+    def test_pairing_third_round_2(self):
+        self.__add_dummy_players(11)
+
+        self.__set_next_round_results([Result.White, Result.White, Result.Draw, Result.White, Result.Draw])
+        self.__set_next_round_results([Result.Black, Result.Black, Result.Draw, Result.Draw, Result.Black])
+
+        self.__assert_next_round([
+            (3, 0),
+            (2, 1),
+            (4, 10),
+            (5, 7),
+            (8, 9),
+        ], {6})
+
+    @repeat_random_test(5)
+    def test_pairing_fourth_round_1(self):
+        self.__add_dummy_players(11)
+
+        self.__set_next_round_results([Result.White, Result.White, Result.Draw, Result.White, Result.Draw])
+        self.__set_next_round_results([Result.Black, Result.Black, Result.Draw, Result.Draw, Result.Black])
+        self.__set_next_round_results([Result.White, Result.Black, Result.Black, Result.Draw, Result.White])
+
+        self.__assert_next_round([
+            (1, 3),
+            (0, 8),
+            (5, 10),
+            (7, 6),
+            (4, 2),
+        ], {9})
+
 
 
 if __name__ == '__main__':

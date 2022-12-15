@@ -52,7 +52,8 @@ class TournamentBrowserWindow(BrowserWindow):
 
     def plus_btn(self):
         def on_create(tournament):
-            assert tournament.name not in [t.name for t in self.tournaments], WindowException(Config.ErrorMsg.TOURNAMENT_ALREADY_EXISTS)
+            if tournament.name in [t.name for t in self.tournaments]:
+                raise WindowException(Config.Messages.TOURNAMENT_ALREADY_EXISTS)
 
             self.tournaments.insert(0, tournament)
             self.update_table()
@@ -73,8 +74,8 @@ class TournamentBrowserWindow(BrowserWindow):
     def open_btn(self):
         selected_ids = list(self.table.get_selection())
 
-        assert len(selected_ids) != 0, WindowException(Config.ErrorMsg.TOURNAMENT_NOT_SELECTED_FOR_OPEN)
-        assert len(selected_ids) == 1, WindowException(Config.ErrorMsg.MORE_THAN_ONE_TOURNAMENT_SELECTED)
+        if len(selected_ids) == 0:
+            raise WindowException(Config.Messages.TOURNAMENT_NOT_SELECTED_FOR_OPEN)
 
         self.open_tournament(self.tournaments[selected_ids[0]])
         self.destroy()

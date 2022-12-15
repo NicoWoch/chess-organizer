@@ -7,7 +7,7 @@ class MyTestCase(unittest.TestCase):
     def assert_almost_equal(self, ratings1, ratings2):
         for r1, r2 in zip(ratings1, ratings2):
             if not r2 - 1 < r1 < r2 + 1:
-                self.fail(f'{ratings1} not almost equal {ratings2}')
+                self.fail(f'{ratings1} should almost equal {ratings2}')
 
     def test_1(self):
         self.assert_almost_equal(elo_rating(1200, 1500, 1, k=30), (1225.5, 1474.5))

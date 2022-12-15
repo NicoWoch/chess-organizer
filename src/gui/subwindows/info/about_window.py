@@ -7,7 +7,8 @@ turniejami szachowymi
 z algorytmem swiss
 
 
-Autor:  Nicolas Wochnik'''
+Autor:   Nicolas Wochnik
+Tester:  Piotr Wolter'''
 
 
 class AboutWindow(tk.Toplevel):

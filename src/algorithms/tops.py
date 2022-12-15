@@ -1,4 +1,4 @@
-from src.algorithms.game import Round, Game, Result
+from src.algorithms.constants import Round, Game, Result
 from src.player import Player
 
 

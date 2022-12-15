@@ -201,27 +201,30 @@ Ziółkowski
 Przybylski'''.split('\n')
 
 
-def get_random_player():
-    gender = random.choice(
+def get_random_player(rng=None):
+    if rng is None:
+        rng = random.Random()
+
+    gender = rng.choice(
         [Gender.Men, Gender.Women] * 5 + [Gender.Other]
     )
 
     if gender == Gender.Men:
-        name = random.choice(NAMES_M)
+        name = rng.choice(NAMES_M)
     elif gender == Gender.Women:
-        name = random.choice(NAMES_F)
+        name = rng.choice(NAMES_F)
     else:
-        name = random.choice(NAMES_M + NAMES_F)
+        name = rng.choice(NAMES_M + NAMES_F)
 
-    surname = random.choice(SURNAMES)
-    rating = random.randint(500, 2000)
+    surname = rng.choice(SURNAMES)
+    rating = rng.randint(500, 2000)
 
     return Player.create_player(name=name, surname=surname, gender=gender, rating=rating)
 
 
-def get_random_players(count):
-    return [get_random_player() for _ in range(count)]
+def get_random_players(count, rng=None):
+    return [get_random_player(rng) for _ in range(count)]
 
 
 def create_empty_tournament(id_):
-    return SwissTournament(f'Testowy turniej id={id_}', [])
+    return SwissTournament(f'Testowy turniej id={id_}')
