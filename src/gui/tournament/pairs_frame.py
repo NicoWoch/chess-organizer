@@ -97,7 +97,7 @@ class PairsFrame(tk.Frame):
     def update_first(self, tournament: Tournament):
         self.table.set_columns(*FIRST_COLUMNS)
 
-        self.first_page_players = sorted(tournament.players, key=lambda p: (p.name, p.surname))
+        self.first_page_players = sorted(tournament.players, key=lambda p: (p.surname, p.name))
 
         self._update_rows([(player, player.rating) for player in self.first_page_players])
         self._update_waiting(None)
