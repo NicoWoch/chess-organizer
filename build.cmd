@@ -1,4 +1,4 @@
-set APP_VERSION="0.4"
+set APP_VERSION="1.0"
 
 
 @REM Cleaning Develop Files
