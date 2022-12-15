@@ -14,9 +14,9 @@ from src.player import Player
 def make_starting_list_pdf(tournament_name: str, players: list[Player]) -> FPDF:
     table = [['#', 'Gracz', 'Ranking']]
 
-    for i, player in enumerate(players):
+    for i, player in enumerate(sorted(players, key=lambda p: (p.surname, p.name)), start=1):
         table.append([
-            i + 1,
+            i,
             player,
             player.rating,
         ])
