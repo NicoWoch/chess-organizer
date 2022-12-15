@@ -46,8 +46,8 @@ def get_max_rounds_better(no_players: int, test_count: int, rng: random.Random):
 
 
 def main():
-    players_range = [5, 10, 15, 20, 25] + list(range(30, 46)) + [50]
-    rng = random.Random(37)
+    players_range = list(range(5, 60, 3))
+    rng = random.Random(372)
 
     max_rounds = []
     for i in players_range:
