@@ -1,5 +1,4 @@
 import tkinter as tk
-from typing import Generator
 
 from src.algorithms.constants import Points
 from src.gui import utils

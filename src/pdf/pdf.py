@@ -1,7 +1,6 @@
 import os
 import webbrowser
 from tkinter.filedialog import asksaveasfile
-from typing import Generator
 
 from fpdf import FPDF
 
