@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from copy import copy
 from datetime import datetime
 from typing import Optional
 
@@ -106,24 +105,10 @@ class Tournament(ABC):
             else:
                 pos = last_pos
 
-            scoreboard.append((pos, player, self.__smooth_round_score(score)))
+            scoreboard.append((pos, player, score))
             last_score = score
 
         return scoreboard
-
-    def __smooth_round_score(self, score: Points) -> Points:
-        score = copy(score)
-
-        if int(score.big_points) == score.big_points:
-            score.big_points = int(score.big_points)
-
-        for i, p in enumerate(score.small_points):
-            if int(p) == p:
-                assert score.small_points == score.small_points[:i] + (int(p),) + score.small_points[i + 1:]
-
-                score.small_points = score.small_points[:i] + (int(p),) + score.small_points[i + 1:]
-
-        return score
 
     def set_result(self, table_id: int, new_result: Result):
         self._assert_tournament_running()
