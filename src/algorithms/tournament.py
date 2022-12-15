@@ -1,4 +1,3 @@
-import itertools
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -93,11 +92,19 @@ class Tournament(ABC):
     def get_pause(self, round_id=-1) -> list[Player]:
         return self._pause[round_id]
 
-    def get_scoreboard(self) -> list[tuple[Player, Points]]:
-        return sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
+    def get_scoreboard(self) -> list[tuple[int, Player, Points]]:
+        scoreboard = []
 
-    def get_scoreboard_with_ids(self) -> list[tuple[int, Player, Points]]:
-        return sorted(zip(itertools.count(), self._players, self._points), key=lambda x: x[2], reverse=True)
+        pos = 0
+        last_score = None
+        for player, score in sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True):
+            if last_score is None or last_score != score:
+                pos += 1
+
+            scoreboard.append((pos, player, score))
+            last_score = score
+
+        return scoreboard
 
     def set_result(self, table_id: int, new_result: Result):
         self._assert_tournament_running()

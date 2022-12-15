@@ -67,19 +67,12 @@ class PairsFrame(tk.Frame):
 
         return selected_players
 
-    def _update_rows(self, rows: list[tuple], cmp_slice: Optional[slice] = None):
-        prev_row = None
-        pos = 0
-        while rows:
-            row = rows.pop(0)
-
-            if cmp_slice is None:
-                pos += 1
-            elif prev_row is None or prev_row[cmp_slice] != row[cmp_slice]:
-                pos += 1
-
-            self.table.add_row(pos, *row)
-            prev_row = row
+    def _update_rows(self, rows: list[tuple], add_indexes=True):
+        for i, row in enumerate(rows, start=1):
+            if add_indexes:
+                self.table.add_row(i, *row)
+            else:
+                self.table.add_row(*row)
 
         self.table.redraw_rows()
 
@@ -113,15 +106,14 @@ class PairsFrame(tk.Frame):
 
         rating_deviations = [new - old for old, new in zip(tournament.ratings_before, tournament.ratings_after)]
         rating_deviations_str = [f'+{dv}' if dv > 0 else f'{dv}' for dv in rating_deviations]
+        ratings_labels = {
+            tournament.players[i]:
+                self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i], rating_deviations_str[i])
+            for i in range(tournament.players_count)
+        }
 
-        self._update_rows([
-            (
-                player,
-                self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i], rating_deviations_str[i]),
-                str(points)
-            )
-            for i, player, points in tournament.get_scoreboard_with_ids()
-        ], slice(2, 3))
+        self._update_rows([(pos, player, ratings_labels[player], str(points))
+                           for pos, player, points in tournament.get_scoreboard()], add_indexes=False)
         self._update_waiting(None)
 
     def __create_ratings_label(self, old_rating: int, new_rating: int, deviation_str: str):

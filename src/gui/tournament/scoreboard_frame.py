@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import Generator
 
 from src.algorithms.constants import Points
 from src.gui import utils
@@ -37,25 +38,10 @@ class ScoreboardFrame(tk.Frame):
             .place(relwidth=1, height=40)
         self.table.place(y=40, relwidth=1, height=-40, relheight=1)
 
-        self.last_pos = 0
-        self.last_score = None
-
-    def _add_player(self, player: Player, score: Points):
-        if self.last_score is not None and self.last_score == score:
-            self.table.add_row(self.last_pos, str(player), str(score))
-        else:
-            self.table.add_row(self.last_pos + 1, str(player), str(score))
-            self.last_pos += 1
-
-        self.last_score = score
-
-    def update_scoreboard(self, scoreboard: list[tuple[Player, Points]]):
-        self.last_pos = 0
-        self.last_score = None
-
+    def update_scoreboard(self, scoreboard: list[tuple[int, Player, Points]]):
         self.table.clear_rows()
 
-        for score in scoreboard:
-            self._add_player(score[0], score[1])
+        for pos, player, score in scoreboard:
+            self.table.add_row(pos, str(player), str(score))
 
         self.table.redraw_rows()
