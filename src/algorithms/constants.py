@@ -44,6 +44,9 @@ class Points:
     def __lt__(self, other):
         return (self.big_points, self.small_points) < (other.big_points, other.small_points)
 
+    def __eq__(self, other):
+        return self.big_points == other.big_points and self.small_points == other.small_points
+
     def __str__(self):
         return ', '.join(map(str, (self.big_points, *self.small_points)))
 
