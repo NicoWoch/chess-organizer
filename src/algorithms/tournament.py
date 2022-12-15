@@ -96,11 +96,15 @@ class Tournament(ABC):
     def get_scoreboard(self) -> list[tuple[int, Player, Points]]:
         scoreboard = []
 
-        pos = 0
+        last_pos = 0
         last_score = None
-        for player, score in sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True):
+        sorted_scores = sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
+        for i, (player, score) in enumerate(sorted_scores, start=1):
             if last_score is None or last_score != score:
-                pos += 1
+                pos = i
+                last_pos = pos
+            else:
+                pos = last_pos
 
             scoreboard.append((pos, player, self.__smooth_round_score(score)))
             last_score = score
