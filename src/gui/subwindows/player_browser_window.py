@@ -63,7 +63,7 @@ class PlayerBrowserWindow(BrowserWindow):
 
         def on_save():
             if player_copy != self.players[player_idx] and player_copy in self.players:
-                raise WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+                raise WindowException(Config.Messages.PLAYER_ALREADY_EXISTS)
 
             self.players[player_idx] = player_copy
             self.update_table()
@@ -84,7 +84,7 @@ class PlayerBrowserWindow(BrowserWindow):
 
         def on_save():
             if new_player in self.players:
-                raise WindowException(Config.ErrorMsg.PLAYER_ALREADY_EXISTS)
+                raise WindowException(Config.Messages.PLAYER_ALREADY_EXISTS)
 
             self.players.append(new_player)
             self.update_table()
@@ -96,7 +96,7 @@ class PlayerBrowserWindow(BrowserWindow):
             try:
                 players = MainDB.load_players(path=filepath)
             except UnpicklingError:
-                raise AssertionError(WindowException(Config.ErrorMsg.PLAYER_IMPORTING_ERROR))
+                raise AssertionError(WindowException(Config.Messages.PLAYER_IMPORTING_ERROR))
 
             for player in players:
                 if player not in self.players:
@@ -107,7 +107,7 @@ class PlayerBrowserWindow(BrowserWindow):
 
     def export_btn(self):
         if len(self.table.get_selection()) == 0:
-            raise WindowException(Config.ErrorMsg.PLAYER_NOT_SELECTED)
+            raise WindowException(Config.Messages.PLAYER_NOT_SELECTED)
 
         if filepath := asksaveasfilename(filetypes=EXPORT_IMPORT_FILE_EXT, defaultextension='players'):
             selected_players = [self.players[i] for i in self.table.get_selection()]

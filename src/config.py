@@ -25,7 +25,7 @@ class Config:
     LOSE_POINTS = 0
     PAUSE_POINTS = 1
 
-    class ErrorMsg:
+    class Messages:
         TOURNAMENT_NOT_OPENED = 'Nie otwarto tunieju'
         TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
         TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'

@@ -110,36 +110,36 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
     def __assert_tournament_opened(self):
         if self.tournament is None:
-            raise WindowException(Config.ErrorMsg.TOURNAMENT_NOT_OPENED)
+            raise WindowException(Config.Messages.TOURNAMENT_NOT_OPENED)
 
     def __assert_tournament_running(self):
         self.__assert_tournament_opened()
 
         if not self.tournament.is_started:
-            raise WindowException(Config.ErrorMsg.TOURNAMENT_NOT_STARTED)
+            raise WindowException(Config.Messages.TOURNAMENT_NOT_STARTED)
         elif self.tournament.is_ended:
-            raise WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+            raise WindowException(Config.Messages.TOURNAMENT_HAS_ENDED)
 
     def __assert_tournament_not_started(self):
         self.__assert_tournament_opened()
 
         if self.tournament.is_started:
-            raise WindowException(Config.ErrorMsg.TOURNAMENT_STARTED)
+            raise WindowException(Config.Messages.TOURNAMENT_STARTED)
 
     def __assert_has_round_ended(self):
         self.__assert_tournament_opened()
 
         if self.tournament.is_ended:
-            raise WindowException(Config.ErrorMsg.TOURNAMENT_HAS_ENDED)
+            raise WindowException(Config.Messages.TOURNAMENT_HAS_ENDED)
 
         if self.tournament.is_started and not self.tournament.has_round_ended():
-            raise WindowException(Config.ErrorMsg.ROUND_NOT_ENDED)
+            raise WindowException(Config.Messages.ROUND_NOT_ENDED)
 
     def __assert_can_make_next_round(self):
         self.__assert_has_round_ended()
 
         if self.tournament.players_count < 2:
-            raise WindowException(Config.ErrorMsg.TOO_LESS_PLAYERS_IN_TOURNAMENT)
+            raise WindowException(Config.Messages.TOO_LESS_PLAYERS_IN_TOURNAMENT)
 
     def set_result(self, result):
         self.__assert_tournament_running()
@@ -148,7 +148,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             return
 
         if self.rounds_frame.get_active_round() != self.tournament.round_count - 1:
-            raise WindowException(Config.ErrorMsg.CANNOT_EDIT_IN_CLOSED_ROUND)
+            raise WindowException(Config.Messages.CANNOT_EDIT_IN_CLOSED_ROUND)
 
         selection = self.pairs_frame.table.get_selection()
 
@@ -164,7 +164,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         try:
             self.tournament.next_round()
         except Exception:
-            raise AssertionError(WindowException(Config.ErrorMsg.CANNOT_PAIR))
+            raise AssertionError(WindowException(Config.Messages.CANNOT_PAIR))
 
         self.rounds_frame.update_tournament(self.tournament)
         self._update_frame()
@@ -179,7 +179,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self.rounds_frame.update_tournament(self.tournament)
             self._update_frame()
 
-        ConfirmWindow(self.winfo_toplevel(), Config.ErrorMsg.END_THE_TOURNAMENT, confirmed)
+        ConfirmWindow(self.winfo_toplevel(), Config.Messages.END_THE_TOURNAMENT, confirmed)
 
     def _update_ratings(self):
         db_players = MainDB.load_players()
@@ -200,7 +200,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
     def __show_players_not_found_error(self, players):
         ErrorWindow(self.winfo_toplevel(), WindowException(
-            Config.ErrorMsg.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
+            Config.Messages.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
         )).mainloop()
 
     def browse_players(self):
@@ -221,7 +221,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         if already_added_players:
             ErrorWindow(self.winfo_toplevel(), WindowException(
-                Config.ErrorMsg.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
+                Config.Messages.PLAYER_ALREADY_ADDED.format(players='\n'.join(map(str, already_added_players)))
             ))
 
         self._update_frame()
@@ -283,7 +283,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def make_pdf_active_pairings(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
         if not self.rounds_frame.is_round():
-            raise WindowException(Config.ErrorMsg.NOT_ON_PAGE_WITH_PAIRS)
+            raise WindowException(Config.Messages.NOT_ON_PAGE_WITH_PAIRS)
 
         round_id = self.rounds_frame.get_active_round()
         pairings = self.tournament.get_round(round_id)
