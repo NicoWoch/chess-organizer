@@ -2,8 +2,8 @@ import os.path
 import unittest
 from typing import Any
 
-import database
-from database import DatabaseSerializer
+from src import database
+from src.database import DatabaseSerializer
 
 DATABASE_TMP_PATH = 'db.tmp.json'
 
