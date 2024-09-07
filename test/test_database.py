@@ -3,23 +3,9 @@ import unittest
 from typing import Any
 
 from src import database
-from src.database import DatabaseSerializer
+from src.serializer import SetSerializer, TupleSerializer, Serializer
 
 DATABASE_TMP_PATH = 'db.tmp.json'
-
-
-class CustomSetSerializer(DatabaseSerializer):
-    def serialize(self, data: Any) -> dict | Any:
-        if isinstance(data, set):
-            return {'__set__': list(data)}
-
-        return data
-
-    def deserialize(self, data: dict | Any) -> Any:
-        if isinstance(data, dict) and '__set__' in data:
-            return set(data['__set__'])
-
-        return data
 
 
 class TestDatabase(unittest.TestCase):
@@ -32,7 +18,7 @@ class TestDatabase(unittest.TestCase):
 
         self.assertTrue(os.path.isfile(DATABASE_TMP_PATH), 'Database does not created a db file')
 
-    def __test_read_write(self, value: Any, *serializers: DatabaseSerializer):
+    def __test_read_write(self, value: Any, *serializers: Serializer):
         db = database.Database(DATABASE_TMP_PATH, *serializers)
         db.write(value)
         red = db.read()
@@ -62,14 +48,26 @@ class TestDatabase(unittest.TestCase):
         self.__test_read_write({'x': [[[[2]], 1], [3]], 'y': [[[{'z': [5]}]], [], 2]})
 
     def test_custom_set_serializer_1(self):
-        s =  CustomSetSerializer()
-        self.__test_read_write({'x': set()}, s)
+        s = SetSerializer()
+        self.__test_read_write({1, 2, 3}, s)
 
     def test_custom_set_serializer_2(self):
-        s =  CustomSetSerializer()
+        s = SetSerializer()
         self.__test_read_write({'x': {1, 2, 'hi'}}, s)
 
+    def test_custom_tuple_serializer_1(self):
+        s = TupleSerializer()
+        self.__test_read_write((1, 2), s)
 
+    def test_custom_two_serializers_1(self):
+        s1 = SetSerializer()
+        s2 = TupleSerializer()
+        self.__test_read_write({'x': {2, 1, 'hi'}, 'y': {1, 2, (3, 4)}, 'z': set()}, s1, s2)
+
+    def test_custom_two_serializers_2(self):
+        s1 = SetSerializer()
+        s2 = TupleSerializer()
+        self.__test_read_write([1, 2, {}, set(), (), (set(), 1, [set(), 4])], s1, s2)
 
 
 if __name__ == '__main__':
