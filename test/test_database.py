@@ -47,27 +47,20 @@ class TestDatabase(unittest.TestCase):
     def test_nested_types_3(self):
         self.__test_read_write({'x': [[[[2]], 1], [3]], 'y': [[[{'z': [5]}]], [], 2]})
 
-    def test_custom_set_serializer_1(self):
-        s = SetSerializer()
-        self.__test_read_write({1, 2, 3}, s)
+    def test_set_serializer_1(self):
+        self.__test_read_write({1, 2, 3})
 
-    def test_custom_set_serializer_2(self):
-        s = SetSerializer()
-        self.__test_read_write({'x': {1, 2, 'hi'}}, s)
+    def test_set_serializer_2(self):
+        self.__test_read_write({'x': {1, 2, 'hi'}})
 
-    def test_custom_tuple_serializer_1(self):
-        s = TupleSerializer()
-        self.__test_read_write((1, 2), s)
+    def test_tuple_serializer_1(self):
+        self.__test_read_write((1, 2))
 
-    def test_custom_two_serializers_1(self):
-        s1 = SetSerializer()
-        s2 = TupleSerializer()
-        self.__test_read_write({'x': {2, 1, 'hi'}, 'y': {1, 2, (3, 4)}, 'z': set()}, s1, s2)
+    def test_set_and_tuple_serializers_1(self):
+        self.__test_read_write({'x': {2, 1, 'hi'}, 'y': {1, 2, (3, 4)}, 'z': set()})
 
-    def test_custom_two_serializers_2(self):
-        s1 = SetSerializer()
-        s2 = TupleSerializer()
-        self.__test_read_write([1, 2, {}, set(), (), (set(), 1, [set(), 4])], s1, s2)
+    def test_set_and_tuple_serializers_2(self):
+        self.__test_read_write([1, 2, {}, set(), (), (set(), 1, [set(), 4])])
 
 
 if __name__ == '__main__':
