@@ -1,19 +1,39 @@
-from src.serializer import CopyFieldsSerializer
+from enum import Enum
+
+type Pairs = tuple[tuple[int, int], ...]
+
+
+class GameResult(Enum):
+    WIN = (1, 0), True
+    DRAW = (.5, .5), True
+    LOSE = (0, 1), True
+    PLAYER_A_NOT_SHOWED_IN_TIME = (0, 1), False
+    PLAYER_B_NOT_SHOWED_IN_TIME = (1, 0), False
+    BOTH_PLAYERS_NOT_SHOWED_IN_TIME = (0, 0), False
+
+    @property
+    def points_a(self):
+        return self.value[0][0]
+
+    @property
+    def points_b(self):
+        return self.value[0][1]
+
+    @property
+    def is_rated(self):
+        return self.value[1]
 
 
 class Round:
-    def __init__(self, no_players: int, pairs: tuple[tuple[int, int], ...]):
+    def __init__(self, no_players: int, pairs: Pairs):
         self.no_players = no_players
         self.pairs = pairs
         self.pause: set[int] = set()
-        self.results: list[tuple[float, float] | None] = [None for _ in pairs]
+        self.results: list[GameResult | None] = [None for _ in pairs]
 
         self.__test_pairing_and_make_pause()
 
     def __test_pairing_and_make_pause(self):
-        if len(self.pairs) == 0:
-            raise ValueError("Pairs cannot be empty")
-
         players: set[int] = {player_id for pair in self.pairs for player_id in pair}
 
         if len(players) != len(self.pairs) * 2:
@@ -27,28 +47,11 @@ class Round:
 
             self.pause.discard(player)
 
-    def set_result(self, table: int, result_a: float, result_b: float):
+    def set_result(self, table: int, result: GameResult | None):
         if table < 0 or table >= len(self.pairs):
             raise IndexError
 
-        self.remove_result(table)
-        self.results[table] = (result_a, result_b)
-
-    def remove_result(self, table: int):
-        if table < 0 or table >= len(self.pairs):
-            raise IndexError
-
-        self.results[table] = None
+        self.results[table] = result
 
     def is_completed(self) -> bool:
         return all(result is not None for result in self.results)
-
-
-class RoundSerializer(CopyFieldsSerializer):
-    def __init__(self):
-        super().__init__(Round, (
-            'no_players',
-            'pairs',
-            'pause',
-            'results',
-        ))

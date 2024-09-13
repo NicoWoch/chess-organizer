@@ -1,105 +1,121 @@
+import copy
 import math
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import Self, Iterable
+from typing import Self
 
-from src.serializer import CopyFieldsSerializer
+from src.tournament.elo_algorithm import elo_rating_change
 from src.tournament.round import Round
 
+ELO_K_VALUE = 32
+PAUSE_SCORE = 1
 
-@dataclass(frozen=True)
+
+@dataclass(init=False)
 class RoundStats:
     round_count: int
+    players_count: int
+    ratings: list[float]
+    elo_k_value: float
 
-    played_together: defaultdict[tuple[int, int], int]
-    played_as_a: defaultdict[int, int]
-    played_as_b: defaultdict[int, int]
-    paused: defaultdict[int, int]
+    played_together: list[list[int]]
+    played_as_a: list[int]
+    played_as_b: list[int]
+    paused: list[int]
+    floaters: list[int]
 
-    points: defaultdict[int, float]
+    wins: list[list[int]]
+    draws: list[list[int]]
+    losses: list[list[int]]
 
-    floaters: defaultdict[int, int]
+    recent_rating_changes: list[float]
 
-    @classmethod
-    def make_from_rounds(cls, rounds: Iterable[Round]) -> Self:
-        stats = [cls.make_from_round(round_) for round_ in rounds]
-        return sum(stats, cls.make_empty())
+    def __init__(self, players_count: int, ratings: tuple[float, ...], elo_k_value: float):
+        if players_count != len(ratings):
+            raise ValueError("Number of ratings does not equal number of players")
 
-    @classmethod
-    def make_empty(cls) -> Self:
-        return RoundStats(0, defaultdict(int), defaultdict(int), defaultdict(int),
-                          defaultdict(int), defaultdict(float), defaultdict(int))
+        self.round_count = 0
+        self.players_count = players_count
+        self.ratings = list(ratings)
+        self.elo_k_value = elo_k_value
 
-    @classmethod
-    def make_from_round(cls, round_: Round) -> Self:
-        played_together: defaultdict[tuple[int, int], int] = defaultdict(int)
-        played_as_a: defaultdict[int, int] = defaultdict(int)
-        played_as_b: defaultdict[int, int] = defaultdict(int)
-        paused: defaultdict[int, int] = defaultdict(int, {p: 1 for p in round_.pause})
-        points: defaultdict[int, float] = defaultdict(float)
-        floaters: defaultdict[int, int] = defaultdict(int)
+        empty_array = [0 for _ in range(players_count)]
+        self.played_together = [empty_array.copy() for _ in range(players_count)]
+        self.played_as_a = empty_array.copy()
+        self.played_as_b = empty_array.copy()
+        self.paused = empty_array.copy()
+        self.floaters = empty_array.copy()
+        self.wins = [[] for _ in range(players_count)]
+        self.draws = [[] for _ in range(players_count)]
+        self.losses = [[] for _ in range(players_count)]
+        self.recent_rating_changes = empty_array.copy()
 
-        games_with_result = ((pair, result) for pair, result in zip(round_.pairs, round_.results) if result is not None)
+    def deepcopy(self) -> Self:
+        return copy.deepcopy(self)
+
+    def add_round(self, round_: Round):
+        if self.players_count != round_.no_players:
+            raise ValueError("Players count mismatch")
+
+        self.round_count += 1
+        self._update_played_together(round_)
+        self._update_played_sides(round_)
+        self._update_paused(round_)
+        self._update_floaters(round_)
+        self._update_wins_draws_losses(round_)
+        self._update_ratings(round_, tuple(self.ratings))
+
+    def _update_played_together(self, round_: Round):
+        for player_a, player_b in round_.pairs:
+            self.played_together[player_a][player_b] += 1
+            self.played_together[player_b][player_a] += 1
+
+    def _update_played_sides(self, round_: Round):
+        for player_a, player_b in round_.pairs:
+            self.played_as_a[player_a] += 1
+            self.played_as_b[player_b] += 1
+
+    def _update_paused(self, round_: Round):
+        for pause in round_.pause:
+            self.paused[pause] += 1
+
+    def _update_floaters(self, round_: Round):
+        for player_a, player_b in round_.pairs:
+            for player, color_mul in ((player_a, 1), (player_b, -1)):
+                if self.floaters[player] == 0:
+                    self.floaters[player] = color_mul
+                elif math.copysign(1, self.floaters[player]) == math.copysign(1, color_mul):
+                    self.floaters[player] += color_mul
+                else:
+                    self.floaters[player] = color_mul
+
+    def _update_wins_draws_losses(self, round_: Round):
+        for (player_a, player_b), result in zip(round_.pairs, round_.results):
+            if result is None or not result.is_rated or result.points_a == result.points_b == 0:
+                continue
+
+            if result.points_a > result.points_b:
+                self.wins[player_a].append(player_b)
+                self.losses[player_b].append(player_a)
+            elif result.points_a == result.points_b:
+                self.draws[player_a].append(player_b)
+                self.draws[player_b].append(player_a)
+            else:
+                self.losses[player_a].append(player_b)
+                self.wins[player_b].append(player_a)
+
+    def _update_ratings(self, round_: Round, starting_ratings: tuple[float, ...]):
+        self.recent_rating_changes = [0 for _ in range(self.players_count)]
 
         for (player_a, player_b), result in zip(round_.pairs, round_.results):
-            played_together[(player_a, player_b)] += 1
-            played_together[(player_b, player_a)] += 1
+            if result is None or not result.is_rated:
+                continue
 
-            played_as_a[player_a] += 1
-            played_as_b[player_b] += 1
+            pa, pb = result.points_a, result.points_b
+            scaled_a_points = pa / (pa + pb)
+            ra, rb = starting_ratings[player_a], starting_ratings[player_b]
+            art, brt = elo_rating_change(ra, rb, scaled_a_points, self.elo_k_value)
 
-            floaters[player_a] = 1
-            floaters[player_b] = -1
-
-        for (player_a, player_b), (score_a, score_b) in games_with_result:
-            points[player_a] += score_a
-            points[player_b] += score_b
-
-        return RoundStats(1, played_together, played_as_a, played_as_b, paused, points, floaters)
-
-    def __add__(self, other: Self) -> Self:
-        new_floaters = self.__add_dicts(self.floaters, other.floaters)
-
-        for player in new_floaters.keys():
-            floater_1, floater_2 = self.floaters[player], other.floaters[player]
-
-            if floater_1 == 0:
-                new_floaters[player] = floater_2
-            elif floater_2 == 0:
-                new_floaters[player] = floater_1
-            elif math.copysign(1, floater_1) == math.copysign(1, floater_2):
-                new_floaters[player] = floater_1 + floater_2
-            else:
-                new_floaters[player] = floater_2
-
-        return RoundStats(
-            self.round_count + other.round_count,
-            self.__add_dicts(self.played_together, other.played_together),
-            self.__add_dicts(self.played_as_a, other.played_as_a),
-            self.__add_dicts(self.played_as_b, other.played_as_b),
-            self.__add_dicts(self.paused, other.paused),
-            self.__add_dicts(self.points, other.points),
-            new_floaters
-        )
-
-    @staticmethod
-    def __add_dicts(dict_a: defaultdict, dict_b: defaultdict) -> defaultdict:
-        new_dict = defaultdict(dict_a.default_factory)
-
-        for key in dict_a.keys() | dict_b.keys():
-            new_dict[key] = dict_a[key] + dict_b[key]
-
-        return new_dict
-
-
-class RoundStatsSerializer(CopyFieldsSerializer):
-    def __init__(self):
-        super().__init__(RoundStats, (
-            'round_count',
-            'played_together',
-            'played_as_a',
-            'played_as_b',
-            'paused',
-            'points',
-            'floaters',
-        ))
+            self.recent_rating_changes[player_a] = art
+            self.recent_rating_changes[player_b] = brt
+            self.ratings[player_a] += art
+            self.ratings[player_b] += brt

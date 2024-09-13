@@ -1,7 +1,7 @@
 import unittest
 from typing import Iterable
 
-from src.tournament.round import Round
+from src.tournament.round import Round, GameResult
 from src.tournament.round_stats import RoundStats
 
 
@@ -13,58 +13,89 @@ def assert_iterable_dict(self: unittest.TestCase, iterable: Iterable, dict_: dic
 
 class TestSimple(unittest.TestCase):
     def setUp(self):
-        self.rounds: list[Round] = [Round(4, ((0, 1), (2, 3)))]
+        self.rounds: list[Round] = [Round(5, ((0, 1), (2, 3)))]
+        self.starting_ratings = (1000, 1500, 1000, 1200, 1000)
 
-        self.last_round.set_result(0, 1, 0)
-        self.last_round.set_result(1, .5, .5)
+        self.last_round.set_result(0, GameResult.WIN)
+        self.last_round.set_result(1, GameResult.DRAW)
 
-        self.rounds.append(Round(4, ((0, 3), (1, 2))))
+        self.rounds.append(Round(5, ((0, 3), (1, 4))))
 
-        self.last_round.set_result(0, 1, 0)
-        self.last_round.set_result(1, .5, .5)
+        self.last_round.set_result(0, GameResult.WIN)
+        self.last_round.set_result(1, GameResult.WIN)
+
+        self.stats = RoundStats(5, self.starting_ratings, 32)
+        self.stats.add_round(self.rounds[0])
+        self.stats.add_round(self.rounds[1])
 
     @property
     def last_round(self):
         return self.rounds[-1]
 
-    def test_points_calculation_one_round(self):
-        stats = RoundStats.make_from_round(self.rounds[0])
-        assert_iterable_dict(self, [1, 0, .5, .5], stats.points)
-
-    def test_points_calculation_two_rounds(self):
-        stats = RoundStats.make_from_rounds(self.rounds)
-        assert_iterable_dict(self, [2, .5, 1, .5], stats.points)
-
     def test_round_count(self):
-        stats = RoundStats.make_from_rounds(self.rounds[:1])
+        stats = RoundStats(5, self.starting_ratings, 32)
+        self.assertEqual(0, stats.round_count)
+        stats.add_round(self.rounds[0])
         self.assertEqual(1, stats.round_count)
-
-        stats = RoundStats.make_from_rounds(self.rounds)
+        stats.add_round(self.rounds[1])
         self.assertEqual(2, stats.round_count)
 
-    def test_played_as_side(self):
-        stats = RoundStats.make_from_rounds(self.rounds)
-        assert_iterable_dict(self, [2, 1, 1, 0], stats.played_as_a)
-        assert_iterable_dict(self, [0, 1, 1, 2], stats.played_as_b)
-
     def test_played_together(self):
-        stats = RoundStats.make_from_rounds(self.rounds)
-        self.assertEqual(1, stats.played_together[0, 1])
-        self.assertEqual(0, stats.played_together[1, 1])
-        self.assertEqual(1, stats.played_together[2, 3])
-        self.assertEqual(1, stats.played_together[3, 0])
+        self.assertEqual(1, self.stats.played_together[0][1])
+        self.assertEqual(1, self.stats.played_together[1][0])
+        self.assertEqual(0, self.stats.played_together[1][1])
+        self.assertEqual(0, self.stats.played_together[1][2])
+        self.assertEqual(0, self.stats.played_together[1][3])
+        self.assertEqual(1, self.stats.played_together[2][3])
+        self.assertEqual(1, self.stats.played_together[3][2])
+        self.assertEqual(1, self.stats.played_together[1][4])
+        self.assertEqual(1, self.stats.played_together[4][1])
 
-    def test_floaters(self):
-        stats = RoundStats.make_from_rounds(self.rounds)
-
-        assert_iterable_dict(self, [2, 1, -1, -2], stats.floaters)
+    def test_played_sides(self):
+        self.assertEqual([2, 1, 1, 0, 0], self.stats.played_as_a)
+        self.assertEqual([0, 1, 0, 2, 1], self.stats.played_as_b)
 
     def test_paused(self):
-        stats = RoundStats.make_from_round(self.rounds[0])
-        assert_iterable_dict(self, [0, 0, 0, 0], stats.paused)
+        stats = RoundStats(5, self.starting_ratings, 32)
+        stats.add_round(self.rounds[0])
+        self.assertEqual([0, 0, 0, 0, 1], stats.paused)
+        stats.add_round(self.rounds[1])
+        self.assertEqual([0, 0, 1, 0, 1], stats.paused)
 
-        stats = RoundStats.make_from_rounds(self.rounds)
-        assert_iterable_dict(self, [0, 0, 0, 0], stats.paused)
+    def test_floaters(self):
+        self.assertEqual([2, 1, 1, -2, -1], self.stats.floaters)
+
+    def test_wins_draws_losses(self):
+        self.assertEqual([[1, 3], [4], [], [], []], self.stats.wins)
+        self.assertEqual([[], [], [3], [2], []], self.stats.draws)
+        self.assertEqual([[], [0], [], [0], [1]], self.stats.losses)
+
+    def test_ratings(self):
+        stats = RoundStats(5, self.starting_ratings, 32)
+        stats.add_round(self.rounds[0])
+        rating_changes_round_0 = (+30.296, -30.296, +8.312, -8.312, 0)
+
+        for i, rating_change in enumerate(rating_changes_round_0):
+            new_rating = self.starting_ratings[i] + rating_change
+            self.__assert_rating_change(stats, i, rating_change, new_rating)
+
+        stats.add_round(self.rounds[1])
+        rating_changes_round_1 = (+22.940, +2.008, 0, -22.940, -2.008)
+
+        for i, (rc1, rc2) in enumerate(zip(rating_changes_round_0, rating_changes_round_1)):
+            new_rating = self.starting_ratings[i] + rc1 + rc2
+            self.__assert_rating_change(stats, i, rc2, new_rating)
+
+    def __assert_rating_change(self, stats: RoundStats, player: int, rating_change: float, new_rating: float):
+        if rating_change > 0:
+            self.assertGreater(stats.recent_rating_changes[player], 0)
+        elif rating_change < 0:
+            self.assertLess(stats.recent_rating_changes[player], 0)
+        else:
+            self.assertEqual(0, stats.recent_rating_changes[player])
+
+        msg = f'Rating of player {player}, {stats.ratings[player]} is not close to expected {new_rating}'
+        self.assertAlmostEqual(new_rating, stats.ratings[player], delta=2.0, msg=msg)
 
 
 class TestMoreComplexRounds(unittest.TestCase):
@@ -76,39 +107,35 @@ class TestMoreComplexRounds(unittest.TestCase):
             Round(10, ((9, 0), (8, 1), (7, 2), (6, 3), (5, 4))),
         ]
 
-        stat_round_1 = RoundStats.make_from_round(self.rounds[0])
+        results_by_round = (
+            (GameResult.LOSE, GameResult.LOSE, GameResult.LOSE, GameResult.WIN),
+            (GameResult.LOSE, GameResult.LOSE, GameResult.WIN, GameResult.DRAW),
+            (GameResult.LOSE, GameResult.LOSE, GameResult.WIN, GameResult.WIN, GameResult.DRAW),
+            (GameResult.LOSE, GameResult.WIN, GameResult.LOSE, GameResult.LOSE, GameResult.WIN),
+        )
 
-        self.stats_by_round = [
-            stat_round_1,
-            stat_round_1 + RoundStats.make_from_round(self.rounds[1]),
-            RoundStats.make_from_rounds(self.rounds[:3]),
-            RoundStats.make_from_rounds(self.rounds),
-        ]
+        for round_, results in zip(self.rounds, results_by_round):
+            for table_id, result in enumerate(results):
+                round_.set_result(table_id, result)
+
+        self.starting_ratings = (1000, 1200, 1000, 1100, 1500, 1000, 1000, 1000, 1000, 1000)
+        self.stats_by_round = []
+
+        stats = RoundStats(10, self.starting_ratings, 32)
+        stats.add_round(self.rounds[0])
+        self.stats_by_round.append(stats.deepcopy())
+        stats.add_round(self.rounds[1])
+        self.stats_by_round.append(stats.deepcopy())
+        stats.add_round(self.rounds[2])
+        self.stats_by_round.append(stats.deepcopy())
+        stats.add_round(self.rounds[3])
+        self.stats_by_round.append(stats.deepcopy())
 
     def test_round_count(self):
         self.assertEqual(1, self.stats_by_round[0].round_count)
         self.assertEqual(2, self.stats_by_round[1].round_count)
         self.assertEqual(3, self.stats_by_round[2].round_count)
         self.assertEqual(4, self.stats_by_round[3].round_count)
-
-    def test_played_as_side(self):
-        assert_iterable_dict(self, [0, 1, 0, 1, 0, 1, 0, 0, 0, 1], self.stats_by_round[0].played_as_a)
-        assert_iterable_dict(self, [1, 0, 1, 0, 1, 0, 1, 0, 0, 0], self.stats_by_round[0].played_as_b)
-
-        assert_iterable_dict(self, [0, 1, 0, 1, 1, 2, 1, 1, 0, 1], self.stats_by_round[1].played_as_a)
-        assert_iterable_dict(self, [1, 1, 2, 1, 1, 0, 1, 0, 1, 0], self.stats_by_round[1].played_as_b)
-
-        assert_iterable_dict(self, [0, 2, 1, 1, 1, 3, 2, 1, 0, 2], self.stats_by_round[2].played_as_a)
-        assert_iterable_dict(self, [2, 1, 2, 2, 2, 0, 1, 1, 2, 0], self.stats_by_round[2].played_as_b)
-
-        assert_iterable_dict(self, [0, 2, 1, 1, 1, 4, 3, 2, 1, 3], self.stats_by_round[3].played_as_a)
-        assert_iterable_dict(self, [3, 2, 3, 3, 3, 0, 1, 1, 2, 0], self.stats_by_round[3].played_as_b)
-
-    def test_floaters(self):
-        assert_iterable_dict(self, [-1, 1, -1, 1, -1, 1, -1, 0, 0, 1], self.stats_by_round[0].floaters)
-        assert_iterable_dict(self, [-1, -1, -2, -1, 1, 2, 1, 1, -1, 1], self.stats_by_round[1].floaters)
-        assert_iterable_dict(self, [-2, 1, 1, -2, -1, 3, 2, -1, -2, 2], self.stats_by_round[2].floaters)
-        assert_iterable_dict(self, [-3, -1, -1, -3, -2, 4, 3, 1, 1, 3], self.stats_by_round[3].floaters)
 
     def test_played_together(self):
         tests = [
@@ -121,44 +148,63 @@ class TestMoreComplexRounds(unittest.TestCase):
         for stats, (test_id, test) in zip(self.stats_by_round, enumerate(tests)):
             for pair, count in test.items():
                 msg = f'failed at round {test_id + 1} with pair {pair}'
-                self.assertEqual(count, stats.played_together[pair], msg)
-                self.assertEqual(count, stats.played_together[pair[::-1]], msg + ' reversed')
+                self.assertEqual(count, stats.played_together[pair[0]][pair[1]], msg)
+                self.assertEqual(count, stats.played_together[pair[1]][pair[0]], msg + ' reversed')
 
-    def test_points(self):
-        results_by_round = (
-            ((0, 1), (0, 1), (0, 1), (1, 0)),
-            ((0, 1), (0, 1), (1, 0), (.5, .5)),
-            ((0, 1), (0, 1), (1, 0), (1, 0), (.5, .5)),
-            ((0, 1), (1, 0), (0, 1), (0, 1), (1, 0)),
-        )
+    def test_played_sides(self):
+        self.assertEqual([0, 1, 0, 1, 0, 1, 0, 0, 0, 1], self.stats_by_round[0].played_as_a)
+        self.assertEqual([1, 0, 1, 0, 1, 0, 1, 0, 0, 0], self.stats_by_round[0].played_as_b)
 
-        for round_, results in zip(self.rounds, results_by_round):
-            for table_id, result in enumerate(results):
-                round_.set_result(table_id, *result)
+        self.assertEqual([0, 1, 0, 1, 1, 2, 1, 1, 0, 1], self.stats_by_round[1].played_as_a)
+        self.assertEqual([1, 1, 2, 1, 1, 0, 1, 0, 1, 0], self.stats_by_round[1].played_as_b)
 
-        stats = RoundStats.make_from_round(self.rounds[0])
-        assert_iterable_dict(self, [1, 0, 1, 0, 0, 1, 1, 0, 0, 0], stats.points)
-        stats += RoundStats.make_from_round(self.rounds[1])
-        assert_iterable_dict(self, [1, 1, 2, .5, 1, 1, 1, .5, 0, 0], stats.points)
-        stats += RoundStats.make_from_round(self.rounds[2])
-        assert_iterable_dict(self, [2, 1, 2, .5, 2, 2, 2, 1, 0, .5], stats.points)
-        stats += RoundStats.make_from_round(self.rounds[3])
-        assert_iterable_dict(self, [3, 1, 3, 1.5, 2, 3, 2, 1, 1, .5], stats.points)
+        self.assertEqual([0, 2, 1, 1, 1, 3, 2, 1, 0, 2], self.stats_by_round[2].played_as_a)
+        self.assertEqual([2, 1, 2, 2, 2, 0, 1, 1, 2, 0], self.stats_by_round[2].played_as_b)
+
+        self.assertEqual([0, 2, 1, 1, 1, 4, 3, 2, 1, 3], self.stats_by_round[3].played_as_a)
+        self.assertEqual([3, 2, 3, 3, 3, 0, 1, 1, 2, 0], self.stats_by_round[3].played_as_b)
 
     def test_paused(self):
-        stats = RoundStats.make_from_round(self.rounds[0])
-        assert_iterable_dict(self, [0, 0, 0, 0, 0, 0, 0, 1, 1, 0], stats.paused)
+        self.assertEqual([0, 0, 0, 0, 0, 0, 0, 1, 1, 0], self.stats_by_round[0].paused)
+        self.assertEqual([1, 0, 0, 0, 0, 0, 0, 1, 1, 1], self.stats_by_round[1].paused)
+        self.assertEqual([1, 0, 0, 0, 0, 0, 0, 1, 1, 1], self.stats_by_round[2].paused)
+        self.assertEqual([1, 0, 0, 0, 0, 0, 0, 1, 1, 1], self.stats_by_round[3].paused)
 
-        stats = RoundStats.make_from_rounds(self.rounds[:2])
-        assert_iterable_dict(self, [1, 0, 0, 0, 0, 0, 0, 1, 1, 1], stats.paused)
+    def test_floaters(self):
+        self.assertEqual([-1, 1, -1, 1, -1, 1, -1, 0, 0, 1], self.stats_by_round[0].floaters)
+        self.assertEqual([-1, -1, -2, -1, 1, 2, 1, 1, -1, 1], self.stats_by_round[1].floaters)
+        self.assertEqual([-2, 1, 1, -2, -1, 3, 2, -1, -2, 2], self.stats_by_round[2].floaters)
+        self.assertEqual([-3, -1, -1, -3, -2, 4, 3, 1, 1, 3], self.stats_by_round[3].floaters)
 
-        stats = RoundStats.make_from_rounds(self.rounds[:3])
-        assert_iterable_dict(self, [1, 0, 0, 0, 0, 0, 0, 1, 1, 1], stats.paused)
+    def test_wins_draws_losses(self):
+        self.assertEqual([[9, 2, 9], [6], [3, 5, 7], [6], [8, 1], [4, 8, 4], [1, 3], [], [1], []],
+                         self.stats_by_round[3].wins)
+        self.assertEqual([[], [], [], [7], [], [], [], [3, 9], [], [7]], self.stats_by_round[3].draws)
+        self.assertEqual([[], [6, 4, 8], [0], [2, 6], [5, 5], [2], [1, 3], [2], [4, 5], [0, 0]],
+                         self.stats_by_round[3].losses)
 
-        stats = RoundStats.make_from_rounds(self.rounds[:4])
-        assert_iterable_dict(self, [1, 0, 0, 0, 0, 0, 0, 1, 1, 1], stats.paused)
+    def test_ratings_very_basic(self):
+        self.assertGreater(self.stats_by_round[-1].ratings[0], self.starting_ratings[0])
+        self.assertLess(self.stats_by_round[-1].ratings[9], self.starting_ratings[9])
 
-    def test_paused_2_independent_of_class(self):
+    def test_recent_rating_changes_signs(self):
+        for i, (round_, stats) in enumerate(zip(self.rounds, self.stats_by_round)):
+            is_ok = True
+
+            for (player_a, player_b), game_result in zip(round_.pairs, round_.results):
+                if game_result == GameResult.WIN:
+                    is_ok = is_ok and (stats.recent_rating_changes[player_a] > 0)
+                    is_ok = is_ok and (stats.recent_rating_changes[player_b] < 0)
+                elif game_result == GameResult.LOSE:
+                    is_ok = is_ok and (stats.recent_rating_changes[player_a] < 0)
+                    is_ok = is_ok and (stats.recent_rating_changes[player_b] > 0)
+
+            if not is_ok:
+                self.fail(f'Recent rating changes signs not match on round {i}')
+
+
+class TestPauseComplex(unittest.TestCase):
+    def test_paused(self):
         rounds = [
             Round(10, ((9, 0), (3, 2))),
             Round(10, ((6, 1), (5, 2))),
@@ -167,16 +213,17 @@ class TestMoreComplexRounds(unittest.TestCase):
             Round(10, ((8, 9), (3, 0))),
         ]
 
-        stats = RoundStats.make_from_rounds(rounds[:1])
-        assert_iterable_dict(self, [0, 1, 0, 0, 1, 1, 1, 1, 1, 0], stats.paused)
-        stats = RoundStats.make_from_rounds(rounds[:2])
-        assert_iterable_dict(self, [1, 1, 0, 1, 2, 1, 1, 2, 2, 1], stats.paused)
-        stats = RoundStats.make_from_rounds(rounds[:3])
-        assert_iterable_dict(self, [2, 1, 0, 1, 3, 1, 2, 3, 3, 2], stats.paused)
-        stats = RoundStats.make_from_rounds(rounds[:4])
-        assert_iterable_dict(self, [3, 2, 0, 2, 3, 1, 3, 4, 3, 3], stats.paused)
-        stats = RoundStats.make_from_rounds(rounds[:5])
-        assert_iterable_dict(self, [3, 3, 1, 2, 4, 2, 4, 5, 3, 3], stats.paused)
+        stats = RoundStats(10, tuple([1000] * 10), 32)
+        stats.add_round(rounds[0])
+        self.assertEqual([0, 1, 0, 0, 1, 1, 1, 1, 1, 0], stats.paused)
+        stats.add_round(rounds[1])
+        self.assertEqual([1, 1, 0, 1, 2, 1, 1, 2, 2, 1], stats.paused)
+        stats.add_round(rounds[2])
+        self.assertEqual([2, 1, 0, 1, 3, 1, 2, 3, 3, 2], stats.paused)
+        stats.add_round(rounds[3])
+        self.assertEqual([3, 2, 0, 2, 3, 1, 3, 4, 3, 3], stats.paused)
+        stats.add_round(rounds[4])
+        self.assertEqual([3, 3, 1, 2, 4, 2, 4, 5, 3, 3], stats.paused)
 
 
 if __name__ == '__main__':
