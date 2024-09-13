@@ -24,7 +24,7 @@ class Tournament:
     def __init__(self, players: tuple[Player, ...], settings: TournamentSettings | None = None):
         self._players = players
         self._rounds: list[Round] = []
-        self.settings = settings if settings is not None else TournamentSettings(32, PointsScorer(pause_points=1))
+        self.settings = settings if settings is not None else TournamentSettings(32, PointsScorer())
 
         self.__stats_by_round_cache: list[RoundStats] = []
 

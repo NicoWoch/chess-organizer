@@ -4,7 +4,7 @@ from src.tournament.scoring.scorer import Scorer, Score
 
 
 class PointsScorer(Scorer):
-    def __init__(self, *, pause_points: float):
+    def __init__(self, *, pause_points: float = 1):
         self.pause_points = pause_points
 
     def calculate_scores(self, no_players: int, rounds: list[Round], stats: RoundStats) -> tuple[Score, ...]:
