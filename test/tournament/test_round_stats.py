@@ -119,7 +119,7 @@ class TestMoreComplexRounds(unittest.TestCase):
                 round_.set_result(table_id, result)
 
         self.starting_ratings = (1000, 1200, 1000, 1100, 1500, 1000, 1000, 1000, 1000, 1000)
-        self.stats_by_round = []
+        self.stats_by_round: list[RoundStats] = []
 
         stats = RoundStats(10, self.starting_ratings, 32)
         stats.add_round(self.rounds[0])
