@@ -1,24 +1,17 @@
-from dataclasses import dataclass
-
-from src.serializer import CopyFieldsSerializer
+from dataclasses import dataclass, field
 
 
-@dataclass(init=False)
+@dataclass(frozen=True)
 class Player:
     name: str
     surname: str
-    rating: float
+    rating: float = field(default=1000, compare=False)
 
-    def __init__(self, name: str, surname: str, rating : float = 1000):
-        self.name = name
-        self.surname = surname
-        self.rating = rating
+    hash_id: int = field(default=0, kw_only=True)
 
+    def __post_init__(self):
+        object.__setattr__(self, "name", self.name.strip())
+        object.__setattr__(self, "surname", self.surname.strip())
 
-class PlayerSerializer(CopyFieldsSerializer):
-    def __init__(self):
-        super().__init__(Player, (
-            'name',
-            'surname',
-            'rating',
-        ))
+    def __repr__(self):
+        return f'<{self.name} {self.surname}>'

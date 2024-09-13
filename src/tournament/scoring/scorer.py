@@ -5,13 +5,14 @@ from src.tournament.round import Round
 from src.tournament.round_stats import RoundStats
 
 type Score = tuple[float, ...]
+type Scoreboard = tuple[tuple[int, int, Score], ...]
 
 
 class Scorer(ABC):
     @abstractmethod
     def calculate_scores(self, no_players: int, rounds: list[Round], stats: RoundStats) -> tuple[Score, ...]: ...
 
-    def create_scoreboard(self, no_players: int, rounds: list[Round], stats: RoundStats) -> tuple[tuple[int, int, Score], ...]:
+    def create_scoreboard(self, no_players: int, rounds: list[Round], stats: RoundStats) -> Scoreboard:
         scores = self.calculate_scores(no_players, rounds, stats)
         scoreboard = list(enumerate(scores))
         scoreboard.sort(key=lambda x: (x[1], x[0]), reverse=True)
