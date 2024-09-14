@@ -18,10 +18,9 @@ class RoundStats:
     elo_k_value: float
 
     played_together: list[list[int]]
-    played_as_a: list[int]
-    played_as_b: list[int]
+    color_balance: list[int]
     paused: list[int]
-    floaters: list[int]
+    color_repetition: list[int]
 
     wins: list[list[int]]
     draws: list[list[int]]
@@ -40,10 +39,9 @@ class RoundStats:
 
         empty_array = [0 for _ in range(players_count)]
         self.played_together = [empty_array.copy() for _ in range(players_count)]
-        self.played_as_a = empty_array.copy()
-        self.played_as_b = empty_array.copy()
+        self.color_balance = empty_array.copy()
         self.paused = empty_array.copy()
-        self.floaters = empty_array.copy()
+        self.color_repetition = empty_array.copy()
         self.wins = [[] for _ in range(players_count)]
         self.draws = [[] for _ in range(players_count)]
         self.losses = [[] for _ in range(players_count)]
@@ -71,8 +69,8 @@ class RoundStats:
 
     def _update_played_sides(self, round_: Round):
         for player_a, player_b in round_.pairs:
-            self.played_as_a[player_a] += 1
-            self.played_as_b[player_b] += 1
+            self.color_balance[player_a] += 1
+            self.color_balance[player_b] -= 1
 
     def _update_paused(self, round_: Round):
         for pause in round_.pause:
@@ -81,12 +79,12 @@ class RoundStats:
     def _update_floaters(self, round_: Round):
         for player_a, player_b in round_.pairs:
             for player, color_mul in ((player_a, 1), (player_b, -1)):
-                if self.floaters[player] == 0:
-                    self.floaters[player] = color_mul
-                elif math.copysign(1, self.floaters[player]) == math.copysign(1, color_mul):
-                    self.floaters[player] += color_mul
+                if self.color_repetition[player] == 0:
+                    self.color_repetition[player] = color_mul
+                elif math.copysign(1, self.color_repetition[player]) == math.copysign(1, color_mul):
+                    self.color_repetition[player] += color_mul
                 else:
-                    self.floaters[player] = color_mul
+                    self.color_repetition[player] = color_mul
 
     def _update_wins_draws_losses(self, round_: Round):
         for (player_a, player_b), result in zip(round_.pairs, round_.results):

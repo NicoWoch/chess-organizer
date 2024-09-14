@@ -52,8 +52,7 @@ class TestSimple(unittest.TestCase):
         self.assertEqual(1, self.stats.played_together[4][1])
 
     def test_played_sides(self):
-        self.assertEqual([2, 1, 1, 0, 0], self.stats.played_as_a)
-        self.assertEqual([0, 1, 0, 2, 1], self.stats.played_as_b)
+        self.assertEqual([2, 0, 1, -2, -1], self.stats.color_balance)
 
     def test_paused(self):
         stats = RoundStats(5, self.starting_ratings, 32)
@@ -63,7 +62,7 @@ class TestSimple(unittest.TestCase):
         self.assertEqual([0, 0, 1, 0, 1], stats.paused)
 
     def test_floaters(self):
-        self.assertEqual([2, 1, 1, -2, -1], self.stats.floaters)
+        self.assertEqual([2, 1, 1, -2, -1], self.stats.color_repetition)
 
     def test_wins_draws_losses(self):
         self.assertEqual([[1, 3], [4], [], [], []], self.stats.wins)
@@ -152,17 +151,10 @@ class TestMoreComplexRounds(unittest.TestCase):
                 self.assertEqual(count, stats.played_together[pair[1]][pair[0]], msg + ' reversed')
 
     def test_played_sides(self):
-        self.assertEqual([0, 1, 0, 1, 0, 1, 0, 0, 0, 1], self.stats_by_round[0].played_as_a)
-        self.assertEqual([1, 0, 1, 0, 1, 0, 1, 0, 0, 0], self.stats_by_round[0].played_as_b)
-
-        self.assertEqual([0, 1, 0, 1, 1, 2, 1, 1, 0, 1], self.stats_by_round[1].played_as_a)
-        self.assertEqual([1, 1, 2, 1, 1, 0, 1, 0, 1, 0], self.stats_by_round[1].played_as_b)
-
-        self.assertEqual([0, 2, 1, 1, 1, 3, 2, 1, 0, 2], self.stats_by_round[2].played_as_a)
-        self.assertEqual([2, 1, 2, 2, 2, 0, 1, 1, 2, 0], self.stats_by_round[2].played_as_b)
-
-        self.assertEqual([0, 2, 1, 1, 1, 4, 3, 2, 1, 3], self.stats_by_round[3].played_as_a)
-        self.assertEqual([3, 2, 3, 3, 3, 0, 1, 1, 2, 0], self.stats_by_round[3].played_as_b)
+        self.assertEqual([-1, 1, -1, 1, -1, 1, -1, 0, 0, 1], self.stats_by_round[0].color_balance)
+        self.assertEqual([-1, 0, -2, 0, 0, 2, 0, 1, -1, 1], self.stats_by_round[1].color_balance)
+        self.assertEqual([-2, 1, -1, -1, -1, 3, 1, 0, -2, 2], self.stats_by_round[2].color_balance)
+        self.assertEqual([-3, 0, -2, -2, -2, 4, 2, 1, -1, 3], self.stats_by_round[3].color_balance)
 
     def test_paused(self):
         self.assertEqual([0, 0, 0, 0, 0, 0, 0, 1, 1, 0], self.stats_by_round[0].paused)
@@ -171,10 +163,10 @@ class TestMoreComplexRounds(unittest.TestCase):
         self.assertEqual([1, 0, 0, 0, 0, 0, 0, 1, 1, 1], self.stats_by_round[3].paused)
 
     def test_floaters(self):
-        self.assertEqual([-1, 1, -1, 1, -1, 1, -1, 0, 0, 1], self.stats_by_round[0].floaters)
-        self.assertEqual([-1, -1, -2, -1, 1, 2, 1, 1, -1, 1], self.stats_by_round[1].floaters)
-        self.assertEqual([-2, 1, 1, -2, -1, 3, 2, -1, -2, 2], self.stats_by_round[2].floaters)
-        self.assertEqual([-3, -1, -1, -3, -2, 4, 3, 1, 1, 3], self.stats_by_round[3].floaters)
+        self.assertEqual([-1, 1, -1, 1, -1, 1, -1, 0, 0, 1], self.stats_by_round[0].color_repetition)
+        self.assertEqual([-1, -1, -2, -1, 1, 2, 1, 1, -1, 1], self.stats_by_round[1].color_repetition)
+        self.assertEqual([-2, 1, 1, -2, -1, 3, 2, -1, -2, 2], self.stats_by_round[2].color_repetition)
+        self.assertEqual([-3, -1, -1, -3, -2, 4, 3, 1, 1, 3], self.stats_by_round[3].color_repetition)
 
     def test_wins_draws_losses(self):
         self.assertEqual([[9, 2, 9], [6], [3, 5, 7], [6], [8, 1], [4, 8, 4], [1, 3], [], [1], []],

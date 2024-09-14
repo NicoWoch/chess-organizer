@@ -37,8 +37,8 @@ class TestSimple(unittest.TestCase):
 
         self.assertEqual(1, stats.played_together[0][3])
         self.assertEqual(1, stats.played_together[3][4])
-        self.assertEqual(1, stats.played_as_a[0])
-        self.assertEqual(-2, stats.floaters[4])
+        self.assertEqual(1, stats.color_balance[0])
+        self.assertEqual(-2, stats.color_repetition[4])
         self.assertEqual({6}, self.t.get_round(0).pause)
         self.assertEqual({0}, self.t.get_round(1).pause)
         self.assertEqual({0}, self.t.get_round().pause)
@@ -54,8 +54,8 @@ class TestSimple(unittest.TestCase):
 
         self.assertEqual(1, round_0.played_together[0][3])
         self.assertEqual(0, round_0.played_together[3][4])
-        self.assertEqual(1, round_0.played_as_a[0])
-        self.assertEqual(-1, round_0.floaters[4])
+        self.assertEqual(1, round_0.color_balance[0])
+        self.assertEqual(-1, round_0.color_repetition[4])
         self.assertEqual({6}, self.t.get_round().pause)
 
         self._add_sample_round_1()
@@ -64,8 +64,8 @@ class TestSimple(unittest.TestCase):
 
         self.assertEqual(1, round_1.played_together[0][3])
         self.assertEqual(1, round_1.played_together[4][3])
-        self.assertEqual(1, round_1.played_as_a[0])
-        self.assertEqual(-2, round_1.floaters[4])
+        self.assertEqual(1, round_1.color_balance[0])
+        self.assertEqual(-2, round_1.color_repetition[4])
 
         self._assert_round_0_1_stats()
 
