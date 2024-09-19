@@ -1,5 +1,4 @@
 import copy
-from collections import defaultdict
 from dataclasses import dataclass
 
 from src.tournament.pairing.pairer import Pairer
@@ -80,7 +79,7 @@ class Tournament:
     def _next_round_from_pairer(self, pairer: Pairer):
         self._assert_round_completed()
 
-        pairs = pairer.pair(set(range(len(self._players))), self.stats)
+        pairs = pairer.pair(tuple(range(len(self._players))), self.stats, self.get_scores())
         self._next_round_from_pairs(pairs)
 
     def _assert_round_completed(self):

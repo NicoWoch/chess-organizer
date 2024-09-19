@@ -26,6 +26,8 @@ class RoundStats:
     draws: list[list[int]]
     losses: list[list[int]]
 
+    # TODO: add floaters and recent_floaters fields
+
     recent_rating_changes: list[float]
 
     def __init__(self, players_count: int, ratings: tuple[float, ...], elo_k_value: float):

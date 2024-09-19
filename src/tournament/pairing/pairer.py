@@ -2,17 +2,22 @@ from abc import abstractmethod, ABC
 
 from src.tournament.round_stats import RoundStats
 from src.tournament.round import Pairs
+from src.tournament.scoring.scorer import Score
+
+type ListPairs = list[tuple[int, int]]
 
 
 class Pairer(ABC):
-    players: set[int]
+    players: tuple[int, ...]
     stats: RoundStats
+    scores: tuple[Score, ...]
 
-    def pair(self, players: set[int], stats: RoundStats) -> Pairs:
-        self.players = players
+    def pair(self, enabled_players: tuple[int, ...], stats: RoundStats, scores: tuple[Score, ...]) -> Pairs:
+        self.players = enabled_players
         self.stats = stats
+        self.scores = scores
 
-        return self.__pair()
+        return self._pair()
 
     @abstractmethod
-    def __pair(self) -> Pairs: ...
+    def _pair(self) -> Pairs: ...
