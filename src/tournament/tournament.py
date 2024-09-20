@@ -6,7 +6,7 @@ from src.tournament.player import Player
 from src.tournament.round import Round, GameResult, Pairs
 from src.tournament.round_stats import RoundStats
 from src.tournament.scoring.points_scorer import PointsScorer
-from src.tournament.scoring.scorer import Scorer, Score, Scoreboard
+from src.tournament.scoring.scorer import Scorer, Score
 
 
 class RoundNotCompletedError(Exception):
@@ -106,6 +106,6 @@ class Tournament:
     def get_scores(self) -> tuple[Score, ...]:
         return self.settings.scorer.calculate_scores(len(self._players), self._rounds, self.stats)
 
-    def get_scoreboard(self) -> Scoreboard:
+    def get_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
         scoreboard = self.settings.scorer.create_scoreboard(len(self._players), self._rounds, self.stats)
         return tuple((place, self._players[player_id], score) for place, player_id, score in scoreboard)

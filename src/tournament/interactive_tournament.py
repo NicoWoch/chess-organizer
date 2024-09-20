@@ -5,7 +5,7 @@ from src.tournament.player import Player
 from src.tournament.round import Round, Pairs, GameResult
 from src.tournament.round_stats import RoundStats
 from src.tournament.tournament import Tournament, Pairer
-from src.tournament.scoring.scorer import Score, Scoreboard
+from src.tournament.scoring.scorer import Score
 
 
 class TournamentState(Enum):
@@ -39,6 +39,13 @@ class InteractiveTournament:
     @property
     def state(self) -> TournamentState:
         return self._state
+
+    @property
+    def round_count(self):
+        if self._tournament is None:
+            return 0
+
+        return self._tournament.get_round_count()
 
     def _assert_state(self, state: TournamentState, msg: str):
         if self._state != state:
@@ -126,7 +133,7 @@ class InteractiveTournament:
         self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scores')
         return self._tournament.get_scores()
 
-    def get_scoreboard(self) -> Scoreboard:
+    def get_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
         self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scoreboard')
         return self._tournament.get_scoreboard()
 
