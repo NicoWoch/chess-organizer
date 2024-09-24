@@ -11,7 +11,7 @@ class ResizingLabel(tk.Label):  # TODO: remove code repetition
         super().__init__(parent, **kwargs)
 
         base_font = kwargs.get('font', ('Comic Sans MS',))
-        self._font = ResizingFont(parent, self.get_text, base_font, relwidth,
+        self._font = ResizingFont(self, self.get_text, base_font, relwidth,
                                   relheight, minsize, maxsize)
         self._font.resize_font()
 
@@ -34,7 +34,7 @@ class ResizingButton(tk.Button):
         super().__init__(parent, **kwargs)
 
         base_font = kwargs.get('font', ('Comic Sans MS',))
-        self._font = ResizingFont(parent, self.get_text, base_font, relwidth,
+        self._font = ResizingFont(self, self.get_text, base_font, relwidth,
                                   relheight, minsize, maxsize)
         self._font.resize_font()
 

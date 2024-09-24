@@ -4,7 +4,7 @@ from typing import Any, Callable
 from src.tournament.player import Player
 from src.tournament.round import Round, Pairs, GameResult
 from src.tournament.round_stats import RoundStats
-from src.tournament.tournament import Tournament, Pairer
+from src.tournament.tournament import Tournament, Pairer, TournamentSettings
 from src.tournament.scoring.scorer import Score
 
 
@@ -26,6 +26,7 @@ class InteractiveTournament:
         self._state = TournamentState.NOT_STARTED
         self._on_change = on_change
         self._update_ratings = update_ratings
+        self._settings = TournamentSettings()
 
     def __str__(self):
         return '<InteractiveTournament: ' + str({
@@ -46,6 +47,11 @@ class InteractiveTournament:
             return 0
 
         return self._tournament.get_round_count()
+
+    @property
+    def settings(self):
+        self._assert_state(TournamentState.NOT_STARTED, 'Changing settings in a running tournament is not implemented')
+        return self._settings
 
     def _assert_state(self, state: TournamentState, msg: str):
         if self._state != state:
@@ -93,7 +99,7 @@ class InteractiveTournament:
             if len(self._players) == 0:
                 raise InteractiveException('There are no players to start the tournament')
 
-            self._tournament = Tournament(self._players)
+            self._tournament = Tournament(self._players, self._settings)
             self._state = TournamentState.RUNNING
 
         self._tournament.next_round(pairs_or_pairer)
@@ -133,12 +139,17 @@ class InteractiveTournament:
         self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scores')
         return self._tournament.get_scores()
 
-    def get_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
+    def get_id_scoreboard(self) -> tuple[tuple[int, int, Score], ...]:
         self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scoreboard')
-        return self._tournament.get_scoreboard()
+        return self._tournament.get_id_scoreboard()
+
+    def get_player_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
+        self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scoreboard')
+        return self._tournament.get_player_scoreboard()
 
     def finish(self):
         self._assert_state(TournamentState.RUNNING, 'Tournament has to be running to finish it')
+        self._tournament.assert_round_completed()
         self._on_change()
 
         self._state = TournamentState.FINISHED

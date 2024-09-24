@@ -15,15 +15,15 @@ class RoundNotCompletedError(Exception):
 
 @dataclass
 class TournamentSettings:
-    elo_k_value: float
-    scorer: Scorer
+    elo_k_value: float = 32
+    scorer: Scorer = PointsScorer()
 
 
 class Tournament:
     def __init__(self, players: tuple[Player, ...], settings: TournamentSettings | None = None):
         self._players = players
         self._rounds: list[Round] = []
-        self.settings = settings if settings is not None else TournamentSettings(32, PointsScorer())
+        self.settings = settings if settings is not None else TournamentSettings()
 
         self.__stats_by_round_cache: list[RoundStats] = []
 
@@ -70,19 +70,19 @@ class Tournament:
             self._next_round_from_pairs(pairs_or_pairer)
 
     def _next_round_from_pairs(self, pairs: tuple[tuple[int, int], ...]):
-        self._assert_round_completed()
+        self.assert_round_completed()
 
         round_ = Round(len(self._players), pairs)
         self._rounds.append(round_)
         self.__clear_stats_by_round_cache()
 
     def _next_round_from_pairer(self, pairer: Pairer):
-        self._assert_round_completed()
+        self.assert_round_completed()
 
         pairs = pairer.pair(tuple(range(len(self._players))), self.stats, self.get_scores())
         self._next_round_from_pairs(pairs)
 
-    def _assert_round_completed(self):
+    def assert_round_completed(self):
         if len(self._rounds) > 0 and not self._rounds[-1].is_completed():
             raise RoundNotCompletedError
 
@@ -106,6 +106,9 @@ class Tournament:
     def get_scores(self) -> tuple[Score, ...]:
         return self.settings.scorer.calculate_scores(len(self._players), self._rounds, self.stats)
 
-    def get_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
+    def get_id_scoreboard(self) -> tuple[tuple[int, int, Score], ...]:
         scoreboard = self.settings.scorer.create_scoreboard(len(self._players), self._rounds, self.stats)
-        return tuple((place, self._players[player_id], score) for place, player_id, score in scoreboard)
+        return tuple((place, player_id, score) for place, player_id, score in scoreboard)
+
+    def get_player_scoreboard(self) -> tuple[tuple[int, Player, Score], ...]:
+        return tuple((place, self._players[player_id], score) for place, player_id, score in self.get_id_scoreboard())

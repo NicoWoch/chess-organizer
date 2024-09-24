@@ -13,15 +13,14 @@ class RoundsBar(tk.Frame):
 
         self.on_page_change = on_page_change
 
-        self._label = ResizingLabel(self, relwidth=.7, maxsize=30)
-        self._label.pack()
+        self._label = ResizingLabel(self, relwidth=.8, maxsize=25)
+        self._label.pack(fill=tk.X)
 
         self._buttons = []
         self._pages = []
         self._pages_types = []
 
         self._selected = None
-        self._last_selected_sent = None
 
         self.update_tournament_pages(None)
 
@@ -48,12 +47,15 @@ class RoundsBar(tk.Frame):
             else:
                 title = 'Koniec'
 
-        print(pages)
         self._update_pages(pages, pages_types, title)
 
     def _update_pages(self, pages: list[str], pages_types: list[int], title: str):
         self._pages = pages
         self._pages_types = pages_types
+
+        if self._selected is not None and self._selected >= len(pages):
+            self._selected = None
+
         self.__update_buttons()
         self._label.config(text=title)
 
@@ -101,7 +103,6 @@ class RoundsBar(tk.Frame):
         self._buttons[i].config(bg=bg, relief=tk.FLAT, borderwidth=4)
 
     def select(self, index: int):
-
         if len(self._buttons) == 0:
             self._selected = None
         elif self._selected != index % len(self._pages):
@@ -111,12 +112,13 @@ class RoundsBar(tk.Frame):
             self.__select_button(index)
             self._selected = index % len(self._pages)
 
-        self.__on_page_change_with_repeat_check()
-
-    def __on_page_change_with_repeat_check(self):
-        if self._last_selected_sent == self._selected:
-            print('repeat :(')  # TODO: i cannot cache this, so remove this function and directly call on_page_change
-            return
-
         self.on_page_change(self._selected)
-        self._last_selected_sent = self._selected
+
+    def get_page(self):
+        return self._selected
+
+    def is_first_page(self):
+        return self._selected == 0
+
+    def is_last_page(self):
+        return self._selected == len(self._pages) - 1
