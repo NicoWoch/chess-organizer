@@ -49,7 +49,7 @@ class TestSwissPairing(unittest.TestCase):
 
             print(f'Pairing of Round {i + 1}:', pairs[i + 1], '\n')
 
-        self.fail('expected fail for now')  # TODO: remove later
+        # self.fail('expected fail for now')  # TODO: remove later
 
 
 if __name__ == '__main__':

@@ -9,13 +9,13 @@ from src.tournament.round import Round, GameResult
 class TestSimple(unittest.TestCase):
     def setUp(self):
         self.t = Tournament((
-            Player('Adam', 'A'),
-            Player('Borys', 'B'),
-            Player('Celina', 'C'),
-            Player('Damian', 'D'),
-            Player('Ewelina', 'E'),
-            Player('Franek', 'F'),
-            Player('Grażyna', 'G'),
+            Player('Adam'),
+            Player('Borys'),
+            Player('Celina'),
+            Player('Damian'),
+            Player('Ewelina'),
+            Player('Franek'),
+            Player('Grażyna'),
         ))
 
     def _add_sample_round_0(self):
@@ -110,14 +110,13 @@ class TestSimple(unittest.TestCase):
         self.assertEqual(7, len(self.t.get_scores()))
         self.assertEqual(scores, self.t.get_scores())
 
-        scoreboard = self.t.get_scoreboard()
-        scoreboard_with_ids = [(place, self.t.players.index(player), score[0]) for (place, player, score) in scoreboard]
+        scoreboard = self.t.get_id_scoreboard()
 
         self.assertEqual(7, len(scoreboard))
-        self.assertEqual({(1, 0, 2), (1, 1, 2), (1, 6, 2)}, set(scoreboard_with_ids[:3]))
-        self.assertEqual({(4, 3, 1)}, set(scoreboard_with_ids[3:4]))
-        self.assertEqual({(5, 2, .5), (5, 5, .5)}, set(scoreboard_with_ids[4:6]))
-        self.assertEqual({(7, 4, 0)}, set(scoreboard_with_ids[6:]))
+        self.assertEqual({(1, 0, (2,)), (1, 1, (2,)), (1, 6, (2,))}, set(scoreboard[:3]))
+        self.assertEqual({(4, 3, (1,))}, set(scoreboard[3:4]))
+        self.assertEqual({(5, 2, (.5,)), (5, 5, (.5,))}, set(scoreboard[4:6]))
+        self.assertEqual({(7, 4, (0,))}, set(scoreboard[6:]))
 
 
 

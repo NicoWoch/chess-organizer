@@ -19,12 +19,10 @@ class InteractiveException(Exception):
 
 
 class InteractiveTournament:
-    def __init__(self, on_change: Callable[[], Any] = (lambda: None),
-                 update_ratings: Callable[[dict[Player, float]], Any] = (lambda _: None)):
+    def __init__(self, update_ratings: Callable[[dict[Player, float]], Any] = (lambda _: print('RATINGS NOT SET!'))):
         self._players: tuple[Player, ...] = ()
         self._tournament: Tournament | None = None
         self._state = TournamentState.NOT_STARTED
-        self._on_change = on_change
         self._update_ratings = update_ratings
         self._settings = TournamentSettings()
 
@@ -48,10 +46,12 @@ class InteractiveTournament:
 
         return self._tournament.get_round_count()
 
-    @property
-    def settings(self):
-        self._assert_state(TournamentState.NOT_STARTED, 'Changing settings in a running tournament is not implemented')
+    def get_settings(self):
         return self._settings
+
+    def set_settings(self, value):
+        self._assert_state(TournamentState.NOT_STARTED, 'Changing settings in a running tournament is not implemented')
+        self._settings = value
 
     def _assert_state(self, state: TournamentState, msg: str):
         if self._state != state:
@@ -69,11 +69,10 @@ class InteractiveTournament:
 
     @staticmethod
     def _players_starting_order_key(player: Player) -> Any:
-        return -player.rating, player.surname, player.name
+        return -player.rating, player
 
     def add_player(self, player: Player):
         self._assert_state(TournamentState.NOT_STARTED, 'Adding players after the tournament has started is forbidden')
-        self._on_change()
 
         if player in self._players:
             raise ValueError(f'Player {player} already added to tournament')
@@ -83,7 +82,6 @@ class InteractiveTournament:
     def remove_player(self, player: Player):
         self._assert_state(TournamentState.NOT_STARTED,
                            'Removing players after the tournament has started is forbidden')
-        self._on_change()
 
         self._players = tuple(sorted((p for p in self._players if p != player), key=self._players_starting_order_key))
 
@@ -93,7 +91,6 @@ class InteractiveTournament:
 
     def next_round(self, pairs_or_pairer: Pairs | Pairer):
         self._assert_not_state(TournamentState.FINISHED, 'Adding rounds to a finished tournament is forbidden')
-        self._on_change()
 
         if self._state == TournamentState.NOT_STARTED:
             if len(self._players) == 0:
@@ -107,7 +104,6 @@ class InteractiveTournament:
     def remove_last_round(self):
         self._assert_not_state(TournamentState.NOT_STARTED, 'There are no rounds to remove')
         self._assert_not_state(TournamentState.FINISHED, 'Removing rounds from a finished tournament is forbidden')
-        self._on_change()
 
         if self._tournament.get_round_count() == 1:
             self._tournament = None
@@ -131,7 +127,6 @@ class InteractiveTournament:
 
     def set_result(self, table: int, result: GameResult | None):
         self._assert_state(TournamentState.RUNNING, 'Tournament has to be running to set result on a table')
-        self._on_change()
 
         self._tournament.set_result(table, result)
 
@@ -150,7 +145,6 @@ class InteractiveTournament:
     def finish(self):
         self._assert_state(TournamentState.RUNNING, 'Tournament has to be running to finish it')
         self._tournament.assert_round_completed()
-        self._on_change()
 
         self._state = TournamentState.FINISHED
 

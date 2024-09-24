@@ -10,9 +10,9 @@ class TestSimple(unittest.TestCase):
         self.it = InteractiveTournament()
 
     def __add_sample_players(self) -> tuple[Player, ...]:
-        p1 = Player('Adam', 'Nowak', 1200)
-        p2 = Player('Borys', 'Kowalski', 1500)
-        p3 = Player('Celina', 'Cebula', 900)
+        p1 = Player('Adam Nowak', 1200)
+        p2 = Player('Borys Kowalski', 1500)
+        p3 = Player('Celina Cebula', 900)
         self.it.add_player(p1)
         self.it.add_player(p2)
         self.it.add_player(p3)
@@ -22,11 +22,11 @@ class TestSimple(unittest.TestCase):
     def test_adding_removing_players(self):
         p1, p2, p3 = self.__add_sample_players()
 
-        self.it.remove_player(Player('Borys', 'Kowalski'))
+        self.it.remove_player(Player('Borys Kowalski'))
         self.it.add_player(p2)
 
-        self.it.remove_player(Player('Borys', 'Kowalski'))
-        self.it.remove_player(Player('Borys', 'Kowalski'))
+        self.it.remove_player(Player('Borys Kowalski'))
+        self.it.remove_player(Player('Borys Kowalski'))
         self.it.add_player(p2)
 
         self.assertRaises(ValueError, self.it.add_player, p1)

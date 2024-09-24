@@ -71,11 +71,11 @@ class App(tk.Tk, NavBarListener):
         tournament = InteractiveTournament()
         tournament.settings.scorer = BuchholzScorer()
 
-        tournament.add_player(Player('Adam', 'Nowak', 1500))
-        tournament.add_player(Player('Celina', 'Kowalska', 1400))
-        tournament.add_player(Player('Janusz', 'z Polski', 1200))
-        tournament.add_player(Player('Januszka', 'z Polski', 1300))
-        tournament.add_player(Player('Janusz2', 'z Podlasia', 1000))
+        tournament.add_player(Player('Adam Nowak', 1500))
+        tournament.add_player(Player('Celina Kowalska', 1400))
+        tournament.add_player(Player('Janusz z Polski', 1200))
+        tournament.add_player(Player('Grażyna z Podlasia', 1000))
+        tournament.add_player(Player('Janusz ze Sosnowca', 900))
         tournament.next_round(DutchPairer())
         tournament.set_result(0, GameResult.WIN)
 

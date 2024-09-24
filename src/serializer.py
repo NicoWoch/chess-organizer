@@ -1,112 +1,167 @@
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from types import NoneType
-from typing import Any, Callable, Union
+from typing import Any, Union
+
+from src.tournament.interactive_tournament import InteractiveTournament
+from src.tournament.player import Player
+from src.tournament.round import GameResult
+from src.tournament.scoring.buchholz_scorer import BuchholzScorer
+from src.tournament.scoring.points_scorer import PointsScorer
+from src.tournament.tournament import TournamentSettings
 
 BASIC_FLAT_TYPES = (str, int, float, bool, NoneType)
 
 type BasicSerializableType = dict | list | Union[*BASIC_FLAT_TYPES]
-type DefaultDecoder = Callable[[BasicSerializableType], Any]
 
 
 class Serializer(ABC):
     @abstractmethod
-    def can_serialize(self) -> type | tuple[type, ...]:
+    def can_serialize(self, value: Any) -> bool:
         ...
 
     def get_unique_id(self) -> str | int:
-        if isinstance(self.can_serialize(), type):
-            return '@' + self.can_serialize().__name__
-        else:
-            return '@' + '-'.join(cls.__name__ for cls in self.can_serialize())
+        return '@' + self.__class__.__name__
+
+    def super_encode(self, obj: Any) -> BasicSerializableType:
+        raise NotImplementedError
+
+    def super_decode(self, data: BasicSerializableType) -> Any:
+        raise NotImplementedError
 
     @abstractmethod
     def encode(self, obj: Any) -> BasicSerializableType:
         ...
 
     @abstractmethod
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
+    def decode(self, data: BasicSerializableType) -> Any:
         ...
 
 
-class TupleSerializer(Serializer):
-    def can_serialize(self) -> type | tuple[type, ...]:
-        return tuple
+class DefaultSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) in BASIC_FLAT_TYPES
 
-    def encode(self, obj: Any) -> BasicSerializableType:
-        return list(obj)
-
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
-        return tuple(map(default, data))
-
-
-class SetSerializer(Serializer):
-    def can_serialize(self) -> type | tuple[type, ...]:
-        return set
-
-    def encode(self, obj: Any) -> BasicSerializableType:
-        return list(obj)
-
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
-        return set(map(default, data))
-
-
-class DefaultDictSerializer(Serializer):
-    def can_serialize(self) -> type | tuple[type, ...]:
-        return defaultdict
-
-    def encode(self, obj: Any) -> BasicSerializableType:
-        if obj.default_factory is int:
-            return {'factory': 'int', 'object': dict(obj)}
-        elif obj.default_factory is float:
-            return {'factory': 'float', 'object': dict(obj)}
-
-        raise ValueError('Cannot encode a defaultdict with default factory not in (int, float)')
-
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
-        if data['factory'] == 'int':
-            return defaultdict(int, data['object'])
-        elif data['factory'] == 'float':
-            return defaultdict(float, data['object'])
-
-        raise ValueError('Cannot decode a defaultdict with default factory not in (\'int\', \'float\')')
-
-
-class ComplexDictSerializer(Serializer):
-    def can_serialize(self) -> type | tuple[type, ...]:
-        return dict
-
-    def encode(self, obj: Any) -> BasicSerializableType:
-        return [[key, value] for key, value in obj.items()]
-
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
-        return {default(key): default(value) for key, value in data}
-
-
-class CopyFieldsSerializer(Serializer):
-    def __init__(self, cls: type, fields: tuple[str, ...]) -> None:
-        self.cls = cls
-        self.fields = fields
-
-    def can_serialize(self) -> type | tuple[type, ...]:
-        return self.cls
-
-    def encode(self, obj: Any) -> BasicSerializableType:
-        return {field: getattr(obj, field) for field in self.fields}
-
-    def decode(self, data: BasicSerializableType, default: DefaultDecoder) -> Any:
-        # noinspection PyArgumentList
-        obj = self.cls.__new__(self.cls)
-
-        for field in self.fields:
-            object.__setattr__(obj, field, default(data[field]))
-
+    def encode(self, obj: BASIC_FLAT_TYPES) -> BasicSerializableType:
         return obj
 
+    def decode(self, data: BasicSerializableType) -> BASIC_FLAT_TYPES:
+        return data
 
-DEFAULT_SERIALIZERS = [
-    TupleSerializer(),
-    SetSerializer(),
-    DefaultDictSerializer(),
-    ComplexDictSerializer(),
+
+class NestedSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) in (dict, list)
+
+    def encode(self, obj: BASIC_FLAT_TYPES) -> BasicSerializableType:
+        if type(obj) is list:
+            return [self.super_encode(item) for item in obj]
+        else:
+            return {key: self.super_encode(value) for key, value in obj.items()}
+
+    def decode(self, data: BasicSerializableType) -> BASIC_FLAT_TYPES:
+        if type(data) is list:
+            return [self.super_decode(item) for item in data]
+        else:
+            return {key: self.super_decode(value) for key, value in data.items()}
+
+
+class InteractiveTournamentSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) is InteractiveTournament
+
+    def encode(self, value: InteractiveTournament) -> BasicSerializableType:
+        return self.super_encode({
+            'players': list(value.players),
+            'rounds': [
+                [
+                    [list(pair) for pair in value.get_round(i).pairs],
+                    value.get_round(i).results,
+                ]
+                for i in range(value.round_count)
+            ],
+            'is_finished': value.is_finished(),
+            'settings': value.get_settings(),
+        })
+
+    def decode(self, data: BasicSerializableType) -> InteractiveTournament:
+        data = self.super_decode(data)
+
+        tournament = InteractiveTournament()
+        tournament.set_settings(data['settings'])
+
+        for player_data in data['players']:
+            player = player_data
+            tournament.add_player(player)
+
+        for round_data in data['rounds']:
+            pairs, results = round_data
+
+            tournament.next_round(tuple((a, b) for a, b in pairs))
+
+            for table, result in enumerate(results):
+                tournament.set_result(table, result)
+
+        if data['is_finished']:
+            tournament.finish()
+
+        return tournament
+
+
+class PlayerSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) is Player
+
+    def encode(self, obj: Player) -> BasicSerializableType:
+        return {
+            'name': obj.name,
+            'rating': obj.rating,
+            'hash_id': obj.hash_id,
+        }
+
+    def decode(self, data: BasicSerializableType) -> Player:
+        return Player(data['name'], rating=data['rating'], hash_id=data['hash_id'])
+
+
+class GameResultSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) is GameResult
+
+    def encode(self, value: GameResult | None) -> BasicSerializableType:
+        return value.name if value is not None else None
+
+    def decode(self, data: BasicSerializableType) -> GameResult | None:
+        return GameResult[data]
+
+
+KNOWN_SCORERS = [
+    PointsScorer,
+    BuchholzScorer,
 ]
+
+
+class TournamentSettingsSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) is TournamentSettings
+
+    def encode(self, value: TournamentSettings) -> BasicSerializableType:
+        ok = False
+        scorer_name = value.scorer.__class__.__name__
+
+        for scorer in KNOWN_SCORERS:
+            if scorer.__name__ == scorer_name:
+                ok = True
+
+        if not ok:
+            raise ValueError(f'Unknown Scorer {scorer_name} (while encoding)')
+
+        return {
+            'elo_k_value': value.elo_k_value,
+            'scorer': scorer_name,
+        }
+
+    def decode(self, data: BasicSerializableType) -> TournamentSettings:
+        for scorer in KNOWN_SCORERS:
+            if scorer.__name__ == data['scorer']:
+                return TournamentSettings(elo_k_value=data['elo_k_value'], scorer=scorer())
+
+        raise ValueError(f'Unknown Scorer {data['scorer']} (while decoding)')
