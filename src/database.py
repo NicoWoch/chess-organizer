@@ -13,6 +13,7 @@ SERIALIZERS = [
     srl.PlayerSerializer(),
     srl.GameResultSerializer(),
     srl.TournamentSettingsSerializer(),
+    srl.TournamentDataSerializer(),
 ]
 
 

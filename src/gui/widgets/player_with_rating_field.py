@@ -33,7 +33,7 @@ class PlayerWithRatingField(tk.Frame):
         else:
             rating_change_str = ''
 
-        self.player_label.config(text=f'{self.player.name} {self.player.surname}')
+        self.player_label.config(text=self.player.name)
         self.rating_label.config(text=rating_change_str, fg=fg)
 
     def set_background(self, bg):

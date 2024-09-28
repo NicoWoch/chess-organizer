@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from types import NoneType
 from typing import Any, Union
 
-from src.tournament.interactive_tournament import InteractiveTournament
+from src.tournament import scoring
+from src.tournament.interactive_tournament import InteractiveTournament, TournamentData
 from src.tournament.player import Player
 from src.tournament.round import GameResult
-from src.tournament.scoring.buchholz_scorer import BuchholzScorer
-from src.tournament.scoring.points_scorer import PointsScorer
 from src.tournament.tournament import TournamentSettings
 
 BASIC_FLAT_TYPES = (str, int, float, bool, NoneType)
@@ -71,6 +71,7 @@ class InteractiveTournamentSerializer(Serializer):
 
     def encode(self, value: InteractiveTournament) -> BasicSerializableType:
         return self.super_encode({
+            'data': value.data,
             'players': list(value.players),
             'rounds': [
                 [
@@ -102,7 +103,12 @@ class InteractiveTournamentSerializer(Serializer):
                 tournament.set_result(table, result)
 
         if data['is_finished']:
+            tmp_func = getattr(tournament, '_update_ratings')
+            setattr(tournament, '_update_ratings', lambda *_: 0)
             tournament.finish()
+            setattr(tournament, '_update_ratings', tmp_func)
+
+        tournament.data = data['data']
 
         return tournament
 
@@ -133,12 +139,6 @@ class GameResultSerializer(Serializer):
         return GameResult[data]
 
 
-KNOWN_SCORERS = [
-    PointsScorer,
-    BuchholzScorer,
-]
-
-
 class TournamentSettingsSerializer(Serializer):
     def can_serialize(self, value) -> bool:
         return type(value) is TournamentSettings
@@ -147,7 +147,7 @@ class TournamentSettingsSerializer(Serializer):
         ok = False
         scorer_name = value.scorer.__class__.__name__
 
-        for scorer in KNOWN_SCORERS:
+        for scorer in scoring.ALL_SCORERS:
             if scorer.__name__ == scorer_name:
                 ok = True
 
@@ -160,8 +160,43 @@ class TournamentSettingsSerializer(Serializer):
         }
 
     def decode(self, data: BasicSerializableType) -> TournamentSettings:
-        for scorer in KNOWN_SCORERS:
+        for scorer in scoring.ALL_SCORERS:
             if scorer.__name__ == data['scorer']:
                 return TournamentSettings(elo_k_value=data['elo_k_value'], scorer=scorer())
 
         raise ValueError(f'Unknown Scorer {data['scorer']} (while decoding)')
+
+
+class TournamentDataSerializer(Serializer):
+    def can_serialize(self, value) -> bool:
+        return type(value) is TournamentData
+
+    def encode(self, value: TournamentData) -> BasicSerializableType:
+        return {
+            'name': value.name,
+            'category': value.category,
+            'start_timestamp': self._encode_time(value.start_timestamp),
+            'finish_timestamp': self._encode_time(value.finish_timestamp),
+        }
+
+    @staticmethod
+    def _encode_time(time_datetime):
+        if time_datetime is None:
+            return None
+
+        return time_datetime.timestamp()  # TODO: check if it saves as correct UTC
+
+    def decode(self, data: BasicSerializableType) -> TournamentData:
+        return TournamentData(
+            name=data['name'],
+            category=data['category'],
+            start_timestamp=self._decode_time(data['start_timestamp']),
+            finish_timestamp=self._decode_time(data['finish_timestamp']),
+        )
+
+    @staticmethod
+    def _decode_time(time_utc):
+        if time_utc is None:
+            return None
+
+        return datetime.fromtimestamp(time_utc)

@@ -111,7 +111,7 @@ class ContentFrame(tk.Frame):
 
     @staticmethod
     def __format_player(player: Player):
-        return f'{player.name} {player.surname}'
+        return player.name
 
     @classmethod
     def __format_player_from_id(cls, tournament: InteractiveTournament, player_id: int):

@@ -22,7 +22,11 @@ class LeaderboardBar(tk.Frame):
 
         self.table.pack(side=tk.TOP, fill=tk.X, padx=2, pady=10)
 
-    def update_leaderboard(self, tournament: InteractiveTournament):
+    def update_leaderboard(self, tournament: InteractiveTournament | None):
+        if tournament is None or not (tournament.is_running() or tournament.is_finished()):
+            self.table.set_data([[]])
+            return
+
         scoreboard = tournament.get_player_scoreboard()
 
         headers = ['#', 'Gracz', 'Punkty']
@@ -39,7 +43,7 @@ class LeaderboardBar(tk.Frame):
 
     @staticmethod
     def __format_player(player: Player):
-        return f'{player.name} {player.surname}'
+        return player.name
 
     @classmethod
     def __format_points(cls, points: tuple[float, ...]):

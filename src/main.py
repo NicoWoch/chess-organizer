@@ -1,8 +1,16 @@
+from src.database import Database
 from src.gui.app import App
 
 
+GLOBAL_DATABASE = Database('database.tmp.json', default_data={
+    'players': [],
+    'tournaments': [],
+    'settings': {},
+})
+
+
 def main():
-    app = App()
+    app = App(GLOBAL_DATABASE)
 
     app.mainloop()
 

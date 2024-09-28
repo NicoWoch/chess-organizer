@@ -1,11 +1,16 @@
+import logging
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 from src.tournament.player import Player
 from src.tournament.round import Round, Pairs, GameResult
 from src.tournament.round_stats import RoundStats
-from src.tournament.tournament import Tournament, Pairer, TournamentSettings
 from src.tournament.scoring.scorer import Score
+from src.tournament.tournament import Tournament, Pairer, TournamentSettings
+
+logger = logging.getLogger(__name__)
 
 
 class TournamentState(Enum):
@@ -18,8 +23,22 @@ class InteractiveException(Exception):
     pass
 
 
+@dataclass
+class TournamentData:
+    name: str = 'Tournament'
+    category: str = ''
+    start_timestamp: datetime | None = None
+    finish_timestamp: datetime | None = None
+
+
+def ratings_not_set_error(_):
+    logger.error('RATINGS NOT SET ANYWHERE!')
+
+
 class InteractiveTournament:
-    def __init__(self, update_ratings: Callable[[dict[Player, float]], Any] = (lambda _: print('RATINGS NOT SET!'))):
+    def __init__(self, data: TournamentData = None,
+                 update_ratings: Callable[[dict[Player, float]], Any] = ratings_not_set_error):
+        self.data = data if data is not None else TournamentData()
         self._players: tuple[Player, ...] = ()
         self._tournament: Tournament | None = None
         self._state = TournamentState.NOT_STARTED
@@ -98,6 +117,7 @@ class InteractiveTournament:
 
             self._tournament = Tournament(self._players, self._settings)
             self._state = TournamentState.RUNNING
+            self.data.start_timestamp = datetime.now()
 
         self._tournament.next_round(pairs_or_pairer)
 
@@ -108,6 +128,7 @@ class InteractiveTournament:
         if self._tournament.get_round_count() == 1:
             self._tournament = None
             self._state = TournamentState.NOT_STARTED
+            self.data.start_timestamp = None
             return
 
         self._tournament.remove_last_round()
@@ -129,6 +150,10 @@ class InteractiveTournament:
         self._assert_state(TournamentState.RUNNING, 'Tournament has to be running to set result on a table')
 
         self._tournament.set_result(table, result)
+
+    def set_results_from_iterable(self, results: Iterable[tuple[int, GameResult | None]]):
+        for table_id, result in results:
+            self.set_result(table_id, result)
 
     def get_scores(self) -> tuple[Score, ...]:
         self._assert_not_state(TournamentState.NOT_STARTED, 'Tournament has not started yet to get scores')
@@ -154,3 +179,5 @@ class InteractiveTournament:
             ratings_changes_dict[player] = new_rating - player.rating
 
         self._update_ratings(ratings_changes_dict)
+
+        self.data.finish_timestamp = datetime.now()

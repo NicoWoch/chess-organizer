@@ -9,7 +9,7 @@ class Player:
     hash_id: int = field(default=0, kw_only=True)
 
     def __post_init__(self):
-        object.__setattr__(self, "name", ' '.join(self.name.split()))
+        object.__setattr__(self, 'name', ' '.join(self.name.split()).title())
 
     def __repr__(self):
         return f'<{self.name}({self.rating})>'
@@ -22,6 +22,6 @@ class Player:
             return self.rating < other.rating
 
         name_rev = ' '.join(self.name.split()[::-1])
-        other_name_rev = ' '.join(self.name.split()[::-1])
+        other_name_rev = ' '.join(other.name.split()[::-1])
 
         return name_rev < other_name_rev

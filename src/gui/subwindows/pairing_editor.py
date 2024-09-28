@@ -83,7 +83,7 @@ class PairingEditor(tk.Toplevel):
 
     def __parse_player_id(self, player_id: int) -> str:
         player = self._players[player_id]
-        return f'{player.name} {player.surname}'
+        return player.name
 
     def __make_swap_btn(self, index: int):
         img = tk.PhotoImage(file=SWAP_IMG).subsample(3, 3)

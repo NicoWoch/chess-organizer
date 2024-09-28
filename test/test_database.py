@@ -3,7 +3,7 @@ import unittest
 from typing import Any
 
 from src import database
-from src.tournament.interactive_tournament import InteractiveTournament
+from src.tournament.interactive_tournament import InteractiveTournament, TournamentData
 from src.tournament.pairing.dutch_pairer import DutchPairer
 from src.tournament.player import Player
 from src.tournament.round import GameResult
@@ -79,7 +79,7 @@ class TestDatabase(unittest.TestCase):
 
     @staticmethod
     def __create_sample_it(*, players=None, rounds=()):
-        tournament = InteractiveTournament()
+        tournament = InteractiveTournament(TournamentData('test', 'some_category'))
 
         if players is None:
             tournament.add_player(Player('Anna', rating=2000))
@@ -100,6 +100,7 @@ class TestDatabase(unittest.TestCase):
 
     def __compare_interactive_tournament(self, expected: InteractiveTournament, actual: InteractiveTournament):
         self.assertEqual(InteractiveTournament, type(actual))
+        self.assertEqual(expected.data, actual.data)
         self.assertEqual(expected.players, actual.players)
         self.assertEqual(expected.round_count, actual.round_count)
 
