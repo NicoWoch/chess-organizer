@@ -14,6 +14,7 @@ DEFAULT_SETTINGS = {
     'selectable': False,
     'selection_bg': '#89CFF0',
     'max_one_selection': False,
+    'scroll': True,
 }
 
 
@@ -25,7 +26,7 @@ class TableFrame(tk.Frame):
         self._columns_weights = columns_weights if columns_weights is not None else []
         self._settings: dict = DEFAULT_SETTINGS | (table_settings if table_settings is not None else {})
 
-        self.container = self
+        self.container = self if not self._settings['scroll'] else self.__setup_scroll()
 
         if len(self._settings) > len(DEFAULT_SETTINGS):
             print(f'there are some wrong settings in: {self._settings}')
@@ -34,6 +35,41 @@ class TableFrame(tk.Frame):
         self._selection: set[int] = set()
 
         self.__create_table()
+
+    def __setup_scroll(self):
+        scrollbar = tk.Scrollbar(self, orient='vertical')
+
+        canvas = tk.Canvas(self, bg=self.master.cget('bg'), bd=0, highlightthickness=0, yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scrollbar.config(command=canvas.yview)
+
+        container = tk.Frame(self)
+        container_id = canvas.create_window(0, 0, window=container, anchor='nw')
+
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+
+        def _configure_container(event):
+            canvas.config(scrollregion=(0, 0, container.winfo_reqwidth(), container.winfo_reqheight()))
+
+            if container.winfo_reqwidth() != canvas.winfo_width():
+                canvas.config(width=container.winfo_reqwidth())
+
+        container.bind('<Configure>', _configure_container)
+
+        def _configure_canvas(event):
+            if container.winfo_reqwidth() != canvas.winfo_width():
+                canvas.itemconfigure(container_id, width=canvas.winfo_width())
+
+            if container.winfo_reqheight() > canvas.winfo_height():
+                scrollbar.pack(side=tk.RIGHT, fill=tk.Y, expand=False)
+            else:
+                scrollbar.pack_forget()
+
+        canvas.bind('<Configure>', _configure_canvas)
+
+        return container
 
     def get_data(self):
         return [[value for value in row] for row in self._data]
@@ -92,7 +128,7 @@ class TableFrame(tk.Frame):
             if y >= len(self._columns_weights):
                 self._columns_weights.append(1)
 
-            self.columnconfigure(y, weight=0 if unconfigure else self._columns_weights[y])
+            self.container.columnconfigure(y, weight=0 if unconfigure else self._columns_weights[y])
 
         self.__revalidate_selection()
 
@@ -129,7 +165,7 @@ class TableFrame(tk.Frame):
             self.__create_cell_from_text(x, y, str(self._data[x][y]))
 
     def __create_cell_from_text(self, x: int, y: int, text: str):
-        label = ResizingLabel(self, text=text, font=self.__get_row_font(x), bg=self.__get_row_bg(x))
+        label = ResizingLabel(self.container, text=text, font=self.__get_row_font(x), bg=self.__get_row_bg(x))
         self.__update_font_size(label, x)
         setattr(label, '_table_label', True)
         self.__create_cell_from_widget(x, y, label)
