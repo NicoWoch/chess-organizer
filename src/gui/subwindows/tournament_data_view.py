@@ -53,6 +53,8 @@ class TournamentDataView(TransientToplevel):
     @staticmethod
     def __show_tournament_info(text, tournament: InteractiveTournament):
         text.insert(tk.END, f'Turniej "{tournament.data.name}" w kategorii "{tournament.data.category}"\n')
+        text.insert(tk.END, f'Elo K value: {tournament.get_settings().elo_k_value}\n')
+        text.insert(tk.END, f'Punktowacz: {tournament.get_settings().scorer}\n')
         text.insert(tk.END, f'Gracze:\n')
 
         for player in tournament.players:
