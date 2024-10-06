@@ -1,5 +1,8 @@
 import tkinter as tk
 
+from src.gui.widgets.resizing_font import ResizingFont
+from src.gui.widgets.resizing_widgets import ResizingLabel
+
 DEFAULT_SETTINGS = {
     'gutter_x': 10,
     'gutter_y': 10,
@@ -126,7 +129,8 @@ class TableFrame(tk.Frame):
             self.__create_cell_from_text(x, y, str(self._data[x][y]))
 
     def __create_cell_from_text(self, x: int, y: int, text: str):
-        label = tk.Label(self, text=text, font=self.__get_row_font(x), bg=self.__get_row_bg(x))
+        label = ResizingLabel(self, text=text, font=self.__get_row_font(x), bg=self.__get_row_bg(x))
+        self.__update_font_size(label, x)
         setattr(label, '_table_label', True)
         self.__create_cell_from_widget(x, y, label)
 
@@ -166,9 +170,15 @@ class TableFrame(tk.Frame):
     def __update_text_cell(self, x: int, y: int):
         self._table[x][y].config(
             text=str(self._data[x][y]),
-            font=self.__get_row_font(x),
             bg=self.__get_row_bg(x)
         )
+        self.__update_font_size(self._table[x][y], x)
+
+    def __update_font_size(self, label: ResizingLabel, row: int):
+        font_size = self.__get_row_font(row)[1]
+        font = label.get_font()
+        font.minsize = font_size - 5
+        font.maxsize = font_size
 
     def __update_widget_cell(self, x: int, y: int):
         if hasattr(self._table[x][y], 'dynamic_swap'):

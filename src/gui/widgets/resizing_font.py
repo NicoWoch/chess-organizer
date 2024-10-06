@@ -4,8 +4,8 @@ DELTA_FONT_SIZE_CHANGE = .5
 
 
 class ResizingFont(tkfont.Font):
-    def __init__(self, parent, get_text, font=('Comic Sans MS',), relwidth=.8, relheight=.8, minsize=4, maxsize=100):
-        super().__init__(font=font)
+    def __init__(self, parent, get_text, family='Comic Sans MS', relwidth=.8, relheight=.8, minsize=4, maxsize=100):
+        super().__init__(family=family)
 
         self.parent = parent
         self.get_text = get_text
@@ -16,6 +16,10 @@ class ResizingFont(tkfont.Font):
 
         self.__prev_height = 0
 
+        self.parent.after(80, self.resize_font)
+        self.parent.after(81, self.__bind_resize)
+
+    def __bind_resize(self):
         self.bind_id = self.parent.bind('<Configure>', self.resize_font, add='+')
 
     def unbind(self):

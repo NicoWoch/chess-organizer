@@ -12,8 +12,8 @@ class ResizingFontTransparentWidget(tk.Widget, metaclass=ABCMeta):
 
         super().__init__(parent, **kwargs)
 
-        base_font = kwargs.get('font', ('Comic Sans MS',))
-        self._font = ResizingFont(self, self.get_text, base_font, relwidth,
+        font_family = kwargs.get('font', ('Comic Sans MS',))[0]
+        self._font = ResizingFont(self, self.get_text, font_family, relwidth,
                                   relheight, minsize, maxsize)
         self._font.resize_font()
 
@@ -24,6 +24,9 @@ class ResizingFontTransparentWidget(tk.Widget, metaclass=ABCMeta):
 
     def get_text(self) -> str:
         return self.cget('text')
+
+    def get_font(self) -> ResizingFont:
+        return self._font
 
     def destroy(self):
         self._font.unbind()
