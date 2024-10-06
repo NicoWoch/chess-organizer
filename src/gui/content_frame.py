@@ -71,10 +71,10 @@ class ContentFrame(tk.Frame):
             (
                 i,
                 self.__format_player_with_rating_change(tournament.players[white],
-                                                        tournament.stats.recent_rating_changes[white]),
+                                                        tournament.get_stats(index).recent_rating_changes[white]),
                 self.__format_game_result(result),
                 self.__format_player_with_rating_change(tournament.players[black],
-                                                        tournament.stats.recent_rating_changes[black]),
+                                                        tournament.get_stats(index).recent_rating_changes[black]),
             )
             for i, ((white, black), result) in enumerate(zip(round_.pairs, round_.results), start=1)
         )
