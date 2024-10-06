@@ -3,11 +3,13 @@ import tkinter as tk
 from src.database import Database
 from src.gui.content_frame import ContentFrame
 from src.gui.leaderboard_bar import LeaderboardBar
-from src.gui.navbar import Navbar, NavBarListener
+from src.gui.navbar import Navbar, NavbarListener
 from src.gui.rounds_bar import RoundsBar
+from src.gui.subwindows.developer_console import DeveloperConsole
 from src.gui.subwindows.pairing_editor import PairingEditor
 from src.gui.subwindows.player_explorer import PlayerExplorer
 from src.gui.subwindows.tournament_creator import TournamentCreator
+from src.gui.subwindows.tournament_data_view import TournamentDataView
 from src.gui.subwindows.tournament_explorer import TournamentExplorer
 from src.tournament.interactive_tournament import InteractiveTournament
 from src.tournament.pairing.dutch_pairer import DutchPairer
@@ -15,7 +17,7 @@ from src.tournament.player import Player
 from src.tournament.round import GameResult, Round
 
 
-class App(tk.Tk, NavBarListener):
+class App(tk.Tk, NavbarListener):
     def __init__(self, database: Database):
         super().__init__()
 
@@ -24,6 +26,8 @@ class App(tk.Tk, NavBarListener):
         self.tournament_id: int | None = None
         self.tournament: InteractiveTournament | None = None
         self.opened_windows = set()
+
+        self.bind('<Control-D>', lambda *_: DeveloperConsole(self))
 
         self.__define_layout()
 
@@ -46,9 +50,9 @@ class App(tk.Tk, NavBarListener):
         self.navbar.pack(fill=tk.X)
         horizontal_pane.pack(fill=tk.BOTH, expand=True)
 
-        horizontal_pane.add(self.rounds_bar, minsize=100, width=170)
-        horizontal_pane.add(self.content_frame, minsize=250, width=780)
-        horizontal_pane.add(self.leaderboard_bar, minsize=120, width=300)
+        horizontal_pane.add(self.rounds_bar, minsize=100, width=170, stretch='always')
+        horizontal_pane.add(self.content_frame, minsize=250, width=780, stretch='always')
+        horizontal_pane.add(self.leaderboard_bar, minsize=120, width=300, stretch='always')
 
     def __auto_save_and_refresh_view(self, *, autosave=True):
         print(f'auto save and refresh of tournament (autosave={autosave})')
@@ -106,14 +110,23 @@ class App(tk.Tk, NavBarListener):
     def show_players_explorer(self):
         self.__show_window_once(PlayerExplorer, self.database, self.add_player_to_tournament)
 
-    def __show_window_once(self, window_class: type[tk.Toplevel], *args, **kwargs):
-        if window_class in self.opened_windows:
-            return
+    def show_tournament_data(self):
+        self.__show_window_once(TournamentDataView, lambda: self.tournament)
+
+    def __show_window_once(self, window_class: type[tk.Toplevel], *args, **kwargs) -> bool:
+        for cls, win in self.opened_windows.copy():
+            if cls != window_class:
+                continue
+
+            if win.winfo_exists():
+                win.lift(aboveThis=self)
+                return False
+            else:
+                self.opened_windows.remove((cls, win))
 
         window = window_class(self, *args, **kwargs)
-
-        self.opened_windows.add(window_class)
-        window.protocol('WM_DELETE_WINDOW', lambda: (self.opened_windows.remove(window_class), window.destroy()))
+        self.opened_windows.add((window_class, window))
+        return True
 
     def next_round(self):
         self.tournament.next_round(DutchPairer())  # TODO: use other pairers too

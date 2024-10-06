@@ -1,15 +1,14 @@
 import tkinter as tk
 from typing import Callable
 
+from src.gui.widgets.image_button import ImageButton
 from src.gui.widgets.table_frame import TableFrame
+from src.gui.widgets.transient_toplevel import TransientToplevel
 from src.tournament.interactive_tournament import InteractiveTournament
 from src.tournament.round import Round, GameResult
 
-SWAP_IMG = '../resources/swap_arrows.png'
-REMOVE_BTN = '../resources/remove_btn.png'
 
-
-class PairingEditor(tk.Toplevel):
+class PairingEditor(TransientToplevel):
     def __init__(self, parent, tournament: InteractiveTournament, change_round: Callable[[Round], None]):
         super().__init__(parent)
 
@@ -37,7 +36,7 @@ class PairingEditor(tk.Toplevel):
         self._change_round(round_)
 
     def __define_layout(self):
-        self.geometry("900x500")
+        self.geometry("1050x500")
         self.title("Pairing Editor")
 
         pairs_table_frame = tk.Frame(self, highlightbackground='black', highlightthickness=1)
@@ -86,16 +85,12 @@ class PairingEditor(tk.Toplevel):
         return player.name
 
     def __make_swap_btn(self, index: int):
-        img = tk.PhotoImage(file=SWAP_IMG).subsample(3, 3)
-        self._images.append(img)
-        command = lambda i=index: self.swap_pair(i)
-        return tk.Button(self.pairs_table.container, text=index, image=img, width=2, height=2, command=command)
+        return ImageButton(self.pairs_table.container, 'swap.png', 32, bg_parent=self,
+                           command=lambda i=index: self.swap_pair(i))
 
     def __make_remove_btn(self, index: int):
-        img = tk.PhotoImage(file=REMOVE_BTN)
-        self._images.append(img)
-        command = lambda i=index: self.remove_pair(i)
-        return tk.Button(self.pairs_table.container, text=index, image=img, width=2, height=2, command=command)
+        return ImageButton(self.pairs_table.container, 'remove.png', 32, bg_parent=self,
+                           command=lambda i=index: self.remove_pair(i))
 
     def __generate_pause_table(self):
         headers = ['#', 'Gracz', 'Pauzy']

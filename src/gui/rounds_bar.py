@@ -13,7 +13,7 @@ class RoundsBar(tk.Frame):
 
         self.on_page_change = on_page_change
 
-        self._label = ResizingLabel(self, relwidth=.8, maxsize=25)
+        self._label = ResizingLabel(self, relwidth=.7, maxsize=25)
         self._label.pack(fill=tk.X)
 
         self._buttons = []

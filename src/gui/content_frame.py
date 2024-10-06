@@ -85,6 +85,10 @@ class ContentFrame(tk.Frame):
 
     def __create_pause_msg(self, tournament: InteractiveTournament) -> str:
         paused = tournament.get_round().pause
+
+        if len(paused) == 0:
+            return ''
+
         epsilon = '...' if len(paused) > 4 else ''
         return 'Pauza: ' + ', '.join(self.__format_player_from_id(tournament, pid) for pid in list(paused)[:4]) + epsilon
 

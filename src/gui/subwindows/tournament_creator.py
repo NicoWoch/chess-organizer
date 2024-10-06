@@ -3,6 +3,7 @@ from tkinter import ttk
 from typing import Callable
 
 from src.gui.validation_utils import tk_validator, tk_unsigned_float_validator
+from src.gui.widgets.transient_toplevel import TransientToplevel
 from src.tournament import scoring
 from src.tournament.interactive_tournament import InteractiveTournament, TournamentData
 from src.tournament.scoring import BuchholzScorer
@@ -10,7 +11,7 @@ from src.tournament.scoring.scorer import Scorer
 from src.tournament.tournament import TournamentSettings
 
 
-class TournamentCreator(tk.Toplevel):
+class TournamentCreator(TransientToplevel):
     def __init__(self, parent, on_create: Callable[[InteractiveTournament], None]):
         super().__init__(parent)
 

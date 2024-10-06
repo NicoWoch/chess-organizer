@@ -31,7 +31,7 @@ class ResizingFont(tkfont.Font):
             return 20
 
         text_height = self.cget('size')
-        text_width = self.measure(text)
+        text_width = self.__measure_with_new_lines(text)
 
         requested_width = self.parent.winfo_width() * self.relwidth
         requested_height = self.parent.winfo_height() * self.relheight
@@ -47,3 +47,6 @@ class ResizingFont(tkfont.Font):
         self.__prev_height = new_height
 
         return round(new_height)
+
+    def __measure_with_new_lines(self, text: str):
+        return max(self.measure(line) for line in text.splitlines())

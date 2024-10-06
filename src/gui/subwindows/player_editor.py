@@ -3,10 +3,11 @@ from tkinter import ttk
 from typing import Callable
 
 from src.gui.validation_utils import tk_unsigned_float_validator
+from src.gui.widgets.transient_toplevel import TransientToplevel
 from src.tournament.player import Player
 
 
-class PlayerEditor(tk.Toplevel):
+class PlayerEditor(TransientToplevel):
     def __init__(self, parent, on_edit: Callable[[Player], None], player_to_edit: Player | None = None):
         super().__init__(parent)
 

@@ -4,9 +4,10 @@ from typing import Callable
 
 from src.database import Database
 from src.gui.widgets.table_frame import TableFrame
+from src.gui.widgets.transient_toplevel import TransientToplevel
 
 
-class TournamentExplorer(tk.Toplevel):
+class TournamentExplorer(TransientToplevel):
     def __init__(self, parent, database: Database, open_tournament: Callable[[int], None]):
         super().__init__(parent)
 
@@ -71,4 +72,8 @@ class TournamentExplorer(tk.Toplevel):
         return ', '.join(msg)
 
     def _create_open_btn(self, index: int):
-        return tk.Button(self.table.container, text='open', command=lambda i=index: self._open_tournament(i))
+        return tk.Button(self.table.container, text='open', command=lambda i=index: self.__open_btn_command(i))
+
+    def __open_btn_command(self, index: int):
+        self._open_tournament(index)
+        self.destroy()

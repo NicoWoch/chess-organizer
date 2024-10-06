@@ -6,7 +6,7 @@ DEFAULT_SETTINGS = {
     'bg': None,
     'font': ('Comic Sans MS', 13),
     'has_header': True,
-    'header_bg': '#6E260E',
+    'header_bg': '#522E1C',
     'header_font': ('Comic Sans MS', 16, 'bold'),
     'selectable': False,
     'selection_bg': '#89CFF0',
