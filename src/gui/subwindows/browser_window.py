@@ -1,7 +1,7 @@
 import tkinter as tk
 from abc import ABC, abstractmethod
 
-from src.config import Config
+from src.gui import utils
 from src.gui.widgets.table import Table
 
 ACTION_BAR_HEIGHT = 50
@@ -11,7 +11,7 @@ class BrowserWindow(tk.Toplevel, ABC):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
 
         self.table = Table(self)
         self.table.style['header']['font'] = 'Arial 18'

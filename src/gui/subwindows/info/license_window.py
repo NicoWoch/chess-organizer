@@ -10,7 +10,7 @@ class LicenseWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Licencja')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         utils.center_window(self, (600, 500))
         self.minsize(600, 300)
 

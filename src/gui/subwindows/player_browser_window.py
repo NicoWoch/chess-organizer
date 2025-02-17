@@ -22,6 +22,7 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
+        utils.add_icon(self)
         utils.center_window(self, (480, 550))
         self.minsize(450, 100)
 

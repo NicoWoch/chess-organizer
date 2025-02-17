@@ -15,6 +15,7 @@ class TournamentBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszystkie Turnieje')
+        utils.add_icon(self)
         utils.center_window(self, (500, 340))
         self.minsize(500, 100)
 

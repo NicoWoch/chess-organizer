@@ -1,4 +1,5 @@
 import os.path
+import re
 from datetime import datetime
 
 
@@ -7,7 +8,7 @@ class Config:
     VERSION = 'V1.0'
 
     WINDOW_NAME = f'Chess Organizer {VERSION}'
-    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.ico')
+    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.png')
     WINDOW_SIZE = 1080, 640
 
     LOG_DIR = os.path.join(BASE_DIR, 'data/logs')
@@ -17,6 +18,8 @@ class Config:
 
     DB_PLAYERS = os.path.join(DB_DIR, 'players.pkl')
     DB_TOURNAMENTS = os.path.join(DB_DIR, 'tournaments.pkl')
+
+    LOG_FILE_REGEX = re.compile(r'^\d+-\d+-\d+_\d+-\d+-\d+\.log$')
     LOG_FILE = os.path.join(LOG_DIR, datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log')
 
     ELO_K_VALUE = 20

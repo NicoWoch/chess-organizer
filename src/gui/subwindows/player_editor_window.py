@@ -11,7 +11,7 @@ class PlayerEditorWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Gracz')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         utils.center_window(self, (210, 220))
         self.resizable(False, False)
 

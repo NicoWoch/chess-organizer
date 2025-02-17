@@ -36,7 +36,7 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(Config.WINDOW_NAME)
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         utils.center_window(self, Config.WINDOW_SIZE)
         self.minsize(900, 500)
 

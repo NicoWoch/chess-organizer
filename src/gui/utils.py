@@ -7,20 +7,23 @@ from PIL import Image, ImageTk
 
 from src.config import Config
 
-PHOTOS = []
+PHOTOS: dict[tuple[str, tuple[int, int]], tk.PhotoImage] = {}
 
 
-def create_image(img_filename: str, size=None):
-    img_path = os.path.join(Config.IMAGES_DIR, img_filename)
+def create_image(filename: str, size=None):
+    if (filename, size) in PHOTOS:
+        return PHOTOS[filename, size]
+
+    full_path = os.path.join(Config.IMAGES_DIR, filename)
 
     if size is not None:
-        img = Image.open(img_path).convert('RGBA')
-        img = img.resize(size, Image.ANTIALIAS)
+        img = Image.open(full_path).convert('RGBA')
+        img = img.resize(size)
         photo = ImageTk.PhotoImage(img)
     else:
-        photo = tk.PhotoImage(file=img_path)
+        photo = tk.PhotoImage(file=full_path)
 
-    PHOTOS.append(photo)
+    PHOTOS[filename, size] = photo
     return photo
 
 
@@ -48,7 +51,8 @@ def create_image_action_bar(parent, actions: list[Action], image_size, padx=0, p
         button.pack(side=tk.LEFT, padx=padx, pady=pady)
 
         if tooltips:
-            ToolTip(button, text=tooltips[i])
+            tooltip_widget = ToolTip(button, text=tooltips[i])
+            button.after(5_000, lambda: tooltip_widget)
 
     frames[tk.LEFT].pack(side=tk.LEFT)
     frames[tk.CENTER].place(relx=0.5, y=0, relheight=1, anchor=tk.N)
@@ -76,36 +80,38 @@ class ResizingCanvas(tk.Canvas):
 
 class ToolTip:
     def __init__(self, widget, text=None):
-        def make_tooltip():
-            self.tooltip = tk.Toplevel()
-            self.tooltip.overrideredirect(True)
-
-            x = self.widget.winfo_rootx()
-            y = self.widget.winfo_rooty() + self.widget.winfo_height()
-            self.tooltip.geometry(f'+{x}+{y}')
-
-            self.label = tk.Label(self.tooltip, text=self.text)
-            self.label.pack()
-
-        def on_enter(_):
-            self._after_event = self.widget.after(500, lambda: make_tooltip())
-
-        def on_leave(_):
-            if self.tooltip is not None:
-                self.tooltip.destroy()
-                self.tooltip = None
-
-            if self._after_event is not None:
-                self.widget.after_cancel(self._after_event)
-                self._after_event = None
-
         self.widget: tk.Frame = widget
         self.text = text
-        self._after_event = None
+        self._create_event = None
         self.tooltip = None
 
-        self.widget.bind('<Enter>', on_enter)
-        self.widget.bind('<Leave>', on_leave)
+        self.widget.bind('<Enter>', lambda _: self.__on_enter())
+        self.widget.bind('<Leave>', lambda _: self.close())
+        self.widget.bind('<Destroy>', lambda _: self.close())
+
+    def create_tooltip(self):
+        self.tooltip = tk.Toplevel()
+        self.tooltip.overrideredirect(True)
+
+        x = self.widget.winfo_rootx()
+        y = self.widget.winfo_rooty() + self.widget.winfo_height()
+        self.tooltip.geometry(f'+{x}+{y}')
+
+        label = tk.Label(self.tooltip, text=self.text)
+        label.pack()
+
+    def __on_enter(self):
+        self._create_event = self.widget.after(1_000, self.create_tooltip)
+        self.widget.after(10_000, self.close)
+
+    def close(self):
+        if self.tooltip is not None:
+            self.tooltip.destroy()
+            self.tooltip = None
+
+        if self._create_event is not None:
+            self.widget.after_cancel(self._create_event)
+            self._create_event = None
 
 
 class Rect:
@@ -161,3 +167,6 @@ def update_styles(source: dict, overrides: dict):
         else:
             source[key] = overrides[key]
 
+
+def add_icon(window: tk.Tk | tk.Toplevel):
+    window.iconphoto(True, create_image(Config.WINDOW_ICON_PATH, (32, 32)))

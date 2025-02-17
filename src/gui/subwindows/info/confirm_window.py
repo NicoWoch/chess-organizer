@@ -10,7 +10,7 @@ class ConfirmWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Potwierdź')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         self.resizable(False, False)
 
         if len(msg) < 28:

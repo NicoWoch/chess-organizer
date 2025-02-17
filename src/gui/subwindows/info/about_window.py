@@ -16,7 +16,7 @@ class AboutWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('O programie')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         utils.center_window(self, (400, 200))
         self.resizable(False, False)
 
