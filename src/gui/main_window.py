@@ -58,7 +58,7 @@ class MainWindow(tk.Tk):
         self._keys = []
         self.bind('<Button-1>', self._remove_subwindows)
         self.bind('<Key>', self._on_key_pressed)
-        self.bind('<Key-F11>', self._enable_fullscreen_mode)
+        self.bind('<Key-F11>', self._switch_fullscreen_mode)
         self.bind('<Key-Escape>', self._disable_fullscreen_mode)
 
     def _remove_subwindows(self, *_):
@@ -127,9 +127,12 @@ class MainWindow(tk.Tk):
     def _show_window_cmd(self, win_func, *args, **kwargs):
         return lambda: self.subwindows.append(win_func(*args, **kwargs))
 
-    def _enable_fullscreen_mode(self, *_):
-        self.attributes('-fullscreen', True)
-        self.make_menu(empty_menu=True)
+    def _switch_fullscreen_mode(self, *_):
+        if self.attributes('-fullscreen'):
+            self._disable_fullscreen_mode()
+        else:
+            self.attributes('-fullscreen', True)
+            self.make_menu(empty_menu=True)
 
     def _disable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', False)
