@@ -60,8 +60,6 @@ def make_results_pdf(tournament_name: str, scoreboard: list[tuple[int, Player, P
     ).generate_fpdf()
 
 
-
-
 def show_pdf_in_browser(pdf: FPDF, title='temp'):
     tmp_path = os.path.join(Config.TEMP_DIR, title + '.pdf')
     pdf.output(tmp_path)
@@ -70,7 +68,8 @@ def show_pdf_in_browser(pdf: FPDF, title='temp'):
 
 def save_pdf_with_dialog(pdf: FPDF):
     filetypes = [('Wszystkie Pliki', '*.*'), ('Pliki PDF', '*.pdf')]
-    file = asksaveasfile(title='Wybierz gdzie zapisać pdf', filetypes=filetypes, defaultextension='pdf')
+    file = asksaveasfile(title='Wybierz gdzie zapisać pdf', filetypes=filetypes,
+                         defaultextension='.pdf', initialdir='~')
 
     if file is None:
         return
