@@ -1,8 +1,9 @@
 import os
 import tkinter as tk
 from dataclasses import dataclass
-from typing import Union, Callable, Optional
+from typing import Callable, Optional, Literal
 
+import screeninfo
 from PIL import Image, ImageTk
 
 from src.config import Config
@@ -37,7 +38,7 @@ def create_image_btn(parent, img_filename: str, size=None, cmd=lambda: None):
 class Action:
     image_filename: str
     cmd: Callable
-    side: Union[tk.LEFT, tk.CENTER, tk.RIGHT]
+    side: Literal['left'] | Literal['center'] | Literal['right']
     size: Optional[tuple[int, int]] = None
 
 
@@ -154,9 +155,10 @@ class Rect:
         return f'Rect<{self.x1}, {self.y1}, {self.x2}, {self.y2}>'
 
 
-def center_window(window: Union[tk.Tk, tk.Toplevel], size, offset=(0, 0)):
-    top = (window.winfo_screenheight() - size[1]) // 2 + offset[1]
-    left = (window.winfo_screenwidth() - size[0]) // 2 + offset[0]
+def center_window(window: tk.Tk | tk.Toplevel, size, offset=(0, 0)):
+    primary_screen = [*(m for m in screeninfo.get_monitors() if m.is_primary), screeninfo.get_monitors()[0]][0]
+    top = (primary_screen.height - size[1]) // 2 + offset[1] + primary_screen.x
+    left = (primary_screen.width - size[0]) // 2 + offset[0] + primary_screen.y
     window.geometry('%dx%d+%d+%d' % (size[0], size[1], left, top))
 
 
