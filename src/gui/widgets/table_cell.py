@@ -142,7 +142,7 @@ class TableCell:
                              outline=new_cell.gridlines_color)
         canvas.itemconfigure(self._creation_data['text_id'],
                              font=new_cell.font, fill=new_cell.fg,
-                             text=self.get_collapsed_text())
+                             text=new_cell.get_collapsed_text())
 
         new_cell._creation_data.update(self._creation_data)
 
