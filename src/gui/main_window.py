@@ -1,6 +1,7 @@
 import logging
 import tkinter as tk
 import traceback
+import random
 
 from src import dummy_generator
 from src.algorithms.constants import Result
@@ -182,13 +183,44 @@ class MainWindow(tk.Tk):
         logging.info('DEVELOPER MODE - OFF')
         self.make_menu()
 
-    def _dev_create_5_random_players(self):
+    def _dev_create_5_random_players_in_database(self):
         dummy_players = dummy_generator.get_random_players(5)
         MainDB.save_players(MainDB.load_players() + dummy_players)
 
-    def _dev_create_15_random_players(self):
+    def _dev_create_15_random_players_in_database(self):
         dummy_players = dummy_generator.get_random_players(15)
         MainDB.save_players(MainDB.load_players() + dummy_players)
+
+    def _dev_add_15_random_players_from_database(self):
+        players = MainDB.load_players()
+        self.tournament_frame.add_players(random.sample(players, k=15))
+
+    def _dev_set_random_results_to_players(self):
+        if self.tournament_frame.tournament is None:
+            return
+
+        for i in range(len(self.tournament_frame.tournament.get_round(-1))):
+            self.tournament_frame.tournament.set_result(i, random.choice([
+                Result.White, Result.Black, Result.Draw
+            ]))
+
+    def _dev_push_sample_round(self):
+        if self.tournament_frame.tournament is None:
+            return
+
+        if not self.tournament_frame.tournament.is_started:
+            self.tournament_frame.next_round()
+
+        self._dev_set_random_results_to_players()
+        self.tournament_frame.next_round()
+
+    def _dev_push_sample_rounds_5(self):
+        for _ in range(5):
+            self._dev_push_sample_round()
+
+    def _dev_push_sample_rounds_10(self):
+        for _ in range(10):
+            self._dev_push_sample_round()
 
     def _dev_clear_players(self):
         MainDB.save_players([])
@@ -206,5 +238,8 @@ class MainWindow(tk.Tk):
 
         MainDB.save_tournaments(tournaments)
 
-    def _dev_clear_tournaments(self):
+    def _dev_clear_players_database(self):
+        MainDB.save_players([])
+
+    def _dev_clear_tournaments_database(self):
         MainDB.save_tournaments([])
