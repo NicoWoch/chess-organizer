@@ -50,8 +50,13 @@ class TournamentCreationWindow(tk.Toplevel):
         main_frame.place(x=15, y=15, relwidth=1, width=-30, relheight=1, height=-30)
 
     def _create(self, *_):
+        name = self.name.get().strip().title()
+
+        if name == '':
+            return
+
         alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
-        self.on_create(alg_class(self.name.get()))
+        self.on_create(alg_class(name))
         self.destroy()
 
 

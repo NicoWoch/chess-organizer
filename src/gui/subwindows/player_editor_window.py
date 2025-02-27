@@ -60,8 +60,14 @@ class PlayerEditorWindow(tk.Toplevel):
         self.player_label.set(f'Gracz {self.name.get()} {self.surname.get()}')
 
     def save(self, *_):
-        self.player.name = self.name.get()
-        self.player.surname = self.surname.get()
+        name = self.name.get().strip().title()
+        surname = self.surname.get().strip().title()
+
+        if name == '' or surname == '':
+            return
+
+        self.player.name = name
+        self.player.surname = surname
         self.player.gender = Gender(self.gender.get())
         self.player.rating = self.rating.get()
 
