@@ -1,245 +1,403 @@
-import math
 import random
 import tkinter as tk
-from copy import deepcopy
-from typing import Any
+from collections import deque
+from tkinter import font as tkfont
+from typing import Any, Callable, Sequence
 
-from src.gui.widgets.scrollable_frame import ScrollableFrame
+from src.gui.widgets.table_cell import TableCell
 
-DEFAULT_STYLE = {
-    'header': {
-        'bg': '#ccc',
-        'height': 30,
-        'font': 'Arial 15',
-        'padding': 5,
-    },
-    'row': {
-        'bg': {
-            'even': '#fff',
-            'odd': '#eee',
-            'selected': 'lightblue',
-        },
-        'height': 25,
-        'font': 'Arial 13',
-        'selection_padding': 2,
-    },
-    'scrollbar': {
-        'width': 18,
-        'speed': 1,
-    },
-    'one_select': False,
+DEFAULT_TABLE_STYLE = {
+    'name': None,
+    'columns_count': 0,
+    'header': None,
+    'columns_weights': None,
+    'header_height': 42,
+    'row_height': 35,
+    'header_bg': '#d5d5d5',
+    'row_bg': '#f4f4f4',
+    'odd_row_bg': None,
+    'selected_bg': '#6ebcf4',
+    'header_fg': 'black',
+    'row_fg': 'black',
+    'font': ('Arial', 14),
+    'header_font': None,
+    'gridlines': True,
+    'gridlines_color': 'black',
+    'gridlines_width': 1,
+    'max_selection': float('inf'),
 }
 
-Label = Any
 
+class Table(tk.Canvas):
+    def __init__(self, parent, resize_listener: Callable[[], Any] = None, **kwargs):
+        super().__init__(parent, **kwargs)
 
-def colourfull_label(text: str, colors=(), width=35):
-    def generate_func(master, font, bg):
-        textarea = tk.Text(master, bg=bg, font=font, width=width, borderwidth=0, cursor='arrow')
-        textarea.insert('end', text)
+        self.configure(highlightthickness=0, borderwidth=0)
 
-        textarea.tag_configure('center', justify='center')
-        textarea.tag_add('center', '1.0', 'end')
+        self.style_name: Any = None
+        self._style: dict[str, Any] = DEFAULT_TABLE_STYLE
 
-        for i, (start, end, fg) in enumerate(colors):
-            textarea.tag_configure(f'color{i}', foreground=fg)
-            textarea.tag_add(f'color{i}', f'1.{start}', f'1.{end}')
+        self._table: list[list[TableCell]] = []
+        self._selected_indexes: deque[int] = deque()
 
-        textarea['state'] = 'disabled'
-        return textarea
+        self.__redraw_event: Any = None
+        self.__last_click: int | None = None
+        self.__resize_listener = resize_listener
 
-    generate_func.table_gen_flag = True
-    return generate_func
+        self.bind('<Configure>', self._on_resize)
+        self.bind('<Button-1>', self.__on_click)
+        self.bind('<Shift-Button-1>', self.__on_click_shift)
+        self.bind('<Control-a>', lambda e: self.__select_all_if_possble())
+        self.bind('<Control-d>', lambda e: self.remove_selection())
 
+    def change_table_style(self, style: dict[str, Any]):
+        self._style = DEFAULT_TABLE_STYLE.copy()
 
-class Table(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+        for key, value in style.items():
+            if key not in self._style:
+                raise KeyError(f'Unknown style key \'{key}\'')
 
-        self.style = deepcopy(DEFAULT_STYLE)
+            self._style[key] = value
 
-        self._columns = []
-        self._sizes = []
-        self._sizes_sum = 0
-        self._rows = []
+        self.style_name = self._style['name']
 
-        self._rows_scroll_frame = ScrollableFrame(self, tk.Frame)
-        self._rows_frame = self._rows_scroll_frame.child_frame
+        if self._style['header'] is not None:
+            assert len(self._style['header']) == self._style['columns_count'], 'Header length is incorrect'
 
-        self._checkmarks = True
-        self._selected_vars = []
-
-        self.bind('<Button>', self.on_click)
-
-        self.redraw_all()
-
-    def on_click(self, event: tk.Event):
-        widget_y = event.y_root - self.winfo_rooty()
-        widget_y += self._rows_scroll_frame.get_scroll_amount()
-        row_idx = math.floor((widget_y - self.style['header']['height'] - self.style['header']['padding']) / (self.style['row']['height']))
-
-        if row_idx < 0 or row_idx >= len(self._rows):
-            return
-
-        selected_var = self._selected_vars[row_idx]
-        selected_var.set(not selected_var.get())
-
-        if self.style['one_select']:
-            for var in self._selected_vars:
-                if var != selected_var:
-                    var.set(False)
-
-        self.redraw_rows()
-
-    def redraw_all(self):
-        for elem in self.place_slaves():
-            if elem != self._rows_scroll_frame:
-                elem.destroy()
-
-        if len(self._columns) == 0:
-            return
-
-        header_style = self.style['header']
-
-        self.add_bindings(tk.Label(self, bg=header_style['bg'])) \
-            .place(relwidth=1, height=header_style['height'] + (header_style['padding'] / 2))
-
-        for i, (col, col_pos) in enumerate(zip(self._columns, self._col_pos_generator())):
-            self.parse_label(self, col, header_style['font'], header_style['bg']) \
-                .place(relx=col_pos, y=2.5, height=header_style['height'], anchor='n')
-
-        rows_start = self.style['header']['height'] + self.style['header']['padding']
-
-        self._rows_scroll_frame.place_forget()
-        self._rows_scroll_frame.place(y=rows_start, relwidth=1, relheight=1, height=-rows_start)
-
-        self.update()
-        self.redraw_rows()
-
-    def redraw_rows(self):
-        for elem in self._rows_frame.place_slaves():
-            elem.destroy()
-
-        row_style = self.style['row']
-
-        for i, row in enumerate(self._rows):
-            y_pos = i * row_style['height']
-
-            bg_color = row_style['bg']['selected'] if self._selected_vars[i].get() else \
-                       (row_style['bg']['odd'] if i % 2 == 0 else row_style['bg']['even'])
-
-            self.add_bindings(tk.Label(self._rows_frame, bg=bg_color)) \
-                .place(relwidth=1, y=y_pos - row_style['selection_padding'], height=row_style['height'] + row_style['selection_padding'] * 2)
-
-            if self._checkmarks:
-                self.add_bindings(tk.Checkbutton(self._rows_frame, variable=self._selected_vars[i], bg=bg_color)) \
-                    .place(y=y_pos, height=row_style['height'], anchor='nw')
-
-            for item, col_pos in zip(row, self._col_pos_generator()):
-                self.parse_label(self._rows_frame, item, row_style['font'], bg_color) \
-                    .place(relx=col_pos, y=y_pos, height=row_style['height'], anchor='n')
-
-            self.rowconfigure(i, pad=2)
-
-        self._rows_scroll_frame.height = len(self._rows) * row_style['height']
-        self._rows_scroll_frame.scrollbar_width = self.style['scrollbar']['width']
-        self._rows_scroll_frame.scrollbar_speed = self.style['scrollbar']['speed']
-        self._rows_scroll_frame.update_window()
-
-    def _col_pos_generator(self):
-        checkmarks_size = 1 if self._checkmarks else 0
-
-        now_pos = checkmarks_size / (self._sizes_sum + checkmarks_size)
-        for col_size in self._sizes:
-            col_percent_size = col_size / (self._sizes_sum + checkmarks_size)
-            yield now_pos + col_percent_size / 2
-            now_pos += col_percent_size
-
-    def parse_label(self, master, lbl: Label, font, bg):
-        if callable(lbl) and hasattr(lbl, 'table_gen_flag') and lbl.table_gen_flag:
-            return self.add_bindings(lbl(master, font, bg))
-        elif isinstance(lbl, tk.Button):
-            copy_attrs = {'text', 'command', 'image', 'borderwidth'}
-            return tk.Button(master, {var: lbl[var] for var in copy_attrs}, bg=bg)
+        if self._style['columns_weights'] is not None:
+            assert len(self._style['columns_weights']) == self._style['columns_count'], \
+                   'Columns weights length is incorrect'
         else:
-            lbl = tk.Label(master, text=str(lbl), font=font, bg=bg)
-            return self.add_bindings(lbl)
+            self._style['columns_weights'] = [1] * self._style['columns_count']
 
-    def add_bindings(self, elem):
-        elem.bind('<Button>', self.on_click)
-        return elem
+        if self._style['odd_row_bg'] is None:
+            self._style['odd_row_bg'] = self._style['row_bg']
 
-    def set_columns(self, columns: list[Label], sizes: list[int] = None):
-        if sizes is None:
-            sizes = [1 for _ in columns]
+        if self._style['header_font'] is None:
+            self._style['header_font'] = self._style['font']
 
-        assert len(columns) == len(sizes)
+        if not self._style['gridlines']:
+            self._style['gridlines_width'] = 0
 
-        self._columns = columns
-        self._sizes = sizes
-        self._sizes_sum = sum(sizes)
-        self._rows = []
-        self._selected_vars = []
+        self._style['font'] = self.__parse_font(self._style['font'])
+        self._style['header_font'] = self.__parse_font(self._style['header_font'])
+        self.__clear_table_fully()
+        self.__create_header()
+        self.__call_resize_listener()
 
-        self.redraw_all()
+    def __parse_font(self, font: Any):
+        if font is None:
+            return tkfont.Font(self, family='Arial', size=15)
+        elif isinstance(font, (str, tuple)):
+            return tkfont.Font(self, font=font)
+        elif isinstance(font, tkfont.Font):
+            return font
+        else:
+            raise ValueError(f'Bad font type \'{type(font)}\'')
 
-    def get_columns(self):
-        return self._columns
+    def __clear_table_fully(self):
+        self.delete('all')
+        self._table = []
+        self._selected_indexes = deque()
 
-    def add_row(self, *row: Label):
-        assert len(row) == len(self._columns), 'Bad amount of rows'
+    def __create_header(self):
+        if self._style['header'] is not None:
+            self._table.append([
+                self.__create_cell_object(0, col, content).create(self)
+                for col, content in enumerate(self._style['header'])
+            ])
 
-        self._rows.append(row)
-        self._selected_vars.append(tk.BooleanVar(value=False))
+    def _on_resize(self, event: tk.Event):
+        self.scale('all', 0, 0, event.width / self.winfo_reqwidth(), 1)
+        self.config(width=event.width)
 
-    def clear_rows(self):
-        self._rows = []
-        self._selected_vars = []
-        self.redraw_rows()
+        if self.__redraw_event is not None:
+            self.after_cancel(self.__redraw_event)
 
-    def set_checkmarks_state(self, state: bool):
-        self._checkmarks = state
+        self.__redraw_event = self.after(400, self.__resize_all_cells)
 
-    def get_selection(self):
-        selection = []
-        for i, item in enumerate(self._selected_vars):
-            if item.get():
-                selection.append(i)
+    def __resize_all_cells(self):
+        for row in self._table:
+            for cell in row:
+                cell.update_size(self)
 
-        return selection
+        self.__call_resize_listener()
 
-    def select_all(self):
-        for item in self._selected_vars:
-            item.set(True)
+    def __call_resize_listener(self):
+        if self.__resize_listener is not None:
+            self.__resize_listener()
 
-        self.redraw_rows()
+    def update_table(self, table: Sequence[Sequence[Any]]):
+        assert all(len(row) == self._style['columns_count'] for row in table), \
+               'Length of some new rows does not match number of columns'
 
-    def remove_selection(self, *_):
-        for item in self._selected_vars:
-            item.set(False)
+        self.remove_selection()
 
-        self.redraw_rows()
+        if self._style['header'] is not None:
+            table = [[], *table]
+
+        for row, arr in enumerate(table[:len(self._table)]):
+            self.__update_row(row, arr)
+
+        for arr in table[len(self._table):]:
+            self.__append_row(arr)
+
+        while len(self._table) > len(table):
+            self.__pop_row()
+
+        self.__call_resize_listener()
+
+    def __update_row(self, row_index: int, row: Sequence[Any]):
+        for col, content in enumerate(row):
+            new_cell = self.__create_cell_object(row_index, col, content)
+            self._table[row_index][col] = self._table[row_index][col].update(self, new_cell)
+
+    def __append_row(self, row: Sequence[Any]):
+        self._table.append([
+            self.__create_cell_object(len(self._table), col, content).create(self)
+            for col, content in enumerate(row)
+        ])
+
+    def __pop_row(self):
+        for cell in self._table.pop():
+            cell.delete(self)
+
+    def __create_cell_object(self, row: int, col: int, content: Any) -> TableCell:
+        get_header: bool = self._style['header'] is not None and row == 0
+        font = self._style['header_font'] if get_header else self._style['font']
+        fg = self._style['header_fg'] if get_header else self._style['row_fg']
+        bg = self._style['header_bg'] if get_header else self._style['row_bg']
+
+        if (row + bool(self._style['header'] is not None)) % 2 == 0:
+            bg = self._style['odd_row_bg']
+
+        return TableCell(
+            row=row, col=col,
+            calculate_bbox=self._calculate_cell_bbox,
+            is_row_selected=self._is_row_index_selected,
+            content=content,
+            font=font, fg=fg, bg=bg, selected_bg=self._style['selected_bg'],
+            gridlines_width=self._style['gridlines_width'],
+            gridlines_color=self._style['gridlines_color'],
+        )
+
+    def _calculate_cell_bbox(self, row: int, col: int) -> tuple[int, int, int, int]:
+        start_x = 1
+        full_width = self.winfo_width() - start_x - 3
+
+        if self.winfo_width() <= 5:
+            full_width = self.winfo_reqwidth() - start_x - 3
+
+        column_unit = full_width / sum(self._style['columns_weights'])
+        column_offset = int(sum(self._style['columns_weights'][:col]) * column_unit)
+        column_size = int(self._style['columns_weights'][col] * column_unit)
+
+        x, y = column_offset, row * self._style['row_height']
+        width, height = column_size, self._style['row_height']
+
+        if self._style['header'] is not None:
+            if row == 0:
+                height = self._style['header_height']
+            else:
+                y += self._style['header_height'] - self._style['row_height']
+
+        return x + start_x, y, width, height
+
+    def _is_row_index_selected(self, row_index: int) -> bool:
+        return row_index in self._selected_indexes
+
+    def __get_row_index(self, event: tk.Event) -> int | None:
+        y = self.canvasy(event.y)
+
+        if self._style['header'] is not None:
+            row_index = (y - self._style['header_height']) // self._style['row_height'] + 1
+        else:
+            row_index = y // self._style['row_height']
+
+        if row_index < 0 or row_index >= len(self._table) or (self._style['header'] is not None and row_index == 0):
+            return
+
+        return int(round(row_index))
+
+    def __on_click(self, event: tk.Event):
+        row_index = self.__get_row_index(event)
+
+        if row_index is None:
+            return
+
+        self.__select_row_index(row_index, swap=True)
+        self.__last_click = row_index
+
+    def __on_click_shift(self, event: tk.Event):
+        row_index = self.__get_row_index(event)
+
+        if row_index is None:
+            return
+
+        if self.__last_click is not None:
+            self.__select_row_index_itv(self.__last_click, row_index, swap=False)
+
+        self.__last_click = row_index
+
+    def __select_row_index(self, row_index: int, *, swap: bool = False):
+        indexes_to_update = {row_index}
+
+        if row_index in self._selected_indexes and swap:
+            self._selected_indexes.remove(row_index)
+        else:
+            self._selected_indexes.append(row_index)
+
+        while len(self._selected_indexes) > self._style['max_selection']:
+            indexes_to_update |= {self._selected_indexes.popleft()}
+
+        for index in indexes_to_update:
+            for cell in self._table[index]:
+                cell.update_selection(self)
+
+    def __select_row_index_itv(self, start: int, end: int, *, swap: bool = False):
+        if self._style['max_selection'] != float('inf'):
+            return
+
+        if end < start:
+            start, end = end, start
+
+        for row_index in range(start, end + 1):
+            self.__select_row_index(row_index, swap=swap)
+
+    def remove_selection(self):
+        self._selected_indexes.clear()
+
+        for row in self._table:
+            for cell in row:
+                cell.update_selection(self)
+
+        self.__last_click = None
+
+    def __select_all_if_possble(self):
+        self.__select_row_index_itv(0, len(self._table) - 1)
+
+    def get_selection(self) -> set[int]:
+        offset = (0 if self._style['header'] is None else -1)
+        return {
+            index + offset
+            for index in self._selected_indexes
+        }
+
+    def get_selection_with_rows(self) -> list[tuple[int, list[TableCell]]]:
+        offset = (0 if self._style['header'] is None else -1)
+        return [
+            (index + offset, self._table[index])
+            for index in self._selected_indexes
+        ]
+
+
+class ScrollableTableFrame(tk.Frame):
+    def __init__(self, parent, scrollbar_width: int = 15, bottom_offset: int = 30):
+        super().__init__(parent)
+
+        self.configure(highlightthickness=0, borderwidth=0)
+
+        self._scrollbar_width = scrollbar_width
+        self._bottom_offset = bottom_offset
+        self._scrollbar_state: bool = False
+
+        self.configure(bg=parent['bg'])
+
+        self.table = Table(self, resize_listener=self._on_table_resize)
+        self._scrollbar = tk.Scrollbar(self, orient='vertical', command=self.table.yview)
+
+        self.table.configure(yscrollcommand=self._scrollbar.set)
+        self.table.yview('moveto', 0)
+
+        self.table.place(relwidth=1, relheight=1)
+
+    def _on_table_resize(self):
+        if self.winfo_height() <= 5:
+            return
+
+        table_bbox = self.table.bbox('all')
+        self.table.configure(scrollregion=(0, 0, table_bbox[2], table_bbox[3] + self._bottom_offset))
+        self._set_scrollbar_state(table_bbox[3] > self.winfo_height())
+
+    def _set_scrollbar_state(self, state: bool):
+        if self._scrollbar_state is state:
+            return
+
+        if state:
+            self.table.place_forget()
+            self.table.place(relwidth=1, width=-self._scrollbar_width, relheight=1)
+            self._scrollbar.place(x=-self._scrollbar_width, relx=1, width=self._scrollbar_width, relheight=1)
+        else:
+            self.table.place_forget()
+            self.table.place(relwidth=1, relheight=1)
+            self._scrollbar.place_forget()
+
+        self._scrollbar_state = state
+
+
+def _test_window():
+    app = tk.Tk()
+    app.geometry('800x600')
+    app.config(bg='green')
+
+    main_frame = tk.Frame(app, bg='lightblue')
+    main_frame.place(x=10, y=10, relwidth=1, relheight=1, width=-20, height=-20)
+
+    scrollable_table = ScrollableTableFrame(main_frame)
+    scrollable_table.place(relwidth=1, relheight=1)
+
+    table = scrollable_table.table
+
+    table.change_table_style({
+        'columns_count': 3,
+        'header': ['ala', 'ma', 'kota'],
+        'columns_weights': [1, 2, 1],
+        'max_selection': float('inf'),
+    })
+
+    btn = tk.Button(table, text='hello')
+
+    table.update_table([
+        ['a', 'b', 'c'],
+        [1, 2, 3],
+        [4.5, 5.2, 6.0],
+        [btn, 1, 1],
+        [tk.Button(table, text='1'), 1, 1],
+        [tk.Button(table, text='2'), 1, 1],
+        [tk.Button(table, text='3'), 1, 1],
+        [tk.Button(table, text='4'), 1, 1],
+        [tk.Button(table, text='5'), 1, 1],
+    ])
+
+    def random_matrix() -> list[list[Any]]:
+        values_factories = [(lambda x=v: x) for v in [*'aeiouy', 'ala', 'ma', 'kota', 1, 2, 3.5]]
+        btn_factories = [(lambda x=f: tk.Button(table, text=x())) for f in values_factories]
+        return [
+            [random.choice(values_factories * 2 + btn_factories)() for _ in range(3)]
+            for _ in range(10)
+        ]
+
+    m = random_matrix()
+
+    def swap():
+        r1, r3 = [random.randrange(len(m)) for _ in range(2)]
+        r2, r4 = [random.randrange(len(m[0])) for _ in range(2)]
+
+        m[r1][r2], m[r3][r4] = m[r3][r4], m[r1][r2]
+
+    def after():
+        print('\nupdating table\n')
+        table.update_table(m)
+
+        for _ in range(random.randint(1, 10)):
+            swap()
+
+        app.after(5000, after)
+
+    # app.after(3000, after)
+
+    app.mainloop()
 
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    root.geometry('600x300')
-    t = Table(root)
-    t.place(relwidth=1, relheight=.5)
-
-    t.set_columns(['a', 'b', 'c'], [1, 3, 2])
-    vals = ['12736', 1231, ':)', 'DFsfSDF', 'BleBleBle', tk.Button(text='click here', command=lambda: print('It works!'))]
-    for _ in range(5):
-        random.shuffle(vals)
-        t.add_row(*vals[:3])
-
-    def btn():
-        t.set_columns(['a', 'b', 'c', 'd', 'e'])
-        t.add_row(1, 1, 1, 2, 3)
-        t.add_row(2, 3, 1, 4, 3)
-        t.add_row(2, 3, 1, 5, 3)
-
-
-    tk.Button(root, text='CLICK ME', command=btn).place(relx=.5, rely=.5, anchor='n')
-
-    root.mainloop()
+    _test_window()

@@ -3,6 +3,7 @@ from collections.abc import Callable
 from copy import copy
 from pickle import UnpicklingError
 from tkinter.filedialog import asksaveasfilename, askopenfilename
+from typing import Any
 
 from src.config import Config
 from src.db import MainDB
@@ -23,17 +24,21 @@ class PlayerBrowserWindow(BrowserWindow):
 
         self.title('Wszyscy gracze')
         utils.add_icon(self)
-        utils.center_window(self, (480, 550))
+        utils.center_window(self, (550, 550))
         self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
 
-        self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking', '', ''), (1, 5, 5, 5, 1, 1))
         self.update_table()
 
-        self.bind('<Control-a>', lambda *_: self.table.select_all())
-        self.bind('<Control-d>', lambda *_: self.table.remove_selection())
+    @classmethod
+    def modify_style(cls, style: dict[str, Any]):
+        style['columns_count'] = 6
+        style['header'] = ('#', 'Imie', 'Nazwisko', 'Ranking', '', '')
+        style['columns_weights'] = (1, 6, 6, 4, 1, 1)
+        style['row_height'] = 25
+        style['header_height'] = 35
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
@@ -49,14 +54,17 @@ class PlayerBrowserWindow(BrowserWindow):
         ])
 
     def update_table(self):
-        self.table.clear_rows()
+        table_content = []
 
         for i, player in enumerate(self.players):
-            edit_btn = utils.create_image_btn(None, 'edit.png', (20, 20), cmd=lambda idx=i: self.edit_player(idx))
-            remove_btn = utils.create_image_btn(None, 'minus.png', (20, 20), cmd=lambda idx=i: self.remove_player(idx))
-            self.table.add_row(i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn)
+            edit_btn = utils.create_image_btn(self.table, 'edit.png', (20, 20),
+                                              cmd=lambda idx=i: self.edit_player(idx))
+            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+                                                cmd=lambda idx=i: self.remove_player(idx))
 
-        self.table.redraw_rows()
+            table_content.append((i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn))
+
+        self.table.update_table(table_content)
         self.auto_save()
 
     def edit_player(self, player_idx: int):

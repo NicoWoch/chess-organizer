@@ -1,5 +1,6 @@
 import tkinter as tk
 from collections.abc import Callable
+from typing import Any
 
 from src.gui import utils
 from src.config import Config
@@ -16,20 +17,24 @@ class TournamentBrowserWindow(BrowserWindow):
 
         self.title('Wszystkie Turnieje')
         utils.add_icon(self)
-        utils.center_window(self, (500, 340))
+        utils.center_window(self, (600, 340))
         self.minsize(500, 100)
 
         self.open_tournament = open_tournament
         self.close_tournament = close_tournament
         self.tournaments = MainDB.load_tournaments()
 
-        self.table.set_checkmarks_state(False)
-        self.table.style['one_select'] = True
-        self.table.set_columns(('#', 'Nazwa', 'Gracze', 'Data', ''), (1, 7, 2, 5, 1))
         self.update_table()
 
         if auto_create:
             self.after(100, lambda: self.plus_btn())
+
+    @classmethod
+    def modify_style(cls, style: dict[str, Any]):
+        style['columns_count'] = 5
+        style['header'] = ('#', 'Nazwa', 'Gracze', 'Data', '')
+        style['columns_weights'] = (1, 7, 3, 5, 1)
+        style['max_selection'] = 1
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
@@ -41,14 +46,17 @@ class TournamentBrowserWindow(BrowserWindow):
         ])
 
     def update_table(self):
-        self.table.clear_rows()
+        table_content = []
 
         for i, tournament in enumerate(self.tournaments):
-            remove_btn = utils.create_image_btn(None, 'minus.png', (20, 20), cmd=lambda idx=i: self.remove_tournament(idx))
-            date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else '-'
-            self.table.add_row(i + 1, tournament.name, len(tournament.players), date, remove_btn)
+            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+                                                cmd=lambda idx=i: self.remove_tournament(idx))
 
-        self.table.redraw_rows()
+            date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else '-'
+
+            table_content.append((i + 1, tournament.name, len(tournament.players), date, remove_btn))
+
+        self.table.update_table(table_content)
         self.auto_save()
 
     def plus_btn(self):
