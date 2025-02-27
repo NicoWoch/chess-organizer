@@ -57,6 +57,7 @@ class DB:
 
         players = self._load_object(path, [])
         self._test_players(players)
+        players = self._sort_players(players)
 
         if path == Config.DB_PLAYERS:
             self.players_cache = players
@@ -68,10 +69,16 @@ class DB:
             path = Config.DB_PLAYERS
 
         self._test_players(players)
+
+        players = self._sort_players(players)
         self._save_object(path, players)
 
         if path == Config.DB_PLAYERS:
             self.players_cache = players
+
+    @classmethod
+    def _sort_players(cls, players: list[Player]) -> list[Player]:
+        return sorted(players, key=lambda p: (p.surname, p.name, p.creation_date))
 
     def load_tournaments(self) -> list[Tournament]:
         if self.tournaments_cache is not None:
