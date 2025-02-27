@@ -12,7 +12,7 @@ class PlayerEditorWindow(tk.Toplevel):
 
         self.title('Gracz')
         utils.add_icon(self)
-        utils.center_window(self, (210, 220))
+        utils.center_window(self, (280, 250))
         self.resizable(False, False)
 
         self.player = player
@@ -29,20 +29,25 @@ class PlayerEditorWindow(tk.Toplevel):
 
     def make_main_frame(self):
         main_frame = tk.Frame(self)
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(1, weight=1)
+
+        for i in range(5):
+            main_frame.grid_rowconfigure(i, weight=1)
 
         tk.Label(main_frame, textvariable=self.player_label).grid(row=0, column=0, columnspan=2, pady=10)
 
         self.make_entry(main_frame, 1, 'Imie', self.name, bind=self.update_player_label)
         self.make_entry(main_frame, 2, 'Nazwisko', self.surname, bind=self.update_player_label)
-        self.make_option_menu(main_frame, 3, 'Płeć', self.gender, [x.value for x in Gender])
-        self.make_entry(main_frame, 4, 'Ranking', self.rating)
+        self.make_entry(main_frame, 3, 'Ranking', self.rating)
 
-        tk.Button(main_frame, text='Zapisz', command=self.save, height=2)\
-            .grid(row=5, column=0, columnspan=2, pady=10, sticky='nesw')
+        tk.Button(main_frame, text='Zapisz', command=self.save, height=2) \
+            .grid(row=4, column=0, columnspan=2, pady=10, sticky='nesw')
 
-        main_frame.pack(fill='both', padx=15, pady=15)
+        main_frame.place(x=15, y=15, relwidth=1, width=-30, relheight=1, height=-30)
 
-    def make_entry(self, main_frame, i, label, var, bind=None):
+    @classmethod
+    def make_entry(cls, main_frame: tk.Frame, i: int, label: str, var: tk.Variable, bind=None):
         tk.Label(main_frame, text=label)\
             .grid(row=i, column=0)
 
@@ -51,12 +56,6 @@ class PlayerEditorWindow(tk.Toplevel):
 
         if bind is not None:
             entry.bind('<KeyRelease>', bind)
-
-    def make_option_menu(self, main_frame, i, label, var, options):
-        tk.Label(main_frame, text=label)\
-            .grid(row=i, column=0)
-        tk.OptionMenu(main_frame, var, *options)\
-            .grid(row=i, column=1, sticky='nesw')
 
     def update_player_label(self, *_):
         self.player_label.set(f'Gracz {self.name.get()} {self.surname.get()}')
@@ -71,8 +70,15 @@ class PlayerEditorWindow(tk.Toplevel):
         self.destroy()
 
 
-if __name__ == '__main__':
+def _test_window():
     root = tk.Tk()
-    root.geometry('0x0+0+0')
-    PlayerEditorWindow(root, Player.create_player(name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men), lambda: 0)
+    root.geometry('1x1+0+0')
+    editor = PlayerEditorWindow(root, Player.create_player(
+        name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men
+    ), lambda: 0)
+    editor.protocol('WM_DELETE_WINDOW', lambda: root.destroy())
     root.mainloop()
+
+
+if __name__ == '__main__':
+    _test_window()
