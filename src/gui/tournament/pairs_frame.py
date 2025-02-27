@@ -100,7 +100,7 @@ class PairsFrame(tk.Frame):
             raise Exception('Cannot get selected player ids when not first page is active')
 
         selected_players = []
-        for row_id, row_content in self.table.get_selection():
+        for row_id in self.table.get_selection():
             player = self.first_page_players[row_id]
             selected_players.append(player)
 
