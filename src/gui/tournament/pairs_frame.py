@@ -13,14 +13,14 @@ STARTING_TABLE_STYLE = {
     'columns_weights': [50, 350, 250],
     'header_height': 30,
     'row_height': 25,
-    'header_bg': '#ccc',
+    'header_bg': '#BDA184',
     'row_bg': '#eee',
     'odd_row_bg': '#fff',
     'selected_bg': '#ADD8E6',
     'header_fg': 'black',
     'row_fg': 'black',
     'font': ('Arial', 13),
-    'header_font': ('Arial', 18),
+    'header_font': ('Roboto', 17),
 }
 
 PAIRING_TABLE_STYLE = {
@@ -30,14 +30,14 @@ PAIRING_TABLE_STYLE = {
     'columns_weights': [50, 250, 250, 100],
     'header_height': 30,
     'row_height': 25,
-    'header_bg': '#ccc',
+    'header_bg': '#BDA184',
     'row_bg': '#eee',
     'odd_row_bg': '#fff',
     'selected_bg': '#ADD8E6',
     'header_fg': 'black',
     'row_fg': 'black',
     'font': ('Arial', 13),
-    'header_font': ('Arial', 18),
+    'header_font': ('Roboto', 17),
     'max_selection': 1,
 }
 
@@ -48,14 +48,14 @@ FINISH_TABLE_STYLE = {
     'columns_weights': [50, 250, 150, 120],
     'header_height': 30,
     'row_height': 25,
-    'header_bg': '#ccc',
+    'header_bg': '#BDA184',
     'row_bg': '#eee',
     'odd_row_bg': '#fff',
     'selected_bg': '#ADD8E6',
     'header_fg': 'black',
     'row_fg': 'black',
     'font': ('Arial', 13),
-    'header_font': ('Arial', 18),
+    'header_font': ('Roboto', 17),
     'max_selection': 0,
 }
 

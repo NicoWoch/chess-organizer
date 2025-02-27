@@ -30,32 +30,57 @@ class ActionBarFrame(tk.Frame):
         super().__init__(parent)
 
         self.listener = listener
-
-        self.config(bg='#8c5ccc')
         self.make_gui()
 
     def make_gui(self):
         utils.create_image_action_bar(self, [
-            utils.Action('throphy.png', lambda: self.listener.browse_tournaments(create=True), tk.LEFT),
-            utils.Action('throphy_ended.png', self.listener.browse_tournaments, tk.LEFT),
-            utils.Action('white_pawn.png', lambda: self.listener.set_result(Result.White), tk.CENTER),
-            utils.Action('black_pawn.png', lambda: self.listener.set_result(Result.Black), tk.CENTER),
-            utils.Action('draw_icon.png', lambda: self.listener.set_result(Result.Draw), tk.CENTER),
-            utils.Action('green_flag.png', self.listener.next_round, tk.CENTER),
-            utils.Action('red_flag.png', self.listener.end_tournament, tk.CENTER),
-            utils.Action('player.png', self.listener.browse_players, tk.RIGHT),
-            utils.Action('player_minus.png', self.listener.remove_players, tk.RIGHT),
-        ], (50, 50), padx=20, tooltips=[
-            'Stwórz turniej',
-            'Przeglądaj turnieje',
-            'Białe wygrały',
-            'Czarne wygrały',
-            'Remis',
-            'Następna runda',
-            'Koniec turnieju',
-            'Przeglądaj graczy',
-            'Usuń gracza',
-        ]).grid(sticky='nesw')
+            utils.Action(
+                'throphy.png',
+                lambda: self.listener.browse_tournaments(create=True),
+                tk.LEFT, tooltip='Stwórz turniej',
+            ),
+            utils.Action(
+                'throphy_ended.png',
+                self.listener.browse_tournaments,
+                tk.LEFT, tooltip='Przeglądaj turnieje',
+            ),
+            utils.Action(
+                'white_pawn.png',
+                lambda: self.listener.set_result(Result.White),
+                tk.CENTER, tooltip='Białe wygrały',
+            ),
+            utils.Action(
+                'black_pawn.png',
+                lambda: self.listener.set_result(Result.Black),
+                tk.CENTER, tooltip='Czarne wygrały',
+            ),
+            utils.Action(
+                'draw_icon.png',
+                lambda: self.listener.set_result(Result.Draw),
+                tk.CENTER, tooltip='Remis',
+            ),
+            utils.Action(
+                'green_flag.png',
+                self.listener.next_round,
+                tk.CENTER, tooltip='Następna runda',
+            ),
+            utils.Action(
+                'red_flag.png',
+                self.listener.end_tournament,
+                tk.CENTER, tooltip='Koniec turnieju'
+            ),
+            utils.Action(
+                'player.png',
+                self.listener.browse_players,
+                tk.RIGHT, tooltip='Przeglądaj graczy',
+            ),
+            utils.Action(
+                'player_minus.png',
+                self.listener.remove_players,
+                tk.RIGHT, tooltip='Usuń gracza',
+            ),
+        ], (50, 50), padx=20, bg='#c9d8e6', active_bg='#a3afe6') \
+            .grid(sticky='nesw')
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)

@@ -42,16 +42,15 @@ class PlayerBrowserWindow(BrowserWindow):
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
-            utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('import.png', self.import_btn, tk.LEFT),
-            utils.Action('export.png', self.export_btn, tk.LEFT),
-            utils.Action('add.png', self.open_btn, tk.RIGHT, size=(80, 40)),
-        ], (40, 40), tooltips=[
-            'Stwórz gracza',
-            'Importuj graczy',
-            'Eksportuj graczy',
-            'Dodaj do turnieju',
-        ])
+            utils.Action('plus.png', self.plus_btn,
+                         tk.LEFT, tooltip='Stwórz gracza'),
+            utils.Action('import.png', self.import_btn,
+                         tk.LEFT, tooltip='Importuj graczy'),
+            utils.Action('export.png', self.export_btn,
+                         tk.LEFT, tooltip='Eksportuj graczy'),
+            utils.Action('add.png', self.open_btn,
+                         tk.RIGHT, size=(80, 40), tooltip='Dodaj do turnieju'),
+        ], (40, 40), bg='#ccc', active_bg='#aaa')
 
     def update_table(self):
         table_content = []

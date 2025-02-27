@@ -15,6 +15,8 @@ class ColorfulLabel(tk.Text):
         self.tag_add('center', '1.0', 'end')
 
         self.configure(state='disabled', borderwidth=0, cursor='arrow')
+        self.configure(highlightthickness=0)
+        self.bind('<<Selection>>', lambda e: self.selection_clear())
 
     def colorize_range(self, start: int, end: int, fg: str, bg: str = None):
         if fg not in self._fgs:

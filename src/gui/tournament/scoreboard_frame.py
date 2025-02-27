@@ -28,7 +28,7 @@ class ScoreboardFrame(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-        tk.Label(self, text='Tablica Wyników', bg='#ccc', font='Arial 16', justify='center') \
+        tk.Label(self, text='Tablica Wyników', bg='#BDA184', font='Roboto 16', justify='center') \
             .place(relwidth=1, height=40)
         scrollable_table.place(y=40, relwidth=1, height=-40, relheight=1)
 

@@ -38,12 +38,11 @@ class TournamentBrowserWindow(BrowserWindow):
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
-            utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('open.png', self.open_btn, tk.RIGHT, size=(80, 40)),
-        ], (40, 40), tooltips=[
-            'Stwórz turniej',
-            'Otwórz turniej',
-        ])
+            utils.Action('plus.png', self.plus_btn,
+                         tk.LEFT, tooltip='Stwórz turniej'),
+            utils.Action('open.png', self.open_btn,
+                         tk.RIGHT, size=(80, 40), tooltip='Otwórz turniej'),
+        ], (40, 40), bg='#ccc', active_bg='#aaa')
 
     def update_table(self):
         table_content = []
