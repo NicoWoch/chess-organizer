@@ -2,8 +2,8 @@ import tkinter as tk
 from typing import Optional
 
 from src.algorithms.tournament import Tournament
-from src.gui.widgets.rating_label import RatingLabel
-from src.gui.widgets.table import Table, ScrollableTableFrame
+from src.gui.widgets.colorful_label import ColorfulLabel
+from src.gui.widgets.table import ScrollableTableFrame
 from src.player import Player
 
 STARTING_TABLE_STYLE = {
@@ -154,7 +154,7 @@ class PairsFrame(tk.Frame):
 
         text = f'{str(old_rating).rjust(5)} {deviation_str}-> {str(new_rating).rjust(5)}  '
 
-        lbl = RatingLabel(self.table, initial_text=text)
+        lbl = ColorfulLabel(self.table, initial_text=text)
         lbl.colorize_regex(r'([\(\)]|->)', '#404040')
         lbl.colorize_regex(r'(^\s+\d+)', '#1f1f1f')
 

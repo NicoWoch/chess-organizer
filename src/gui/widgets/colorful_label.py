@@ -2,7 +2,7 @@ import tkinter as tk
 import re
 
 
-class RatingLabel(tk.Text):  # TODO: it's colorful label
+class ColorfulLabel(tk.Text):
     def __init__(self, parent, initial_text: str = '', **kwargs):
         super().__init__(parent, **kwargs)
 
