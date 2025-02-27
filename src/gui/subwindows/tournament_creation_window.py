@@ -3,7 +3,6 @@ from collections import namedtuple
 from typing import Callable
 
 from src.algorithms.swiss_tournament import SwissTournament
-from src.config import Config
 from src.gui import utils
 
 Alg = namedtuple('Alg', ('name', 'cls'))
@@ -54,7 +53,6 @@ class TournamentCreationWindow(tk.Toplevel):
         alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
         self.on_create(alg_class(self.name.get()))
         self.destroy()
-
 
 
 if __name__ == '__main__':

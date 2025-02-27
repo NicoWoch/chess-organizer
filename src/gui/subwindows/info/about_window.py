@@ -1,6 +1,5 @@
 import tkinter as tk
 from src.gui import utils
-from src.config import Config
 
 ABOUT_TEXT = '''Program do zarządzania
 turniejami szachowymi

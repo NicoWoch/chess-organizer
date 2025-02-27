@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from dataclasses import dataclass
-from typing import Callable, Optional, Literal, Any
+from typing import Callable, Literal, Any
 
 import screeninfo
 from PIL import Image, ImageTk

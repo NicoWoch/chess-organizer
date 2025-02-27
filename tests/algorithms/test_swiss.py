@@ -55,7 +55,8 @@ class TestSwiss(unittest.TestCase):
             self.assertEqual((true_white_id, true_black_id), expected_pair, msg=f'Bad pair on table {i}')
 
         self.assertEqual(len(self.tournament.get_pause()), len(pauses), msg='Bad length of pause')
-        self.assertEqual(set(self.tournament.players.index(p) for p in self.tournament.get_pause()), pauses, msg='Bad pause players')
+        self.assertEqual(set(self.tournament.players.index(p) for p in self.tournament.get_pause()), pauses,
+                         msg='Bad pause players')
 
     def test_no_error_to_40_players(self):
         for no_players in range(5, 40):
@@ -132,7 +133,6 @@ class TestSwiss(unittest.TestCase):
             (5, 0),
         ], set())
 
-
     @repeat_random_test(5)
     def test_pairing_second_round_3(self):
         self.__add_dummy_players(8)
@@ -204,7 +204,6 @@ class TestSwiss(unittest.TestCase):
             (7, 6),
             (4, 2),
         ], {9})
-
 
 
 if __name__ == '__main__':

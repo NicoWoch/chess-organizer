@@ -242,7 +242,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
     def browse_tournaments(self, create=False):
-        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament, auto_create=create)
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament,
+                                                     auto_create=create)
         tournament_browser.focus()
         self.register_subwindow(tournament_browser)
 
@@ -302,7 +303,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
         self.__run_pdf_action(fpdf, action)
 
-    def __run_pdf_action(self, fpdf, action):
+    @classmethod
+    def __run_pdf_action(cls, fpdf, action):
         if action == 'print':
             pdf.show_pdf_in_browser(fpdf)
         elif action == 'save':

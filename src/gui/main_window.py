@@ -27,6 +27,7 @@ def show_error(self, exc, val, tb):
         logging.error(err_str)
         print(err_str)
 
+
 tk.Tk.report_callback_exception = show_error
 
 DEV_KEYS = list('devon\r')
@@ -83,7 +84,8 @@ class MainWindow(tk.Tk):
             return
 
         file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label='Stwórz turniej', command=lambda: self.tournament_frame.browse_tournaments(create=True))
+        file_menu.add_command(label='Stwórz turniej',
+                              command=lambda: self.tournament_frame.browse_tournaments(create=True))
         file_menu.add_command(label='Przeglądaj turnieje', command=lambda: self.tournament_frame.browse_tournaments())
         file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
         menubar.add_cascade(label='Plik', menu=file_menu)
@@ -95,22 +97,34 @@ class MainWindow(tk.Tk):
 
         tournament_menu = tk.Menu(menubar, tearoff=0)
         set_result_menu = tk.Menu(tournament_menu, tearoff=0)
-        set_result_menu.add_command(label='Biały wygrał',  command=lambda: self.tournament_frame.set_result(Result.White))
-        set_result_menu.add_command(label='Czarny wygrał', command=lambda: self.tournament_frame.set_result(Result.Black))
-        set_result_menu.add_command(label='Remis',         command=lambda: self.tournament_frame.set_result(Result.Draw))
-        set_result_menu.add_command(label='Jeszcze grają', command=lambda: self.tournament_frame.set_result(Result.Playing))
+        set_result_menu.add_command(label='Biały wygrał',
+                                    command=lambda: self.tournament_frame.set_result(Result.White))
+        set_result_menu.add_command(label='Czarny wygrał',
+                                    command=lambda: self.tournament_frame.set_result(Result.Black))
+        set_result_menu.add_command(label='Remis',
+                                    command=lambda: self.tournament_frame.set_result(Result.Draw))
+        set_result_menu.add_command(label='Jeszcze grają',
+                                    command=lambda: self.tournament_frame.set_result(Result.Playing))
         tournament_menu.add_cascade(label='Wynik', menu=set_result_menu)
-        tournament_menu.add_command(label='Następna runda',        command=self.tournament_frame.next_round)
-        tournament_menu.add_command(label='Zakończ turniej',  command=self.tournament_frame.end_tournament)
+        tournament_menu.add_command(label='Następna runda',
+                                    command=self.tournament_frame.next_round)
+        tournament_menu.add_command(label='Zakończ turniej',
+                                    command=self.tournament_frame.end_tournament)
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
 
         print_menu = tk.Menu(menubar, tearoff=0)
-        print_menu.add_command(label='Drukuj listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('print'))
-        print_menu.add_command(label='Drukuj parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('print'))
-        print_menu.add_command(label='Drukuj wyniki', command=lambda: self.tournament_frame.make_pdf_results('print'))
-        print_menu.add_command(label='Zapisz listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('save'))
-        print_menu.add_command(label='Zapisz parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('save'))
-        print_menu.add_command(label='Zapisz wyniki', command=lambda: self.tournament_frame.make_pdf_results('save'))
+        print_menu.add_command(label='Drukuj listę startową',
+                               command=lambda: self.tournament_frame.make_pdf_starting_list('print'))
+        print_menu.add_command(label='Drukuj parowanie',
+                               command=lambda: self.tournament_frame.make_pdf_active_pairings('print'))
+        print_menu.add_command(label='Drukuj wyniki',
+                               command=lambda: self.tournament_frame.make_pdf_results('print'))
+        print_menu.add_command(label='Zapisz listę startową',
+                               command=lambda: self.tournament_frame.make_pdf_starting_list('save'))
+        print_menu.add_command(label='Zapisz parowanie',
+                               command=lambda: self.tournament_frame.make_pdf_active_pairings('save'))
+        print_menu.add_command(label='Zapisz wyniki',
+                               command=lambda: self.tournament_frame.make_pdf_results('save'))
         menubar.add_cascade(label='Drukowanie', menu=print_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)

@@ -1,7 +1,6 @@
 import tkinter as tk
 from typing import Callable
 
-from src.config import Config
 from src.player import Player, Gender
 from src.gui import utils
 

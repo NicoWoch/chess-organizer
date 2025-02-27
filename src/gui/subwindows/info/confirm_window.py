@@ -2,7 +2,6 @@ import tkinter as tk
 from collections.abc import Callable
 
 from src.gui import utils
-from src.config import Config
 
 
 class ConfirmWindow(tk.Toplevel):
@@ -36,6 +35,7 @@ class ConfirmWindow(tk.Toplevel):
 
 def confirm(frame: tk.Misc, msg: str, on_confirm: Callable):
     ConfirmWindow(frame.winfo_toplevel(), msg, on_confirm).mainloop()
+
 
 if __name__ == '__main__':
     root = tk.Tk()

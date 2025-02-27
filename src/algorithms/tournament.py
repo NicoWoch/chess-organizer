@@ -5,7 +5,8 @@ from typing import Optional
 
 from src.algorithms.constants import Result, Round, Points
 from src.algorithms.elo import elo_rating
-from src.algorithms.errors import TournamentNotRunningError, TournamentStartedError, PlayerExistsError, TournamentEndedError, RoundNotEnded
+from src.algorithms.errors import TournamentNotRunningError, TournamentStartedError
+from src.algorithms.errors import PlayerExistsError, TournamentEndedError, RoundNotEnded
 from src.config import Config
 from src.player import Player
 

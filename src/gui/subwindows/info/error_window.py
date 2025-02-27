@@ -1,6 +1,5 @@
 import tkinter as tk
 
-from src.config import Config
 from src.gui import utils
 
 

@@ -33,7 +33,8 @@ class Config:
         TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
         TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'
         TOURNAMENT_STARTED = 'Turniej jest już rozpoczęty'
-        ROUND_NOT_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
+        ROUND_NOT_ENDED = ('Nie na wszystkich stołach zakończyły się partie.\n'
+                           'Proszę dodaj brakujące wyniki i spróbuj ponownie')
         END_THE_TOURNAMENT = 'zakończyć turniej'
 
         CANNOT_EDIT_IN_CLOSED_ROUND = 'Nie można edytować wyników w zamkniętej rundzie'
