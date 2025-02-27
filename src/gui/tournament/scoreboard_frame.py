@@ -11,6 +11,7 @@ SCOREBOARD_TABLE_STYLE = {
     'font': ('Arial', 11),
     'row_bg': '#eee',
     'odd_row_bg': '#fff',
+    'max_selection': 0,
 }
 
 
