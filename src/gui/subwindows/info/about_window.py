@@ -6,8 +6,10 @@ turniejami szachowymi
 z algorytmem swiss
 
 
-Autor:   Nicolas Wochnik
-Tester:  Piotr Wolter'''
+Autor:     Nicolas Wochnik
+
+Testerzy:  Magdalena Gandyk
+     Piotr Wolter'''
 
 
 class AboutWindow(tk.Toplevel):
@@ -16,7 +18,7 @@ class AboutWindow(tk.Toplevel):
 
         self.title('O programie')
         utils.add_icon(self)
-        utils.center_window(self, (400, 200))
+        utils.center_window(self, (400, 225))
         self.resizable(False, False)
 
         logo_image = utils.create_image('logo.png', size=(100, 100))
