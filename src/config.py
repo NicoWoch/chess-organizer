@@ -55,3 +55,4 @@ class Config:
 
         NOT_ON_PAGE_WITH_PAIRS = 'Brak wybranej rundy.\nProszę wybierz rundę i spróbuj ponownie'
         PLAYER_IMPORTING_ERROR = 'Błąd importowania graczy.\nNiepoprawny plik'
+        RATING_OVERFLOW = 'Ranking powinien być w przedziale <10, 10000>'

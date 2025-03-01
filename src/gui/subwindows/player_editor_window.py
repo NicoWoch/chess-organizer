@@ -1,6 +1,8 @@
 import tkinter as tk
 from typing import Callable
 
+from src.config import Config
+from src.gui.subwindows.info.error_window import WindowException
 from src.player import Player, Gender
 from src.gui import utils
 
@@ -73,12 +75,17 @@ class PlayerEditorWindow(tk.Toplevel):
             return
 
         if self.rating.get() == '':
-            pass
+            return
+
+        rating = int(self.rating.get())
+
+        if rating < 10 or rating > 10_000:
+            raise WindowException(Config.Messages.RATING_OVERFLOW)
 
         self.player.name = name
         self.player.surname = surname
         self.player.gender = Gender(self.gender.get())
-        self.player.rating = int(self.rating.get())
+        self.player.rating = rating
 
         self.on_save()
         self.destroy()
