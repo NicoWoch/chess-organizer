@@ -47,7 +47,7 @@ class PlayerBrowserWindow(BrowserWindow):
             utils.Action('import.png', self.import_btn,
                          tk.LEFT, tooltip='Importuj graczy'),
             utils.Action('export.png', self.export_btn,
-                         tk.LEFT, tooltip='Eksportuj graczy'),
+                         tk.LEFT, tooltip='Eksportuj zaznaczonych graczy'),
             utils.Action('add.png', self.open_btn,
                          tk.RIGHT, size=(80, 40), tooltip='Dodaj do turnieju'),
         ], (40, 40), bg='#ccc', active_bg='#aaa')
