@@ -4,7 +4,7 @@ from typing import Optional
 from src.algorithms.tournament import Tournament
 from src.gui.widgets.colorful_label import ColorfulLabel
 from src.gui.widgets.table import ScrollableTableFrame
-from src.player import Player
+from src.player import Player, sorted_players_nice
 
 STARTING_TABLE_STYLE = {
     'name': 'starting',
@@ -114,7 +114,7 @@ class PairsFrame(tk.Frame):
     def update_first(self, tournament: Tournament):
         self.table.change_table_style(STARTING_TABLE_STYLE)
 
-        self.first_page_players = sorted(tournament.players, key=lambda p: (p.surname, p.name))
+        self.first_page_players = sorted_players_nice(tournament.players)
 
         self.table.update_table([
             (i, player, player.rating)

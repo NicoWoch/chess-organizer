@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -71,3 +72,13 @@ class Player:
 
     def __hash__(self):
         return hash(self.__str__())
+
+
+def sort_players_nice(players: list[Player]):
+    players.sort(key=lambda p: (p.surname, p.name, p.creation_date))
+
+
+def sorted_players_nice(players: list[Player]) -> list[Player]:
+    lst = copy.deepcopy(players)
+    sort_players_nice(lst)
+    return lst

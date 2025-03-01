@@ -12,7 +12,7 @@ from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
-from src.player import Player, Gender
+from src.player import Player, Gender, sort_players_nice
 
 EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
                           ('Gracze', '*.players')]
@@ -53,6 +53,7 @@ class PlayerBrowserWindow(BrowserWindow):
         ], (40, 40), bg='#ccc', active_bg='#aaa')
 
     def update_table(self):
+        sort_players_nice(self.players)
         table_content = []
 
         for i, player in enumerate(self.players):
