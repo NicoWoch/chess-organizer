@@ -315,7 +315,7 @@ class ScrollableTableFrame(tk.Frame):
         if self.winfo_height() <= 5:
             return
 
-        table_bbox = self.table.bbox('all')
+        table_bbox = self.table.bbox('all') or (0, 0, 0, 0)
         self.table.configure(scrollregion=(0, 0, table_bbox[2], table_bbox[3] + self._bottom_offset))
         self._set_scrollbar_state(table_bbox[3] > self.winfo_height())
 
