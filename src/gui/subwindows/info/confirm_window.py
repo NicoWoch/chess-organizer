@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font as tkfont
 from collections.abc import Callable
 
 from src.gui import utils
@@ -12,21 +13,29 @@ class ConfirmWindow(tk.Toplevel):
         utils.add_icon(self)
         self.resizable(False, False)
 
-        if len(msg) < 28:
-            utils.center_window(self, (300, 110))
-        else:
-            utils.center_window(self, (420, 110))
-
         self.on_confirm = on_confirm
 
-        label = tk.Label(self, text=f'Jesteś pewien że chcesz\n{msg} ?', font=('Calibri', 18))
+        font = tkfont.Font(family='Calibri', size=18)
+        question = f'Jesteś pewien że chcesz\n{msg} ?'
+
+        window_width = self.__measure_text_width(question, font) + 30
+        utils.center_window(self, (window_width, 110))
+
+        label = tk.Label(self, text=question, font=font)
         label.place(x=0, y=0, relwidth=1)
 
-        btn_yes = tk.Button(self, text='Tak', font=('Calibri', 18), command=self._on_confirm)
-        btn_no = tk.Button(self, text='Nie', font=('Calibri', 18), command=self.destroy)
+        btn_yes = tk.Button(self, text='Tak', font=font, command=self._on_confirm)
+        btn_no = tk.Button(self, text='Nie', font=font, command=self.destroy)
 
         btn_yes.place(x=0, rely=1, height=40, relwidth=.5, anchor=tk.SW)
         btn_no.place(relx=.5, rely=1, height=40, relwidth=.5, anchor=tk.SW)
+
+    @classmethod
+    def __measure_text_width(cls, text: str, font: tkfont.Font) -> int:
+        return max(
+            font.measure(line)
+            for line in text.split('\n')
+        )
 
     def _on_confirm(self):
         self.on_confirm()
