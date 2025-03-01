@@ -15,6 +15,7 @@ from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
 from src.pdf import pdf
+from src.player import Player
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -202,10 +203,10 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         if not_found_players:
             self.after(100, lambda: self.__show_players_not_found_error(not_found_players))
 
-    def __show_players_not_found_error(self, players):
+    def __show_players_not_found_error(self, players: list[Player]):
         ErrorWindow(self.winfo_toplevel(), WindowException(
             Config.Messages.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
-        )).mainloop()
+        ))
 
     def browse_players(self):
         players_browser = PlayerBrowserWindow(self, self.add_players)
