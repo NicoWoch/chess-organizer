@@ -28,13 +28,6 @@ class ScrollableFrame(tk.Frame):
 
         self._configure_after = self.after(100, self.update_window)
 
-    def _handle_scroll(self, event):
-        if self._has_scrollbar:
-            self._canvas.yview_scroll(-event.delta * self.scrollbar_speed // 120, 'units')
-
-    def get_scroll_amount(self):
-        return self._canvas.yview()[0] * self.height
-
     def _should_has_scrollbar(self):
         return self.height > self._canvas.winfo_height()
 
@@ -63,7 +56,6 @@ class ScrollableFrame(tk.Frame):
         self._canvas.create_window((0, 0), window=self.child_frame, anchor='nw')
 
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
-        self._canvas.bind_all('<MouseWheel>', self._handle_scroll)
 
 
 if __name__ == '__main__':
