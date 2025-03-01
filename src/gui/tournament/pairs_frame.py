@@ -59,6 +59,8 @@ FINISH_TABLE_STYLE = {
     'max_selection': 0,
 }
 
+PAUSE_FRAME_HEIGHT = 38
+
 
 class PauseFrame(tk.Label):
     def __init__(self, parent):
@@ -90,8 +92,8 @@ class PairsFrame(tk.Frame):
 
         self.pause_frame = PauseFrame(self)
 
-        scrollable_table.place(relheight=.95, relwidth=1)
-        self.pause_frame.place(rely=0.95, relwidth=1, relheight=0.05)
+        scrollable_table.place(relheight=1, heigh=-PAUSE_FRAME_HEIGHT, relwidth=1)
+        self.pause_frame.place(rely=1, y=-PAUSE_FRAME_HEIGHT, relwidth=1, height=PAUSE_FRAME_HEIGHT)
 
         self.first_page_players: list[Player] = []
 
