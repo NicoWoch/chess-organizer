@@ -106,8 +106,9 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = get_optimal_swiss_rounds(self.tournament.players_count)
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}', font=('Calibri', 9))
-                optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
+                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}',
+                                         font=('Calibri', 9), justify='center')
+                optimum_label.place(x=30, rely=1, y=-60, width=self.rounds_frame.winfo_width() - 60, height=40)
 
                 self._info_labels.append(optimum_label)
 
