@@ -51,7 +51,8 @@ class Points:
         points = [self.__parse_point(p) for p in (self.big_points, *self.small_points)]
         return ', '.join(points)
 
-    def __parse_point(self, point: float) -> str:
+    @classmethod
+    def __parse_point(cls, point: float) -> str:
         if point % 1 == 0:
             return str(int(point))
 

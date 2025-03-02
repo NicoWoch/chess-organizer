@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from src.config import Config
+from src.gui import utils
 
 
 class WindowException(Exception):
@@ -18,7 +18,7 @@ class ErrorWindow(tk.Toplevel):
 
         self.title('Błąd')
         self.geometry('+750+500')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         self.resizable(False, False)
 
         tk.Label(self, text=error.msg, foreground='red', font=('Times New Roman', 20, 'bold')) \

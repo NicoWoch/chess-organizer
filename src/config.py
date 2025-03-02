@@ -1,13 +1,14 @@
 import os.path
+import re
 from datetime import datetime
 
 
 class Config:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    VERSION = 'V1.0'
+    VERSION = 'V1.0-1'
 
     WINDOW_NAME = f'Chess Organizer {VERSION}'
-    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.ico')
+    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.png')
     WINDOW_SIZE = 1080, 640
 
     LOG_DIR = os.path.join(BASE_DIR, 'data/logs')
@@ -17,6 +18,8 @@ class Config:
 
     DB_PLAYERS = os.path.join(DB_DIR, 'players.pkl')
     DB_TOURNAMENTS = os.path.join(DB_DIR, 'tournaments.pkl')
+
+    LOG_FILE_REGEX = re.compile(r'^\d+-\d+-\d+_\d+-\d+-\d+\.log$')
     LOG_FILE = os.path.join(LOG_DIR, datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log')
 
     ELO_K_VALUE = 20
@@ -30,7 +33,8 @@ class Config:
         TOURNAMENT_NOT_STARTED = 'Turniej nie został rozpoczęty'
         TOURNAMENT_HAS_ENDED = 'Turniej jest zakończony'
         TOURNAMENT_STARTED = 'Turniej jest już rozpoczęty'
-        ROUND_NOT_ENDED = 'Nie na wszystkich stołach zakończyły się partie.\nProszę dodaj brakujące wyniki i spróbuj ponownie'
+        ROUND_NOT_ENDED = ('Nie na wszystkich stołach zakończyły się partie.\n'
+                           'Proszę dodaj brakujące wyniki i spróbuj ponownie')
         END_THE_TOURNAMENT = 'zakończyć turniej'
 
         CANNOT_EDIT_IN_CLOSED_ROUND = 'Nie można edytować wyników w zamkniętej rundzie'
@@ -51,3 +55,4 @@ class Config:
 
         NOT_ON_PAGE_WITH_PAIRS = 'Brak wybranej rundy.\nProszę wybierz rundę i spróbuj ponownie'
         PLAYER_IMPORTING_ERROR = 'Błąd importowania graczy.\nNiepoprawny plik'
+        RATING_OVERFLOW = 'Ranking powinien być w przedziale <10, 10000>'

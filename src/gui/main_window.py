@@ -1,6 +1,9 @@
 import logging
+import re
 import tkinter as tk
 import traceback
+import random
+from typing import Callable
 
 from src import dummy_generator
 from src.algorithms.constants import Result
@@ -27,6 +30,7 @@ def show_error(self, exc, val, tb):
         logging.error(err_str)
         print(err_str)
 
+
 tk.Tk.report_callback_exception = show_error
 
 DEV_KEYS = list('devon\r')
@@ -36,7 +40,7 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(Config.WINDOW_NAME)
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
+        utils.add_icon(self)
         utils.center_window(self, Config.WINDOW_SIZE)
         self.minsize(900, 500)
 
@@ -58,7 +62,7 @@ class MainWindow(tk.Tk):
         self._keys = []
         self.bind('<Button-1>', self._remove_subwindows)
         self.bind('<Key>', self._on_key_pressed)
-        self.bind('<Key-F11>', self._enable_fullscreen_mode)
+        self.bind('<Key-F11>', self._switch_fullscreen_mode)
         self.bind('<Key-Escape>', self._disable_fullscreen_mode)
 
     def _remove_subwindows(self, *_):
@@ -83,7 +87,8 @@ class MainWindow(tk.Tk):
             return
 
         file_menu = tk.Menu(menubar, tearoff=0)
-        file_menu.add_command(label='Stwórz turniej', command=lambda: self.tournament_frame.browse_tournaments(create=True))
+        file_menu.add_command(label='Stwórz turniej',
+                              command=lambda: self.tournament_frame.browse_tournaments(create=True))
         file_menu.add_command(label='Przeglądaj turnieje', command=lambda: self.tournament_frame.browse_tournaments())
         file_menu.add_command(label='Zamknij turniej', command=self.tournament_frame.close_tournament)
         menubar.add_cascade(label='Plik', menu=file_menu)
@@ -95,22 +100,34 @@ class MainWindow(tk.Tk):
 
         tournament_menu = tk.Menu(menubar, tearoff=0)
         set_result_menu = tk.Menu(tournament_menu, tearoff=0)
-        set_result_menu.add_command(label='Biały wygrał',  command=lambda: self.tournament_frame.set_result(Result.White))
-        set_result_menu.add_command(label='Czarny wygrał', command=lambda: self.tournament_frame.set_result(Result.Black))
-        set_result_menu.add_command(label='Remis',         command=lambda: self.tournament_frame.set_result(Result.Draw))
-        set_result_menu.add_command(label='Jeszcze grają', command=lambda: self.tournament_frame.set_result(Result.Playing))
+        set_result_menu.add_command(label='Biały wygrał',
+                                    command=lambda: self.tournament_frame.set_result(Result.White))
+        set_result_menu.add_command(label='Czarny wygrał',
+                                    command=lambda: self.tournament_frame.set_result(Result.Black))
+        set_result_menu.add_command(label='Remis',
+                                    command=lambda: self.tournament_frame.set_result(Result.Draw))
+        set_result_menu.add_command(label='Jeszcze grają',
+                                    command=lambda: self.tournament_frame.set_result(Result.Playing))
         tournament_menu.add_cascade(label='Wynik', menu=set_result_menu)
-        tournament_menu.add_command(label='Następna runda',        command=self.tournament_frame.next_round)
-        tournament_menu.add_command(label='Zakończ turniej',  command=self.tournament_frame.end_tournament)
+        tournament_menu.add_command(label='Następna runda',
+                                    command=self.tournament_frame.next_round)
+        tournament_menu.add_command(label='Zakończ turniej',
+                                    command=self.tournament_frame.end_tournament)
         menubar.add_cascade(label='Turniej', menu=tournament_menu)
 
         print_menu = tk.Menu(menubar, tearoff=0)
-        print_menu.add_command(label='Drukuj listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('print'))
-        print_menu.add_command(label='Drukuj parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('print'))
-        print_menu.add_command(label='Drukuj wyniki', command=lambda: self.tournament_frame.make_pdf_results('print'))
-        print_menu.add_command(label='Zapisz listę startową', command=lambda: self.tournament_frame.make_pdf_starting_list('save'))
-        print_menu.add_command(label='Zapisz parowanie', command=lambda: self.tournament_frame.make_pdf_active_pairings('save'))
-        print_menu.add_command(label='Zapisz wyniki', command=lambda: self.tournament_frame.make_pdf_results('save'))
+        print_menu.add_command(label='Drukuj listę startową',
+                               command=lambda: self.tournament_frame.make_pdf_starting_list('print'))
+        print_menu.add_command(label='Drukuj parowanie',
+                               command=lambda: self.tournament_frame.make_pdf_active_pairings('print'))
+        print_menu.add_command(label='Drukuj wyniki',
+                               command=lambda: self.tournament_frame.make_pdf_results('print'))
+        print_menu.add_command(label='Zapisz listę startową',
+                               command=lambda: self.tournament_frame.make_pdf_starting_list('save'))
+        print_menu.add_command(label='Zapisz parowanie',
+                               command=lambda: self.tournament_frame.make_pdf_active_pairings('save'))
+        print_menu.add_command(label='Zapisz wyniki',
+                               command=lambda: self.tournament_frame.make_pdf_results('save'))
         menubar.add_cascade(label='Drukowanie', menu=print_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -127,9 +144,12 @@ class MainWindow(tk.Tk):
     def _show_window_cmd(self, win_func, *args, **kwargs):
         return lambda: self.subwindows.append(win_func(*args, **kwargs))
 
-    def _enable_fullscreen_mode(self, *_):
-        self.attributes('-fullscreen', True)
-        self.make_menu(empty_menu=True)
+    def _switch_fullscreen_mode(self, *_):
+        if self.attributes('-fullscreen'):
+            self._disable_fullscreen_mode()
+        else:
+            self.attributes('-fullscreen', True)
+            self.make_menu(empty_menu=True)
 
     def _disable_fullscreen_mode(self, *_):
         self.attributes('-fullscreen', False)
@@ -150,44 +170,106 @@ class MainWindow(tk.Tk):
 
     def make_dev_menu(self, menubar):
         devmenu = tk.Menu(menubar, tearoff=0)
+        entries: list[tuple[int, int, str, Callable]] = []
 
         for func_name in dir(self):
             func = getattr(self, func_name)
 
-            if func_name.startswith('_dev_') and callable(func):
-                display_name = func_name[5:].replace('_', ' ').title()
+            if re.match('^_dev.._', func_name) and callable(func):
+                group = ord(func_name[4])
+                order = ord(func_name[5])
+                display_name = func_name[7:].replace('_', ' ').title()
 
-                devmenu.add_command(label=display_name, command=func)
+                entries.append((group, order, display_name, func))
+
+        entries.sort(key=lambda x: x[:3])
+
+        prev_group = entries[0][0]
+        for group, _, name, func in entries:
+            if prev_group != group:
+                devmenu.add_separator()
+                prev_group = group
+
+            devmenu.add_command(label=name, command=func)
 
         menubar.add_cascade(label='Developer', menu=devmenu)
 
-    def _dev_hide_menu(self):
+    def _dev1a_hide_menu(self):
         logging.info('DEVELOPER MODE - OFF')
         self.make_menu()
 
-    def _dev_create_5_random_players(self):
+    def _dev2a_set_random_results_to_players(self):
+        if self.tournament_frame.tournament is None:
+            return
+
+        def random_result() -> Result:
+            return random.choice([
+                Result.White, Result.Black, Result.Draw
+            ])
+
+        for i in range(len(self.tournament_frame.tournament.get_round(-1))):
+            self.tournament_frame.tournament.set_result(i, random_result())
+
+        self.tournament_frame.set_result(random_result())
+
+    def __dev_push_sample_rounds(self, times: int = 1):
+        for _ in range(times):
+            if self.tournament_frame.tournament is None:
+                return
+
+            if not self.tournament_frame.tournament.is_started:
+                self.tournament_frame.next_round()
+
+            self._dev2a_set_random_results_to_players()
+            self.tournament_frame.next_round()
+
+    def _dev2b_push_2_sample_rounds(self):
+        self.__dev_push_sample_rounds(2)
+
+    def _dev2c_push_5_sample_rounds(self):
+        self.__dev_push_sample_rounds(5)
+
+    def _dev2d_push_10_sample_rounds(self):
+        self.__dev_push_sample_rounds(10)
+
+    @staticmethod
+    def _dev3a_create_5_random_players_in_database():
         dummy_players = dummy_generator.get_random_players(5)
         MainDB.save_players(MainDB.load_players() + dummy_players)
 
-    def _dev_create_15_random_players(self):
-        dummy_players = dummy_generator.get_random_players(15)
+    @staticmethod
+    def _dev3b_create_20_random_players_in_database():
+        dummy_players = dummy_generator.get_random_players(20)
         MainDB.save_players(MainDB.load_players() + dummy_players)
 
-    def _dev_clear_players(self):
-        MainDB.save_players([])
+    def _dev4a_add_random_player_to_tournament(self, population: int = 1):
+        players = MainDB.load_players()
+        self.tournament_frame.add_players(random.sample(players, k=min(population, len(players))))
 
-    def _dev_create_dummy_tournament(self):
+    def _dev4b_add_5_random_players_to_tournament(self):
+        self._dev4a_add_random_player_to_tournament(5)
+
+    def _dev4c_add_15_random_players_to_tournament(self):
+        self._dev4a_add_random_player_to_tournament(15)
+
+    def _dev4d_create_test_tournament(self):
         tournaments = MainDB.load_tournaments()
         tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
         MainDB.save_tournaments(tournaments)
+        self.tournament_frame.open_tournament(tournaments[-1])
 
-    def _dev_create_3_dummy_tournaments(self):
-        tournaments = MainDB.load_tournaments()
+    def _dev5a_remove_all_players(self):
+        players = self.tournament_frame.tournament.players
 
-        for _ in range(3):
-            tournaments.append(dummy_generator.create_empty_tournament(len(tournaments)))
+        for player in players[:]:
+            self.tournament_frame.tournament.remove_player(player)
 
-        MainDB.save_tournaments(tournaments)
+        self.tournament_frame.remove_players()
 
-    def _dev_clear_tournaments(self):
+    @staticmethod
+    def _dev5b_clear_players_database():
+        MainDB.save_players([])
+
+    def _dev5c_clear_tournaments_database(self):
         MainDB.save_tournaments([])
+        self.tournament_frame.close_tournament()

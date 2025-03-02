@@ -3,6 +3,7 @@ from collections.abc import Callable
 from copy import copy
 from pickle import UnpicklingError
 from tkinter.filedialog import asksaveasfilename, askopenfilename
+from typing import Any
 
 from src.config import Config
 from src.db import MainDB
@@ -11,7 +12,7 @@ from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
-from src.player import Player, Gender
+from src.player import Player, Gender, sort_players_nice
 
 EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
                           ('Gracze', '*.players')]
@@ -22,40 +23,48 @@ class PlayerBrowserWindow(BrowserWindow):
         super().__init__(parent)
 
         self.title('Wszyscy gracze')
-        utils.center_window(self, (480, 550))
+        utils.add_icon(self)
+        utils.center_window(self, (550, 550))
         self.minsize(450, 100)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
 
-        self.table.set_columns(('#', 'Imie', 'Nazwisko', 'Ranking', '', ''), (1, 5, 5, 5, 1, 1))
         self.update_table()
 
-        self.bind('<Control-a>', lambda *_: self.table.select_all())
-        self.bind('<Control-d>', lambda *_: self.table.remove_selection())
+    @classmethod
+    def modify_style(cls, style: dict[str, Any]):
+        style['columns_count'] = 6
+        style['header'] = ('#', 'Imie', 'Nazwisko', 'Ranking', '', '')
+        style['columns_weights'] = (1, 6, 6, 4, 1, 1)
+        style['row_height'] = 25
+        style['header_height'] = 35
 
     def make_action_bar(self):
         return utils.create_image_action_bar(self, [
-            utils.Action('plus.png', self.plus_btn, tk.LEFT),
-            utils.Action('import.png', self.import_btn, tk.LEFT),
-            utils.Action('export.png', self.export_btn, tk.LEFT),
-            utils.Action('add.png', self.open_btn, tk.RIGHT, size=(80, 40)),
-        ], (40, 40), tooltips=[
-            'Stwórz gracza',
-            'Importuj graczy',
-            'Eksportuj graczy',
-            'Dodaj do turnieju',
-        ])
+            utils.Action('plus.png', self.plus_btn,
+                         tk.LEFT, tooltip='Stwórz gracza'),
+            utils.Action('import.png', self.import_btn,
+                         tk.LEFT, tooltip='Importuj graczy'),
+            utils.Action('export.png', self.export_btn,
+                         tk.LEFT, tooltip='Eksportuj zaznaczonych graczy'),
+            utils.Action('add.png', self.open_btn,
+                         tk.RIGHT, size=(80, 40), tooltip='Dodaj do turnieju'),
+        ], (40, 40), bg='#ccc', active_bg='#aaa')
 
     def update_table(self):
-        self.table.clear_rows()
+        sort_players_nice(self.players)
+        table_content = []
 
         for i, player in enumerate(self.players):
-            edit_btn = utils.create_image_btn(None, 'edit.png', (20, 20), cmd=lambda idx=i: self.edit_player(idx))
-            remove_btn = utils.create_image_btn(None, 'minus.png', (20, 20), cmd=lambda idx=i: self.remove_player(idx))
-            self.table.add_row(i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn)
+            edit_btn = utils.create_image_btn(self.table, 'edit.png', (20, 20),
+                                              cmd=lambda idx=i: self.edit_player(idx))
+            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+                                                cmd=lambda idx=i: self.remove_player(idx))
 
-        self.table.redraw_rows()
+            table_content.append((i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn))
+
+        self.table.update_table(table_content)
         self.auto_save()
 
     def edit_player(self, player_idx: int):

@@ -1,46 +1,39 @@
 import tkinter as tk
 
 from src.algorithms.constants import Points
-from src.gui import utils
-from src.gui.widgets.table import Table
+from src.gui.widgets.table import ScrollableTableFrame
 from src.player import Player
 
-SCOREBOARD_STYLE = {
-    'header': {
-        'height': 0,
-        'padding': 0,
-    },
-    'row': {
-        'height': 22,
-        'font': 'Arial 11',
-    },
-    'scrollbar': {
-        'width': 14,
-    }
+SCOREBOARD_TABLE_STYLE = {
+    'columns_count': 3,
+    'columns_weights': (1, 7, 4),
+    'row_height': 22,
+    'font': ('Arial', 11),
+    'row_bg': '#eee',
+    'odd_row_bg': '#fff',
+    'max_selection': 0,
 }
 
 
 class ScoreboardFrame(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent, relief='groove', borderwidth=3)
+        super().__init__(parent, relief='groove', borderwidth=1, background='black')
 
-        self.table = Table(self)
-        utils.update_styles(self.table.style, SCOREBOARD_STYLE)
-        self.table.set_checkmarks_state(False)
-        self.table.set_columns(['', '', ''], [1, 3, 2])
+        scrollable_table = ScrollableTableFrame(self, scrollbar_width=10)
+
+        self.table = scrollable_table.table
+        self.table.change_table_style(SCOREBOARD_TABLE_STYLE)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-        tk.Label(self, text='Tablica Wyników', bg='#ccc', font='Arial 16', justify='center') \
+        tk.Label(self, text='Tablica Wyników', bg='#BDA184', font='Roboto 16', justify='center') \
             .place(relwidth=1, height=40)
-        self.table.place(y=40, relwidth=1, height=-40, relheight=1)
+        scrollable_table.place(y=40, relwidth=1, height=-40, relheight=1)
 
     def update_scoreboard(self, scoreboard: list[tuple[int, Player, Points]]):
-        self.table.clear_rows()
-
-        for pos, player, score in scoreboard:
-            self.table.add_row(pos, str(player), str(score))
-
-        self.table.redraw_rows()
+        self.table.update_table([
+            (pos, str(player), str(score))
+            for pos, player, score in scoreboard
+        ])

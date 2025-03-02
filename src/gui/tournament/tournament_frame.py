@@ -15,6 +15,7 @@ from src.gui.tournament.pairs_frame import PairsFrame
 from src.gui.tournament.rounds_frame import RoundsFrame
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
 from src.pdf import pdf
+from src.player import Player
 
 
 def update_title(main_window: tk.Tk, tournament):
@@ -35,31 +36,38 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.pairs_frame = PairsFrame(self)
         self.scoreboard_frame = ScoreboardFrame(self)
 
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=7)
+        self.columnconfigure(0, weight=1, minsize=40)
+        self.columnconfigure(1, weight=7, minsize=50)
         self.rowconfigure(0, weight=1)
+
+        self.rounds_frame.grid(row=0, column=0, sticky='nesw')
+        self.pairs_frame.grid(row=0, column=1, sticky='nesw')
+        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
 
         self._update_frame()
 
         self._info_labels: list[tk.Label] = []
         self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
 
-    def _grid_frame(self, grid_scoreboard):
-        self.rounds_frame.grid(row=0, column=0, sticky='nesw')
-        self.pairs_frame.grid(row=0, column=1, sticky='nesw')
+    def _grid_frame(self, grid_scoreboard: bool):
+        self.rounds_frame.grid()
+        self.pairs_frame.grid()
+        self.update()
+        self.rounds_frame.grid()
+        self.pairs_frame.grid()
 
         if grid_scoreboard:
-            self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
-            self.columnconfigure(1, weight=5)
-            self.columnconfigure(2, weight=2)
+            self.grid_columnconfigure(1, weight=5)
+            self.grid_columnconfigure(2, weight=2, minsize=5)
+            self.scoreboard_frame.grid()
         else:
-            self.scoreboard_frame.grid_forget()
-            self.columnconfigure(1, weight=7)
-            self.columnconfigure(2, weight=0)
+            self.grid_columnconfigure(1, weight=7)
+            self.grid_columnconfigure(2, weight=0, minsize=5)
+            self.scoreboard_frame.grid_remove()
 
     def _forget_all(self):
         for slave in self.grid_slaves():
-            slave.grid_forget()
+            slave.grid_remove()
 
         for slave in self.place_slaves():
             slave.place_forget()
@@ -69,6 +77,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self._forget_all()
             return
 
+        self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
 
         if self.rounds_frame.is_registration():
@@ -77,10 +86,6 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self.pairs_frame.update_last(self.tournament)
         else:
             self.pairs_frame.update_pairing(self.tournament, self.rounds_frame.get_active_round())
-
-        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
-
-        self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
 
         if isinstance(self.tournament, SwissTournament):
             self.__show_swiss_info_labels()
@@ -92,7 +97,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         if not isinstance(self.tournament, SwissTournament):
             return
 
-        def x():
+        def after_func():
             players_count = len(self.tournament.players)
 
             while self._info_labels:
@@ -106,7 +111,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
                 self._info_labels.append(optimum_label)
 
-        self.after(100, x)
+        self.after(100, after_func)
 
     def __assert_tournament_opened(self):
         if self.tournament is None:
@@ -198,10 +203,10 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         if not_found_players:
             self.after(100, lambda: self.__show_players_not_found_error(not_found_players))
 
-    def __show_players_not_found_error(self, players):
+    def __show_players_not_found_error(self, players: list[Player]):
         ErrorWindow(self.winfo_toplevel(), WindowException(
             Config.Messages.PLAYER_NOT_FOUND.format(players='\n'.join(map(str, players)))
-        )).mainloop()
+        ))
 
     def browse_players(self):
         players_browser = PlayerBrowserWindow(self, self.add_players)
@@ -238,7 +243,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self._update_frame()
 
     def browse_tournaments(self, create=False):
-        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament, auto_create=create)
+        tournament_browser = TournamentBrowserWindow(self, self.open_tournament, self.close_tournament,
+                                                     auto_create=create)
         tournament_browser.focus()
         self.register_subwindow(tournament_browser)
 
@@ -298,7 +304,8 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
         self.__run_pdf_action(fpdf, action)
 
-    def __run_pdf_action(self, fpdf, action):
+    @classmethod
+    def __run_pdf_action(cls, fpdf, action):
         if action == 'print':
             pdf.show_pdf_in_browser(fpdf)
         elif action == 'save':

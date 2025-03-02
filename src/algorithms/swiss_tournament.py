@@ -145,7 +145,10 @@ class SwissTournament(Tournament):
 
         weights_with_its_maxes = [
             (is_pause and is_last_bracket, 1),
-            (self.get_points(player_id).big_points + self.get_points(opponent_id).big_points, max_points_achievable * 2),
+            (
+                self.get_points(player_id).big_points + self.get_points(opponent_id).big_points,
+                max_points_achievable * 2
+            ),
             self.__calc_preferable_color_weight(player_id, opponent_id),
             self.__calc_starting_numbers_weight(player_id, opponent_id),
             self.__calc_nearest_rating_weight(player_id, opponent_id),
@@ -196,7 +199,8 @@ class SwissTournament(Tournament):
     def __has_paused(self, player_id: int) -> bool:
         return any(self._players[player_id] in pauses for pauses in self._pause)
 
-    def __break_bracket(self, bracket: set[tuple[int, int]]) -> set[int]:
+    @classmethod
+    def __break_bracket(cls, bracket: set[tuple[int, int]]) -> set[int]:
         return {i for pair in bracket for i in pair}
 
     def __choose_preferable_colors(self, pairs: set[Pair]) -> set[Pair]:
@@ -215,14 +219,15 @@ class SwissTournament(Tournament):
         return pair if self._starting_numbers[player_id] > self._starting_numbers[opp_id] else reversed_pair
 
     def __sort_pairs(self, pairs: set[Pair]) -> list[Pair]:
-        sort_key = lambda a, b: (
-            max(self._points[a].big_points, self._points[b].big_points),
-            self._points[a].big_points + self._points[b].big_points,
-            max(self._points[a].small_points, self._points[b].small_points),
-            max(self._players[a].rating, self._players[b].rating),
-            self._players[a].rating + self._players[b].rating,
-            self._players[a].name, self._players[b].name,
-        )
+        def sort_key(a: int, b: int):
+            return (
+                max(self._points[a].big_points, self._points[b].big_points),
+                self._points[a].big_points + self._points[b].big_points,
+                max(self._points[a].small_points, self._points[b].small_points),
+                max(self._players[a].rating, self._players[b].rating),
+                self._players[a].rating + self._players[b].rating,
+                self._players[a].name, self._players[b].name,
+            )
 
         return sorted(pairs, key=lambda pair: sort_key(*pair), reverse=True)
 

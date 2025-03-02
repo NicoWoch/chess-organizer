@@ -27,7 +27,8 @@ class DB:
             logging.critical(f'Cannot open file "{filepath}" in "rb" mode')
             raise
 
-    def _save_object(self, filepath: str, obj: Any):
+    @classmethod
+    def _save_object(cls, filepath: str, obj: Any):
         logging.debug(f'Saving object to file "{filepath}"')
 
         try:
@@ -37,15 +38,18 @@ class DB:
             logging.critical(f'Cannot open file "{filepath}" in "wb" mode')
             raise
 
-    def _test_players(self, players):
-        assert isinstance(players, list), f'Players Testing Error ({type(players) = } != list)'
+    @classmethod
+    def _test_players(cls, players):
+        assert isinstance(players, list), f'Players Testing Error ({type(players)=} != list)'
         if len(players) != 0:
-            assert isinstance(players[0], Player), f'Players Testing Error ({type(players[0]) = } != Player)'
+            assert isinstance(players[0], Player), f'Players Testing Error ({type(players[0])=} != Player)'
 
-    def _test_tournaments(self, tournaments):
-        assert isinstance(tournaments, list), f'Tournaments Testing Error ({type(tournaments) = } != list)'
+    @classmethod
+    def _test_tournaments(cls, tournaments):
+        assert isinstance(tournaments, list), f'Tournaments Testing Error ({type(tournaments)=} != list)'
         if len(tournaments) != 0:
-            assert isinstance(tournaments[0], Tournament), f'Tournaments Testing Error ({type(tournaments[0]) = } != Tournament)'
+            assert isinstance(tournaments[0], Tournament), \
+                f'Tournaments Testing Error ({type(tournaments[0])=} != Tournament)'
 
     def load_players(self, path=None) -> list[Player]:
         if path is None:

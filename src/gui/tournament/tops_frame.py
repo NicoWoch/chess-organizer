@@ -64,9 +64,11 @@ class TopsFrame(utils.ResizingCanvas):
         for y_in in y_ins:
             for y_out in y_outs:
                 half_x = (x_in + x_out) // 2
-                self.create_line(x_in, y_in, half_x, y_in, width=3, arrow='first' if is_arrow_left else ..., arrowshape=arrowshape)
+                self.create_line(x_in, y_in, half_x, y_in, width=3,
+                                 arrow='first' if is_arrow_left else ..., arrowshape=arrowshape)
                 self.create_line(half_x, y_in, half_x, y_out, width=3)
-                self.create_line(half_x, y_out, x_out, y_out, width=3, arrow='last' if not is_arrow_left else ..., arrowshape=arrowshape)
+                self.create_line(half_x, y_out, x_out, y_out, width=3,
+                                 arrow='last' if not is_arrow_left else ..., arrowshape=arrowshape)
 
     def make_board_row(self, round_id: int, start_table_id: int, x: int, columns: tuple[int, ...], outline='blue'):
         x -= GAME_SIZE[0] // 2
@@ -100,8 +102,10 @@ class TopsFrame(utils.ResizingCanvas):
             self.create_text(rect.center[0], rect.n + (rect.height // 4) + 2, text=game.white.surname, font=font)
 
         if game.black is not None:
-            self.create_text(rect.center[0], rect.s - (rect.height // 4) - 2, text=game.black.name, fill='white', font=font)
-            self.create_text(rect.center[0], rect.s - (rect.height // 4) + 2, text=game.black.surname, fill='white', font=font)
+            self.create_text(rect.center[0], rect.s - (rect.height // 4) - 2,
+                             text=game.black.name, fill='white', font=font)
+            self.create_text(rect.center[0], rect.s - (rect.height // 4) + 2,
+                             text=game.black.surname, fill='white', font=font)
 
     def create_game_result(self, rect: utils.Rect, result: Result):
         if result == Result.White:

@@ -2,6 +2,7 @@ import tkinter as tk
 from typing import Callable
 
 from src.config import Config
+from src.gui.subwindows.info.error_window import WindowException
 from src.player import Player, Gender
 from src.gui import utils
 
@@ -11,8 +12,8 @@ class PlayerEditorWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Gracz')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
-        utils.center_window(self, (210, 220))
+        utils.add_icon(self)
+        utils.center_window(self, (280, 250))
         self.resizable(False, False)
 
         self.player = player
@@ -22,28 +23,32 @@ class PlayerEditorWindow(tk.Toplevel):
         self.name = tk.StringVar(value=player.name)
         self.surname = tk.StringVar(value=player.surname)
         self.gender = tk.StringVar(value=str(player.gender.value))
-        self.rating = tk.IntVar(value=player.rating)
+        self.rating = tk.StringVar(value=player.rating)
 
         self.update_player_label()
         self.make_main_frame()
 
     def make_main_frame(self):
         main_frame = tk.Frame(self)
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(1, weight=1)
+
+        for i in range(5):
+            main_frame.grid_rowconfigure(i, weight=1)
 
         tk.Label(main_frame, textvariable=self.player_label).grid(row=0, column=0, columnspan=2, pady=10)
 
         self.make_entry(main_frame, 1, 'Imie', self.name, bind=self.update_player_label)
         self.make_entry(main_frame, 2, 'Nazwisko', self.surname, bind=self.update_player_label)
-        self.make_option_menu(main_frame, 3, 'Płeć', self.gender, [x.value for x in Gender])
-        self.make_entry(main_frame, 4, 'Ranking', self.rating)
+        self.make_entry(main_frame, 3, 'Ranking', self.rating, validate=self.__rating_validator)
 
-        tk.Button(main_frame, text='Zapisz', command=self.save, height=2)\
-            .grid(row=5, column=0, columnspan=2, pady=10, sticky='nesw')
+        tk.Button(main_frame, text='Zapisz', command=self.save, height=2) \
+            .grid(row=4, column=0, columnspan=2, pady=10, sticky='nesw')
 
-        main_frame.pack(fill='both', padx=15, pady=15)
+        main_frame.place(x=15, y=15, relwidth=1, width=-30, relheight=1, height=-30)
 
-    def make_entry(self, main_frame, i, label, var, bind=None):
-        tk.Label(main_frame, text=label)\
+    def make_entry(self, main_frame: tk.Frame, i: int, label: str, var: tk.Variable, bind=None, validate=None):
+        tk.Label(main_frame, text=label) \
             .grid(row=i, column=0)
 
         entry = tk.Entry(main_frame, textvariable=var)
@@ -52,27 +57,49 @@ class PlayerEditorWindow(tk.Toplevel):
         if bind is not None:
             entry.bind('<KeyRelease>', bind)
 
-    def make_option_menu(self, main_frame, i, label, var, options):
-        tk.Label(main_frame, text=label)\
-            .grid(row=i, column=0)
-        tk.OptionMenu(main_frame, var, *options)\
-            .grid(row=i, column=1, sticky='nesw')
+        if validate is not None:
+            entry.configure(validate='all', validatecommand=(self.register(validate), '%P'))
+
+    @classmethod
+    def __rating_validator(cls, text: str) -> bool:
+        return text == '' or text.isdigit()
 
     def update_player_label(self, *_):
         self.player_label.set(f'Gracz {self.name.get()} {self.surname.get()}')
 
     def save(self, *_):
-        self.player.name = self.name.get()
-        self.player.surname = self.surname.get()
+        name = self.name.get().strip().title()
+        surname = self.surname.get().strip().title()
+
+        if name == '' or surname == '':
+            return
+
+        if self.rating.get() == '':
+            return
+
+        rating = int(self.rating.get())
+
+        if rating < 10 or rating > 10_000:
+            raise WindowException(Config.Messages.RATING_OVERFLOW)
+
+        self.player.name = name
+        self.player.surname = surname
         self.player.gender = Gender(self.gender.get())
-        self.player.rating = self.rating.get()
+        self.player.rating = rating
 
         self.on_save()
         self.destroy()
 
 
-if __name__ == '__main__':
+def _test_window():
     root = tk.Tk()
-    root.geometry('0x0+0+0')
-    PlayerEditorWindow(root, Player.create_player(name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men), lambda: 0)
+    root.geometry('1x1+0+0')
+    editor = PlayerEditorWindow(root, Player.create_player(
+        name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men
+    ), lambda: 0)
+    editor.protocol('WM_DELETE_WINDOW', lambda: root.destroy())
     root.mainloop()
+
+
+if __name__ == '__main__':
+    _test_window()

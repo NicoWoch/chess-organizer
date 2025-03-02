@@ -61,7 +61,6 @@ def main():
     plt.plot(players_range, [7 for _ in players_range], color='black')
     plt.plot(players_range, [8 for _ in players_range], color='black')
 
-
     plt.plot(players_range, max_rounds, color='blue')
     plt.show()
     # print(get_max_rounds_better(20, random.Random(23), 25))

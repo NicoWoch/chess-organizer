@@ -3,7 +3,6 @@ from collections import namedtuple
 from typing import Callable
 
 from src.algorithms.swiss_tournament import SwissTournament
-from src.config import Config
 from src.gui import utils
 
 Alg = namedtuple('Alg', ('name', 'cls'))
@@ -18,8 +17,8 @@ class TournamentCreationWindow(tk.Toplevel):
         super().__init__(parent)
 
         self.title('Stwóz turniej')
-        self.iconbitmap(Config.WINDOW_ICON_PATH)
-        utils.center_window(self, (250, 150))
+        utils.add_icon(self)
+        utils.center_window(self, (300, 180))
         self.resizable(False, False)
 
         self.on_create = on_create
@@ -30,6 +29,12 @@ class TournamentCreationWindow(tk.Toplevel):
 
     def make_main_frame(self):
         main_frame = tk.Frame(self)
+
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_columnconfigure(1, weight=1)
+
+        for i in range(3):
+            main_frame.grid_rowconfigure(i, weight=1)
 
         tk.Label(main_frame, text='Nazwa turnieju') \
             .grid(row=0, column=0, pady=0)
@@ -42,13 +47,17 @@ class TournamentCreationWindow(tk.Toplevel):
         tk.Button(main_frame, text='Utwórz turniej', command=self._create, height=2) \
             .grid(row=2, column=0, columnspan=2, pady=10)
 
-        main_frame.pack(fill='both', padx=15, pady=15)
+        main_frame.place(x=15, y=15, relwidth=1, width=-30, relheight=1, height=-30)
 
     def _create(self, *_):
-        alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
-        self.on_create(alg_class(self.name.get()))
-        self.destroy()
+        name = self.name.get().strip().title()
 
+        if name == '':
+            return
+
+        alg_class = next(alg.cls for alg in ALGORITHMS if alg.name == self.algorithm.get())
+        self.on_create(alg_class(name))
+        self.destroy()
 
 
 if __name__ == '__main__':
