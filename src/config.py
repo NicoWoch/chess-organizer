@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Config:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    VERSION = 'V1.0'
+    VERSION = 'V1.0-1'
 
     WINDOW_NAME = f'Chess Organizer {VERSION}'
     WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.png')
