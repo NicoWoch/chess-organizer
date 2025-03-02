@@ -48,11 +48,11 @@ class Points:
         return self.big_points == other.big_points and self.small_points == other.small_points
 
     def __str__(self):
-        points = [self.__parse_point(p) for p in (self.big_points, *self.small_points)]
+        points = [self.points_with_halfs(p) for p in (self.big_points, *self.small_points)]
         return ', '.join(points)
 
     @classmethod
-    def __parse_point(cls, point: float) -> str:
+    def points_with_halfs(cls, point: float) -> str:
         if point % 1 == 0:
             return str(int(point))
 

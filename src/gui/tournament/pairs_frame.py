@@ -3,6 +3,7 @@ from typing import Optional
 
 from src.algorithms.tournament import Tournament
 from src.gui.widgets.colorful_label import ColorfulLabel
+from src.gui.widgets.points_view import PointsView
 from src.gui.widgets.table import ScrollableTableFrame
 from src.player import Player, sorted_players_nice
 
@@ -141,7 +142,7 @@ class PairsFrame(tk.Frame):
         }
 
         self.table.update_table([
-            (pos, player, ratings_labels[player], str(points))
+            (pos, player, ratings_labels[player], PointsView(self.table, points, FINISH_TABLE_STYLE['row_height']))
             for pos, player, points in tournament.get_scoreboard()
         ])
         self._update_waiting(None)
