@@ -59,7 +59,7 @@ class PlayerBrowserWindow(BrowserWindow):
         for i, player in enumerate(self.players):
             edit_btn = utils.create_image_btn(self.table, 'edit.png', (20, 20),
                                               cmd=lambda idx=i: self.edit_player(idx))
-            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+            remove_btn = utils.create_image_btn(self.table, 'remove.png', (20, 20),
                                                 cmd=lambda idx=i: self.remove_player(idx))
 
             table_content.append((i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn))

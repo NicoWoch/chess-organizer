@@ -48,7 +48,7 @@ class TournamentBrowserWindow(BrowserWindow):
         table_content = []
 
         for i, tournament in enumerate(self.tournaments):
-            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+            remove_btn = utils.create_image_btn(self.table, 'remove.png', (20, 20),
                                                 cmd=lambda idx=i: self.remove_tournament(idx))
 
             date = tournament.started_date.strftime("%d %B %Y") if tournament.started_date is not None else '-'
