@@ -28,7 +28,7 @@ def get_max_rounds(no_players: int, rng: random.Random) -> int:
     for round_no in itertools.count():
         tournament.next_round()
 
-        if len(tournament.get_pause()) != no_players % 2:
+        if len(tournament.calculate_pause()) != no_players % 2:
             return round_no
 
         assert len(tournament.last_round) == games_count

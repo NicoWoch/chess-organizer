@@ -130,22 +130,27 @@ class PairsFrame(tk.Frame):
             (i, game.white, game.black, game.result.value)
             for i, game in enumerate(tournament.get_round(round_id), start=1)
         ])
-        self._update_waiting(tournament.get_pause(round_id))
+        self._update_waiting(tournament.calculate_pause(round_id))
 
     def update_last(self, tournament: Tournament):
         self.table.change_table_style(FINISH_TABLE_STYLE)
 
-        ratings_labels = {
-            tournament.players[i]:
-                self.__create_ratings_label(tournament.ratings_before[i], tournament.ratings_after[i])
-            for i in range(tournament.players_count)
-        }
-
         self.table.update_table([
-            (pos, player, ratings_labels[player], PointsView(self.table, points, FINISH_TABLE_STYLE['row_height']))
-            for pos, player, points in tournament.get_scoreboard()
+            (
+                pos, player,
+                self.__create_ratings_label_for_player(tournament, player),
+                PointsView(self.table, points, FINISH_TABLE_STYLE['row_height'])
+            )
+            for pos, player, points in tournament.create_scoreboard()
         ])
         self._update_waiting(None)
+
+    def __create_ratings_label_for_player(self, tournament: Tournament, player: Player):
+        assert player in tournament.players, 'Tried to create player rating label with player outside of tournament'
+
+        index = tournament.players.index(player)
+
+        return self.__create_ratings_label(tournament.ratings_before[index], tournament.ratings_after[index])
 
     def __create_ratings_label(self, old_rating: int, new_rating: int):
         deviation = new_rating - old_rating

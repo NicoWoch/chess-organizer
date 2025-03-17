@@ -17,7 +17,7 @@ class Tops:
         if players_count == 1:
             return
 
-        self.rounds.append([Game(None, None, None) for _ in range(players_count // 2)])
+        self.rounds.append([Game(None, None, None) for _ in range(players_count // 2)])  # TODO: fix
         self._generate_empty_rounds(players_count // 2)
 
     def _fill_first_round(self):

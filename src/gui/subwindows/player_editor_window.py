@@ -3,7 +3,7 @@ from typing import Callable
 
 from src.config import Config
 from src.gui.subwindows.info.error_window import WindowException
-from src.player import Player, Gender
+from src.player import Player
 from src.gui import utils
 
 
@@ -22,8 +22,7 @@ class PlayerEditorWindow(tk.Toplevel):
         self.player_label = tk.StringVar()
         self.name = tk.StringVar(value=player.name)
         self.surname = tk.StringVar(value=player.surname)
-        self.gender = tk.StringVar(value=str(player.gender.value))
-        self.rating = tk.StringVar(value=player.rating)
+        self.rating = tk.StringVar(value=str(player.rating))
 
         self.update_player_label()
         self.make_main_frame()
@@ -84,7 +83,6 @@ class PlayerEditorWindow(tk.Toplevel):
 
         self.player.name = name
         self.player.surname = surname
-        self.player.gender = Gender(self.gender.get())
         self.player.rating = rating
 
         self.on_save()
@@ -95,7 +93,7 @@ def _test_window():
     root = tk.Tk()
     root.geometry('1x1+0+0')
     editor = PlayerEditorWindow(root, Player.create_player(
-        name='adam', surname='nowak', rating=1000, group_name='default', gender=Gender.Men
+        name='adam', surname='nowak', rating=1000
     ), lambda: 0)
     editor.protocol('WM_DELETE_WINDOW', lambda: root.destroy())
     root.mainloop()

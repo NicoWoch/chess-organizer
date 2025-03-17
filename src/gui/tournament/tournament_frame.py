@@ -77,7 +77,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             self._forget_all()
             return
 
-        self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
+        self.scoreboard_frame.update_scoreboard(self.tournament.create_scoreboard())
         self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
 
         if self.rounds_frame.is_registration():
@@ -138,7 +138,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         if self.tournament.is_ended:
             raise WindowException(Config.Messages.TOURNAMENT_HAS_ENDED)
 
-        if self.tournament.is_started and not self.tournament.has_round_ended():
+        if self.tournament.is_started and not self.tournament.are_all_games_finished():
             raise WindowException(Config.Messages.ROUND_NOT_ENDED)
 
     def __assert_can_make_next_round(self):
@@ -294,7 +294,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
 
         round_id = self.rounds_frame.get_active_round()
         pairings = self.tournament.get_round(round_id)
-        pause_players = self.tournament.get_pause(round_id)
+        pause_players = self.tournament.calculate_pause(round_id)
 
         fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
         self.__run_pdf_action(fpdf, action)
@@ -302,7 +302,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
     def make_pdf_results(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
 
-        fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
+        fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.create_scoreboard())
         self.__run_pdf_action(fpdf, action)
 
     @classmethod

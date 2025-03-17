@@ -4,7 +4,7 @@ from typing import Any
 from src.gui import utils
 from src.algorithms.constants import Result, Game
 from src.algorithms.tops import Tops
-from src.player import Gender, Player
+from src.player import Player
 
 GAME_SIZE = 15, 30
 
@@ -95,7 +95,7 @@ class TopsFrame(utils.ResizingCanvas):
         self.create_rectangle(rect.w, rect.center[1], rect.e, rect.s, fill='black', outline=outline, width=outlinewidth)
         return game_obj
 
-    def create_game_texts(self, rect: utils.Rect, game: Game):
+    def create_game_texts(self, rect: utils.Rect, game: Game):  # TODO: fix unresolved references
         font = ('Calibri', 15)
         if game.white is not None:
             self.create_text(rect.center[0], rect.n + (rect.height // 4) - 2, text=game.white.name, font=font)
@@ -142,14 +142,14 @@ if __name__ == '__main__':  # Testing tops frame
     root = tk.Tk()
     root.geometry('1000x600')
     TopsFrame(root, Tops([
-        Player.create_player(name='Łukasz',     surname='Nowak', gender=Gender.Men, rating=1200),
-        Player.create_player(name='Adam',       surname='Nowak', gender=Gender.Women, rating=1100),
-        Player.create_player(name='Anna',       surname='Nowak', gender=Gender.Other, rating=3000),
-        Player.create_player(name='Eugene',     surname='Kowalski', gender=Gender.Men, rating=800),
-        Player.create_player(name='Władysław',  surname='Kowalski', gender=Gender.Other, rating=3200),
-        Player.create_player(name='Wołomir',    surname='Kowalski', gender=Gender.Men, rating=990),
-        Player.create_player(name='Nicolas',    surname='Kowalski', gender=Gender.Men, rating=1200),
-        Player.create_player(name='Jarek',      surname='Kowalski', gender=Gender.Women, rating=1100),
+        Player.create_player(name='Łukasz',     surname='Nowak',    rating=1200),
+        Player.create_player(name='Adam',       surname='Nowak',    rating=1100),
+        Player.create_player(name='Anna',       surname='Nowak',    rating=3000),
+        Player.create_player(name='Eugene',     surname='Kowalski', rating=800),
+        Player.create_player(name='Władysław',  surname='Kowalski', rating=3200),
+        Player.create_player(name='Wołomir',    surname='Kowalski', rating=990),
+        Player.create_player(name='Nicolas',    surname='Kowalski', rating=1200),
+        Player.create_player(name='Jarek',      surname='Kowalski', rating=1100),
     ], [
         8, 7, 6, 5, 4, 3, 2, 1
     ])).pack(fill='both', expand=True, padx=100, pady=50)

@@ -1,198 +1,200 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Iterable, Iterator
 
-from src.algorithms.constants import Result, Round, Points
+from src.algorithms.constants import Result, Points, Game
 from src.algorithms.elo import elo_rating
 from src.algorithms.errors import TournamentNotRunningError, TournamentStartedError
 from src.algorithms.errors import PlayerExistsError, TournamentEndedError, RoundNotEnded
 from src.config import Config
 from src.player import Player
 
-Pairing = tuple[Round, list[Player]]
+type Pairs = tuple[tuple[int, int], ...]
 
 
-class Tournament(ABC):
-    def __init__(self, name: str):
+class Pairer(ABC):
+    tournament: 'Tournament'
+
+    @abstractmethod
+    def get_starting_points(self) -> Points: ...
+
+    @abstractmethod
+    def calculate_small_points(self, points: list[Points], till_round: int = None) -> Iterable[Points]: ...
+
+    @abstractmethod
+    def pair_next_round(self) -> Pairs: ...
+
+
+class Tournament:
+    def __init__(self, name: str, pairer: Pairer):
         self.name = name
         self.started_date: Optional[datetime] = None
 
-        self._players: list[Player] = []
-        self._points: list[Points] = []
-        self._opponents: list[dict[Result, list[int]]] = []
+        self._pairer = pairer
+        self._pairer.tournament = self
 
-        self._rounds: list[Round] = []
-        self._pause: list[list[Player]] = []
+        self._players: tuple[Player, ...] = ()
+        self._rounds: list[tuple[Game, ...]] = []
 
-        self.is_started = False
-        self.is_ended = False
-
-        self.ratings_before: list[int] = []
-        self.ratings_after: list[int] = []
+        self._ratings_at_start: tuple[int, ...] = ()
+        self._ratings_at_end: tuple[int, ...] = ()
+        self._is_finished = False
 
     @property
-    def players(self) -> list[Player]:
-        return self._players.copy()
+    def players(self) -> tuple[Player, ...]:
+        return self._players
 
     @property
     def players_count(self) -> int:
         return len(self._players)
 
     @property
+    def is_started(self):
+        return len(self._rounds) != 0
+
+    @property
+    def is_finished(self):
+        return self._is_finished
+
+    @property
     def is_running(self):
-        return self.is_started and not self.is_ended
+        return self.is_started and not self.is_finished
 
-    def _assert_tournament_running(self):
-        if not self.is_running:
-            raise TournamentNotRunningError
-
-    def _assert_tournament_not_started(self):
-        if self.is_started:
-            raise TournamentStartedError
+    @staticmethod
+    def __player_order_key(player: Player) -> int:
+        return -player.rating
 
     def add_player(self, player: Player):
-        self._assert_tournament_not_started()
+        self._assert_not_started()
 
         if player in self._players:
-            raise PlayerExistsError
+            raise PlayerExistsError(player)
 
-        self._players.append(player)
-        self._points.append(self._get_default_points())
-        self._opponents.append({Result.White: [], Result.Draw: [], Result.Black: []})
-        self.ratings_before.append(player.rating)
+        self._players = tuple(sorted(self._players + (player,), key=self.__player_order_key))
 
-    def add_players(self, players: list[Player]):
+    def add_players(self, players: Iterable[Player]):
         for player in players:
             self.add_player(player)
 
     def remove_player(self, player: Player):
-        self._assert_tournament_not_started()
+        self._assert_not_started()
 
         player_id = self._players.index(player)
-        del self._players[player_id], self._points[player_id], self._opponents[player_id]
-        del self.ratings_before[player_id]
+        self._players = self._players[:player_id] + self._players[player_id + 1:]
 
-    def get_points(self, player_id: int):
-        return self._points[player_id]
+    def calculate_points(self, *, till_round: int | None = None) -> tuple[Points, ...]:
+        points = [self._pairer.get_starting_points() for _ in range(self.players_count)]
 
-    def get_opponents(self, player_id: int):
-        return self._opponents[player_id]
+        for game in self.iterate_over_all_games(till_round):
+            points[game.white].base_big += game.result.get_points()
+            points[game.black].base_big += game.result.opposite().get_points()
+
+        for i in range(len(self._rounds)):
+            for player_id in self.calculate_pause_indices(i):
+                points[player_id].pause += Config.PAUSE_POINTS
+
+        return tuple(self._pairer.calculate_small_points(points, till_round))
 
     @property
-    def round_count(self) -> int:
-        return len(self._rounds)
+    def rounds(self) -> tuple[tuple[Game, ...], ...]:
+        return tuple(self._rounds)
 
     @property
-    def last_round(self) -> Round:
+    def last_round(self) -> tuple[Game, ...]:
         return self._rounds[-1]
 
-    def get_round(self, round_id) -> Round:
-        return self._rounds[round_id]
+    def calculate_pause_indices(self, round_id: int = -1) -> tuple[int, ...]:
+        assert round_id == -1 or 0 <= round_id < len(self._rounds), f'Round index is out of bounds ({round_id=})'
 
-    def get_pause(self, round_id=-1) -> list[Player]:
-        return self._pause[round_id]
+        pause = list(range(self.players_count))
 
-    def get_scoreboard(self) -> list[tuple[int, Player, Points]]:
+        for game in self._rounds[round_id]:
+            pause.remove(game.white)
+            pause.remove(game.black)
+
+        return tuple(pause)
+
+    def calculate_pause(self, round_id: int = -1) -> tuple[Player, ...]:
+        return tuple(
+            self._players[index] for index in self.calculate_pause_indices(round_id)
+        )
+
+    def create_scoreboard(self, *, till_round: int | None = None) -> list[tuple[int, Player, Points]]:
         scoreboard = []
 
-        last_pos = 0
+        pos = 1
         last_score = None
-        sorted_scores = sorted(zip(self._players, self._points), key=lambda x: x[1], reverse=True)
+        sorted_scores: list[tuple[Player, Points]] = sorted(
+            zip(self._players, self.calculate_points(till_round=till_round)),
+            key=lambda x: x[1], reverse=True
+        )
+
         for i, (player, score) in enumerate(sorted_scores, start=1):
             if last_score is None or last_score != score:
                 pos = i
-                last_pos = pos
-            else:
-                pos = last_pos
+                last_score = score
 
             scoreboard.append((pos, player, score))
-            last_score = score
 
         return scoreboard
 
     def set_result(self, table_id: int, new_result: Result):
-        self._assert_tournament_running()
-
-        game = self.last_round[table_id]
-
-        # Clear old result
-        self.__change_points_by_result(game.white, game.black, game.result, -1)
-        self.__change_points_by_result(game.black, game.white, game.result.opposite(), -1)
-
-        # Apply new result
-        self.__change_points_by_result(game.white, game.black, new_result, 1)
-        self.__change_points_by_result(game.black, game.white, new_result.opposite(), 1)
-        game.result = new_result
-
-    def __change_points_by_result(self, player: Player, opponent: Player, result: Result, points_mul: int):
-        if points_mul not in (-1, 1):
-            raise ValueError(f'Bad points_mul. {points_mul} should be -1 or 1')
-
-        player_id = self.players.index(player)
-        opponent_id = self.players.index(opponent)
-
-        self._points[player_id].big_points += result.get_points() * points_mul
-
-        if result != Result.Playing:
-            if points_mul == 1:
-                self._opponents[player_id][result].append(opponent_id)
-            elif points_mul == -1:
-                self._opponents[player_id][result].remove(opponent_id)
+        self._assert_running()
+        self.last_round[table_id].result = new_result
 
     def next_round(self):
         if not self.is_started:
-            self.__start_round(1)
-            self.started_date = datetime.now().astimezone()
-            self.is_started = True
+            self.started_date = datetime.now()
+            self._ratings_at_start = tuple(player.rating for player in self._players)
             self.__trigger_playing_to_players()
+            self.__start_round()
             return
 
-        if self.is_ended:
-            raise TournamentEndedError
+        if self.is_finished:
+            raise TournamentEndedError()
 
-        logging.debug(f'Tournament "{self.name}": Next round ({self.round_count + 1})')
+        logging.debug(f'Tournament "{self.name}": Next round ({len(self._rounds) + 1})')
 
         self.__end_round()
-        self.__start_round(self.round_count + 1)
+        self.__start_round()
+
+    def remove_last_round(self):
+        self._assert_running()
+        self._rounds.pop()
+
+        if not self.is_started:
+            self.started_date = None
+            self._ratings_at_start = ()
 
     def __trigger_playing_to_players(self):
         for player in self._players:
             player.trigger_playing()
 
-    def __start_round(self, round_no: int):
-        pairs, pauses = self._pair_round(round_no)
-
-        pause_points = Config.PAUSE_POINTS
-
-        for pause in pauses:
-            pause_id = self._players.index(pause)
-            self._points[pause_id].big_points += pause_points
-
-        self._rounds.append(pairs)
-        self._pause.append(pauses)
+    def __start_round(self):
+        self._rounds.append(tuple(
+            Game(white, black) for white, black in self._pairer.pair_next_round()
+        ))
 
     def __end_round(self):
-        if not self.has_round_ended():
+        if not self.are_all_games_finished():
             not_ended_count = sum(game.result == Result.Playing for game in self.last_round)
             raise RoundNotEnded(not_ended_count)
 
-        self._update_points()
-
-    def has_round_ended(self) -> bool:
+    def are_all_games_finished(self) -> bool:
         return all(game.result != Result.Playing for game in self.last_round)
 
     def end_tournament(self):
-        self._assert_tournament_running()
-
-        logging.debug(f'Tournament "{self.name}": Ending tournament after {self.round_count} rounds')
+        self._assert_running()
 
         self.__end_round()
         self.__calculate_new_ratings()
-        self.is_ended = True
+        self._is_finished = True
+
+        logging.debug(f'Tournament "{self.name}": Finished tournament after {len(self._rounds)} rounds')
 
     def __calculate_new_ratings(self):
-        ratings = self.ratings_before.copy()
+        ratings = list(self._ratings_at_start)
 
         for games in self._rounds:
             for game in games:
@@ -205,13 +207,30 @@ class Tournament(ABC):
 
                 ratings[white_id], ratings[black_id] = elo_rating(ratings[white_id], ratings[black_id], points)
 
-        self.ratings_after = ratings
+        self._ratings_at_end = tuple(ratings)
 
-    @abstractmethod
-    def _get_default_points(self) -> Points: ...
+    @property
+    def ratings_at_start(self) -> tuple[int, ...]:
+        assert self.is_started, 'Tournament has to be started to get ratings at start'
+        return self._ratings_at_start
 
-    @abstractmethod
-    def _pair_round(self, round_no: int) -> Pairing: ...
+    @property
+    def ratings_at_end(self) -> tuple[int, ...]:
+        assert self.is_finished, 'Tournament has to be finished to get ratings at end'
+        return self._ratings_at_end
 
-    @abstractmethod
-    def _update_points(self): ...
+    def iterate_over_all_games(self, till_round: int | None = None) -> Iterator[Game]:
+        assert till_round is None or 0 <= till_round < len(self._rounds), f'Round index is out of bounds ({till_round=})'
+
+        rounds = self._rounds if till_round is None else self._rounds[:till_round]
+
+        for round_games in rounds:
+            yield from round_games
+
+    def _assert_running(self):
+        if not self.is_running:
+            raise TournamentNotRunningError()
+
+    def _assert_not_started(self):
+        if self.is_started:
+            raise TournamentStartedError()

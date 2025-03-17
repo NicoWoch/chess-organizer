@@ -32,7 +32,7 @@ def make_pairings_pdf(tournament_name: str, round_id: int, pairs: list[Game], pa
     for i, game in enumerate(pairs):
         table.append([
             i + 1,
-            game.white,
+            game.white,  # TODO: show players, not indices
             game.black,
             game.result.value,
         ])

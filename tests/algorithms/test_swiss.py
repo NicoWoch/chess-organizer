@@ -36,7 +36,7 @@ class TestSwiss(unittest.TestCase):
             if len(set(p.rating for p in players)) != len([p.rating for p in players]):
                 continue
 
-            if len(set(players)) != len(players):
+            if any(players.count(p) > 1 for p in players):
                 continue
 
             break
@@ -54,8 +54,8 @@ class TestSwiss(unittest.TestCase):
 
             self.assertEqual((true_white_id, true_black_id), expected_pair, msg=f'Bad pair on table {i}')
 
-        self.assertEqual(len(self.tournament.get_pause()), len(pauses), msg='Bad length of pause')
-        self.assertEqual(set(self.tournament.players.index(p) for p in self.tournament.get_pause()), pauses,
+        self.assertEqual(len(self.tournament.calculate_pause()), len(pauses), msg='Bad length of pause')
+        self.assertEqual(set(self.tournament.players.index(p) for p in self.tournament.calculate_pause()), pauses,
                          msg='Bad pause players')
 
     def test_no_error_to_40_players(self):
@@ -66,7 +66,7 @@ class TestSwiss(unittest.TestCase):
             self.tournament = SwissTournament(f'tournament {no_players}')
             self.__add_dummy_players(no_players)
 
-            pause = set()
+            pause = []
             for round_no in range(prefered_rounds_count):
                 error_message = f'Fail while testing tournament with {no_players} players on {round_no + 1} round'
                 self.tournament.next_round()
@@ -74,11 +74,11 @@ class TestSwiss(unittest.TestCase):
                 self.assertEqual(len(self.tournament.last_round), games_in_round, msg=error_message)
 
                 if no_players % 2 == 0:
-                    self.assertEqual(len(self.tournament.get_pause()), 0, msg=error_message)
+                    self.assertEqual(len(self.tournament.calculate_pause()), 0, msg=error_message)
                 else:
-                    self.assertEqual(len(self.tournament.get_pause()), 1, msg=error_message)
-                    self.assertNotIn(self.tournament.get_pause()[0], pause, msg=error_message)
-                    pause.add(self.tournament.get_pause()[0])
+                    self.assertEqual(len(self.tournament.calculate_pause()), 1, msg=error_message)
+                    self.assertNotIn(self.tournament.calculate_pause()[0], pause, msg=error_message)
+                    pause.append(self.tournament.calculate_pause()[0])
 
                 for i in range(games_in_round):
                     self.tournament.set_result(i, RNG.choice([Result.White, Result.Draw, Result.Black]))

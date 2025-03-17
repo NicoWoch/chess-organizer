@@ -1,10 +1,8 @@
 import operator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from src.config import Config
-from src.player import Player
 
 
 class Result(Enum):
@@ -33,22 +31,31 @@ class Result(Enum):
 
 
 class Points:
-    def __init__(self, small_points_count: int):
-        self.big_points: float = 0
-        self.small_points: tuple[float, ...] = tuple([0] * small_points_count)
+    def __init__(self, small_points_count: int, base_big: float = 0, pause: int = 0, small: tuple[float, ...] = None):
+        self.base_big = base_big
+        self.pause = pause
+        self.small = small if small is not None else (0.,) * small_points_count
+
+    @property
+    def big(self) -> float:
+        return self.base_big + self.pause
 
     def add_small_points(self, points: tuple[float, ...]):
-        assert len(self.small_points) == len(points)
-        self.small_points = tuple(map(operator.add, self.small_points, points))
+        assert len(self.small) == len(points)
+        self.small = tuple(map(operator.add, self.small, points))
+
+    def set_small_points(self, points: tuple[float, ...]):
+        assert len(self.small) == len(points)
+        self.small = points
 
     def __lt__(self, other):
-        return (self.big_points, self.small_points) < (other.big_points, other.small_points)
+        return (self.big, self.small) < (other.big, other.small)
 
     def __eq__(self, other):
-        return self.big_points == other.big_points and self.small_points == other.small_points
+        return self.big == other.big and self.small == other.small
 
     def __str__(self):
-        points = [self.points_with_halfs(p) for p in (self.big_points, *self.small_points)]
+        points = [self.points_with_halfs(p) for p in (self.big, *self.small)]
         return ', '.join(points)
 
     @classmethod
@@ -65,19 +72,16 @@ class Points:
         return str(point)
 
     def __repr__(self):
-        return str((self.big_points, *self.small_points))
+        return str((self.big, *self.small))
 
 
-@dataclass
+@dataclass(frozen=True)
 class Game:
-    white: Optional[Player]
-    black: Optional[Player]
-    result: Optional[Result]
+    white: int
+    black: int
+    result: Result = Result.Playing
 
     def __str__(self):
         return f'<Game "{self.white}" - "{self.black}" = "{self.result}">'
 
     __repr__ = __str__
-
-
-Round = list[Game]

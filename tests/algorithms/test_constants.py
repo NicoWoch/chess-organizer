@@ -25,16 +25,16 @@ class TestResult(unittest.TestCase):
 class TestPoints(unittest.TestCase):
     def test_constructor(self):
         p = Points(3)
-        self.assertEqual(p.big_points, 0)
-        self.assertEqual(p.small_points, (0, 0, 0))
+        self.assertEqual(p.big, 0)
+        self.assertEqual(p.small, (0, 0, 0))
 
     def test_adding_points(self):
         p = Points(2)
-        p.big_points += 5
+        p.big += 5
         p.add_small_points((2, 5))
         p.add_small_points((-1, -2))
-        self.assertEqual(p.big_points, 5)
-        self.assertEqual(p.small_points, (1, 3))
+        self.assertEqual(p.big, 5)
+        self.assertEqual(p.small, (1, 3))
 
 
 if __name__ == '__main__':

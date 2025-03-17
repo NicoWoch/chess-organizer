@@ -12,7 +12,7 @@ from src.gui.subwindows.browser_window import BrowserWindow
 from src.gui.subwindows.info.confirm_window import confirm
 from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
-from src.player import Player, Gender, sort_players_nice
+from src.player import Player, sort_players_nice
 
 EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
                           ('Gracze', '*.players')]
@@ -88,7 +88,7 @@ class PlayerBrowserWindow(BrowserWindow):
 
     def plus_btn(self):
         new_player = Player.create_player(
-            name='', surname='', gender=Gender.Men, rating=1000
+            name='', surname='', rating=1000
         )
 
         def on_save():

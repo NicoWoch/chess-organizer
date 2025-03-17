@@ -1,6 +1,9 @@
+from src.player import Player
+
+
 class PlayerExistsError(Exception):
-    def __init__(self):
-        super().__init__(f'Player is already added to tournament')
+    def __init__(self, player: Player):
+        super().__init__(f'Player {player} is already added to tournament')
 
 
 class TournamentStartedError(Exception):
@@ -19,5 +22,5 @@ class TournamentEndedError(Exception):
 
 
 class RoundNotEnded(Exception):
-    def __init__(self, tables_count):
+    def __init__(self, tables_count: int):
         super().__init__(f'Games not ended on {tables_count} tables')

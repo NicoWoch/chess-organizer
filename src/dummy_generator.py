@@ -1,7 +1,7 @@
 import random
 
 from src.algorithms.swiss_tournament import SwissTournament
-from src.player import Gender, Player
+from src.player import Player
 
 NAMES_M = '''Jan
 Andrzej
@@ -205,21 +205,12 @@ def get_random_player(rng=None):
     if rng is None:
         rng = random.Random()
 
-    gender = rng.choice(
-        [Gender.Men, Gender.Women] * 5 + [Gender.Other]
-    )
-
-    if gender == Gender.Men:
-        name = rng.choice(NAMES_M)
-    elif gender == Gender.Women:
-        name = rng.choice(NAMES_F)
-    else:
-        name = rng.choice(NAMES_M + NAMES_F)
+    name = rng.choice(NAMES_M + NAMES_F)
 
     surname = rng.choice(SURNAMES)
     rating = rng.randint(500, 2000)
 
-    return Player.create_player(name=name, surname=surname, gender=gender, rating=rating)
+    return Player.create_player(name=name, surname=surname, rating=rating)
 
 
 def get_random_players(count, rng=None):

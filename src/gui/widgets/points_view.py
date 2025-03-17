@@ -27,8 +27,8 @@ class PointsView(tk.Text):
     def update_points(self, points: Points):
         self.delete('1.0', 'end')
 
-        big_str = Points.points_with_halfs(points.big_points) + ', '
-        small_strs = (Points.points_with_halfs(p) for p in points.small_points)
+        big_str = Points.points_with_halfs(points.big) + ', '
+        small_strs = (Points.points_with_halfs(p) for p in points.small)
 
         self.insert('end', big_str, 'big')
         self.insert('end', ', '.join(small_strs), 'small')
