@@ -119,7 +119,7 @@ class TableCell:
 
     def update(self, canvas: tk.Canvas, new_cell: Self) -> Self:
         assert self._creation_data['is_created'], 'Table cell has to be created first'
-        assert not new_cell._creation_data['is_created'], 'New cell should not be created'
+        assert not new_cell._creation_data['is_created'], 'new_cell should not be created'
 
         if self == new_cell:
             return self

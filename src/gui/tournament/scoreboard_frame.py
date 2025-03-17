@@ -35,6 +35,6 @@ class ScoreboardFrame(tk.Frame):
 
     def update_scoreboard(self, scoreboard: list[tuple[int, Player, Points]]):
         self.table.update_table([
-            (pos, str(player), PointsView(self.table, score, SCOREBOARD_TABLE_STYLE['row_height']))
+            (pos, str(player), PointsView(self.table, score))
             for pos, player, score in scoreboard
         ])

@@ -1,34 +1,36 @@
 import tkinter as tk
-import tkinter.font as tkfont
 
 from src.algorithms.constants import Points
-from src.gui.utils import get_font_size_from_height
+
+BIG_POINTS_FONT = 'Arial', 12
+SMALL_POINTS_FONT = 'Arial', 10
 
 
-class PointsView(tk.Text):
-    def __init__(self, parent, points: Points, row_height: int):
+class PointsView(tk.Frame):
+    def __init__(self, parent, points: Points):
         super().__init__(parent)
 
-        big_font_size = get_font_size_from_height(row_height, family='Arial')
-        small_font_size = get_font_size_from_height(row_height - 8, family='Arial')
+        big_str = Points.points_with_halfs(points.big_points)
+        small_str = ', ' + ', '.join((Points.points_with_halfs(p) for p in points.small_points))
 
-        self._big_font = tkfont.Font(self, family='Arial', size=big_font_size)
-        self._small_font = tkfont.Font(self, family='Arial', size=small_font_size)
+        self._big_label = tk.Label(self, text=big_str, font=BIG_POINTS_FONT)
+        self._small_label = tk.Label(self, text=small_str, font=SMALL_POINTS_FONT)
 
-        self.tag_configure('big', font=self._big_font, justify='center')
-        self.tag_configure('small', font=self._small_font, foreground='#222', justify='center')
+        self.configure(bg=parent['bg'])
 
-        self.update_points(points)
+        self._big_label.place(relx=.5, rely=1, anchor='se')
+        self._small_label.place(relx=.5, rely=1, anchor='sw')
 
-        self.configure(state='disabled', borderwidth=0, cursor='arrow')
-        self.configure(highlightthickness=0)
-        self.bind('<<Selection>>', lambda e: self.selection_clear())
+    def configure(self, cnf: dict | None = None, **kwargs) -> dict | None:
+        result = super().configure(cnf=cnf, **kwargs)
 
-    def update_points(self, points: Points):
-        self.delete('1.0', 'end')
+        background_changed = cnf is not None and ('bg' in cnf or 'background' in cnf)
+        background_changed |= 'bg' in kwargs or 'background' in kwargs
 
-        big_str = Points.points_with_halfs(points.big_points) + ', '
-        small_strs = (Points.points_with_halfs(p) for p in points.small_points)
+        if background_changed:
+            self._big_label.configure(bg=self['bg'])
+            self._small_label.configure(bg=self['bg'])
 
-        self.insert('end', big_str, 'big')
-        self.insert('end', ', '.join(small_strs), 'small')
+        return result
+
+    config = configure

@@ -142,7 +142,7 @@ class PairsFrame(tk.Frame):
         }
 
         self.table.update_table([
-            (pos, player, ratings_labels[player], PointsView(self.table, points, FINISH_TABLE_STYLE['row_height']))
+            (pos, player, ratings_labels[player], PointsView(self.table, points))
             for pos, player, points in tournament.get_scoreboard()
         ])
         self._update_waiting(None)
