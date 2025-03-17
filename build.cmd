@@ -1,9 +1,7 @@
-set APP_VERSION="1.0"
+set APP_VERSION="1.1"
 
 
 @REM Cleaning Develop Files
-del /Q data\temp\*
-del /Q data\logs\*
 del data\fonts\Roboto.cw127.pkl
 del data\fonts\Roboto.pkl
 
@@ -14,15 +12,14 @@ rmdir /S /Q output
 
 @REM Compiling With Pyinstaller
 pyinstaller --noconfirm ^
-             --onedir ^
-             --windowed ^
-             --icon data\images\logo.ico ^
-             chess-organizer.py
+            --onedir ^
+            --windowed ^
+            --icon data\images\logo.ico ^
+            chess-organizer.py
 
 
 @REM Adding Essential Data
 robocopy /e data dist\chess-organizer\data\
-del /Q dist\chess-organizer\data\db\*
 copy license.md dist\chess-organizer\
 
 
@@ -34,9 +31,10 @@ cd ../..
 
 
 @REM Making Installator With InnoSetup
-"C:\Program Files (x86)\Inno Setup 6\iscc" /DMyAppVersion=%APP_VERSION% ^
-                                           /OC:\Users\48502\PycharmProjects\chess-organizer-desktop\output ^
-                                           C:\Users\48502\PycharmProjects\chess-organizer-desktop\installer-setup.iss
+"C:\Program Files (x86)\Inno Setup 6\iscc" /DMyRootDir=%cd% ^
+                                           /DMyAppVersion=%APP_VERSION% ^
+                                           /O%cd%\output ^
+                                           %cd%\installer-setup.iss
 
 
 @REM Cleaning
@@ -45,4 +43,4 @@ rmdir /S /Q dist
 del chess-organizer.spec
 
 
-echo Building Done
+echo Building Done, output should be in ./output directory

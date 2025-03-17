@@ -14,7 +14,7 @@ class LicenseWindow(tk.Toplevel):
         utils.center_window(self, (600, 500))
         self.minsize(600, 300)
 
-        license_file = open(os.path.join(Config.BASE_DIR, 'license.md'))
+        license_file = open(Config.LICENSE_FILE)
 
         license_text = tk.Text(self)
         license_text.insert('end', license_file.read())

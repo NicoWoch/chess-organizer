@@ -2,25 +2,30 @@ import os.path
 import re
 from datetime import datetime
 
+import platformdirs
 
 class Config:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    VERSION = 'V1.0-1'
+    USER_DATA_DIR = platformdirs.PlatformDirs('Chess Organizer', 'nicowoch', roaming=True).user_data_dir
+    APP_DIR = os.getcwd()
+    VERSION = 'V1.1'
 
     WINDOW_NAME = f'Chess Organizer {VERSION}'
-    WINDOW_ICON_PATH = os.path.join(BASE_DIR, 'data/images/logo.png')
+    WINDOW_ICON_PATH = os.path.join(APP_DIR, 'data/images/logo.png')
     WINDOW_SIZE = 1080, 640
 
-    LOG_DIR = os.path.join(BASE_DIR, 'data/logs')
-    DB_DIR = os.path.join(BASE_DIR, 'data/db')
-    IMAGES_DIR = os.path.join(BASE_DIR, 'data/images')
-    TEMP_DIR = os.path.join(BASE_DIR, 'data/temp')
+    LOG_DIR = os.path.join(USER_DATA_DIR, 'logs')
+    DB_DIR = os.path.join(USER_DATA_DIR, 'database')
+    IMAGES_DIR = os.path.join(APP_DIR, 'data/images')
+    TEMP_DIR = os.path.join(USER_DATA_DIR, 'temp')
+    FONTS_DIR = os.path.join(APP_DIR, 'data/fonts', 'Roboto.ttf')
 
     DB_PLAYERS = os.path.join(DB_DIR, 'players.pkl')
     DB_TOURNAMENTS = os.path.join(DB_DIR, 'tournaments.pkl')
 
     LOG_FILE_REGEX = re.compile(r'^\d+-\d+-\d+_\d+-\d+-\d+\.log$')
     LOG_FILE = os.path.join(LOG_DIR, datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log')
+
+    LICENSE_FILE = os.path.join(APP_DIR, 'license.md')
 
     ELO_K_VALUE = 20
     WIN_POINTS = 1

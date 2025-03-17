@@ -5,6 +5,7 @@ from typing import Iterable
 
 from src.config import Config
 from src.gui.main_window import MainWindow
+from pathlib import Path
 
 
 def iter_logs() -> Iterable[str]:
@@ -22,7 +23,12 @@ def log_clear():
 
 
 def main():
-    log_clear()
+    # log_clear()  # ONLY FOR DEVELOPMENT
+
+    Path(Config.USER_DATA_DIR).mkdir(parents=True, exist_ok=True)
+    Path(Config.LOG_DIR).mkdir(exist_ok=True)
+    Path(Config.DB_DIR).mkdir(exist_ok=True)
+    Path(Config.TEMP_DIR).mkdir(exist_ok=True)
 
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s %(message)s',

@@ -2,3 +2,4 @@ networkx
 pillow
 fpdf
 screeninfo
+platformdirs

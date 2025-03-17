@@ -74,11 +74,6 @@ class MainWindow(tk.Tk):
     def _register_subwindow(self, window):
         self.subwindows.append(window)
 
-    def center_window(self):
-        top = (self.winfo_screenheight() - Config.WINDOW_SIZE[1]) / 2
-        left = (self.winfo_screenwidth() - Config.WINDOW_SIZE[0]) / 2
-        self.geometry('%dx%d+%d+%d' % (Config.WINDOW_SIZE[0], Config.WINDOW_SIZE[1], left, top))
-
     def make_menu(self, *, empty_menu=False, dev=False):
         menubar = tk.Menu(self)
 

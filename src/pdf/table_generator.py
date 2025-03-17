@@ -28,7 +28,7 @@ class PdfTableGenerator:
             assert len(self.headers) == len(column_weights), 'Wrong amount of column weights'
             self.column_weights = column_weights
 
-        self.pdf.add_font('MyRoboto', '', os.path.join(Config.BASE_DIR, 'data/fonts', 'Roboto.ttf'), uni=True)
+        self.pdf.add_font('MyRoboto', '', Config.FONTS_DIR, uni=True)
 
     def generate_fpdf(self) -> FPDF:
         self.pdf.add_page()
