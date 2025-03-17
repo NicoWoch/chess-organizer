@@ -26,6 +26,11 @@ def update_title(main_window: tk.Tk, tournament):
         main_window.title(Config.WINDOW_NAME + sep + tournament.name)
 
 
+ROUNDS_FRAME_WIDTH = 160
+PAIRS_RELATIVE_WIDTH = .82
+SCOREBOARD_ADDITIONAL_PX = 160
+
+
 class TournamentFrame(tk.Frame, ActionBarListener):
     def __init__(self, parent, register_subwindow):
         super().__init__(parent)
@@ -36,39 +41,27 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.pairs_frame = PairsFrame(self)
         self.scoreboard_frame = ScoreboardFrame(self)
 
-        self.columnconfigure(0, weight=1, minsize=40)
-        self.columnconfigure(1, weight=7, minsize=50)
-        self.rowconfigure(0, weight=1)
-
-        self.rounds_frame.grid(row=0, column=0, sticky='nesw')
-        self.pairs_frame.grid(row=0, column=1, sticky='nesw')
-        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
-
         self._update_frame()
 
         self._info_labels: list[tk.Label] = []
         self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
 
-    def _grid_frame(self, grid_scoreboard: bool):
-        self.rounds_frame.grid()
-        self.pairs_frame.grid()
-        self.update()
-        self.rounds_frame.grid()
-        self.pairs_frame.grid()
+    def _place_frame(self, use_scoreboard: bool):
+        rfwidth = ROUNDS_FRAME_WIDTH
+        srelwidth = PAIRS_RELATIVE_WIDTH
+        saddpx = SCOREBOARD_ADDITIONAL_PX
 
-        if grid_scoreboard:
-            self.grid_columnconfigure(1, weight=5)
-            self.grid_columnconfigure(2, weight=2, minsize=5)
-            self.scoreboard_frame.grid()
+        self.rounds_frame.place(width=rfwidth, relheight=1)
+
+        if use_scoreboard:
+            self.pairs_frame.place(x=rfwidth, relwidth=srelwidth, width=-rfwidth // 2 - saddpx, relheight=1)
+            self.scoreboard_frame.place(relx=1, relwidth=1 - srelwidth, width=-rfwidth // 2 + saddpx,
+                                        relheight=1, anchor='ne')
         else:
-            self.grid_columnconfigure(1, weight=7)
-            self.grid_columnconfigure(2, weight=0, minsize=5)
-            self.scoreboard_frame.grid_remove()
+            self.pairs_frame.place(x=rfwidth, relwidth=1, width=-rfwidth, relheight=1)
+            self.scoreboard_frame.place_forget()
 
     def _forget_all(self):
-        for slave in self.grid_slaves():
-            slave.grid_remove()
-
         for slave in self.place_slaves():
             slave.place_forget()
 
@@ -78,7 +71,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             return
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
-        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
+        self._place_frame(use_scoreboard=self.rounds_frame.is_round())
 
         if self.rounds_frame.is_registration():
             self.pairs_frame.update_first(self.tournament)

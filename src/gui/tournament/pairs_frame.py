@@ -3,60 +3,44 @@ from typing import Optional
 
 from src.algorithms.tournament import Tournament
 from src.gui.widgets.colorful_label import ColorfulLabel
-from src.gui.widgets.points_view import PointsView
+from src.gui.widgets.points_view import PointsView, POINTS_VIEW_STYLE
 from src.gui.widgets.table import ScrollableTableFrame
 from src.player import Player, sorted_players_nice
 
-STARTING_TABLE_STYLE = {
+TABLE_STYLE = {
+    'header_height': 40,
+    'row_height': 30,
+    'header_bg': '#BDA184',
+    'row_bg': '#eee',
+    'odd_row_bg': '#fff',
+    'selected_bg': '#ADD8E6',
+    'header_fg': 'black',
+    'row_fg': 'black',
+    'font': ('Arial', 14),
+    'header_font': ('Comic Sans MS', 20),
+}
+
+STARTING_TABLE_STYLE = TABLE_STYLE | {
     'name': 'starting',
     'columns_count': 3,
     'header': ['#', 'Gracz', 'Ranking'],
-    'columns_weights': [50, 350, 250],
-    'header_height': 30,
-    'row_height': 25,
-    'header_bg': '#BDA184',
-    'row_bg': '#eee',
-    'odd_row_bg': '#fff',
-    'selected_bg': '#ADD8E6',
-    'header_fg': 'black',
-    'row_fg': 'black',
-    'font': ('Arial', 13),
-    'header_font': ('Roboto', 17),
+    'columns_weights': [5, 35, 25],
+
 }
 
-PAIRING_TABLE_STYLE = {
+PAIRING_TABLE_STYLE = TABLE_STYLE | {
     'name': 'pairing',
     'columns_count': 4,
     'header': ['#', 'Białe', 'Czarne', 'Punkty'],
-    'columns_weights': [50, 250, 250, 100],
-    'header_height': 30,
-    'row_height': 25,
-    'header_bg': '#BDA184',
-    'row_bg': '#eee',
-    'odd_row_bg': '#fff',
-    'selected_bg': '#ADD8E6',
-    'header_fg': 'black',
-    'row_fg': 'black',
-    'font': ('Arial', 13),
-    'header_font': ('Roboto', 17),
+    'columns_weights': [4, 22, 22, 10],
     'max_selection': 1,
 }
 
-FINISH_TABLE_STYLE = {
+FINISH_TABLE_STYLE = TABLE_STYLE | {
     'name': 'finish',
     'columns_count': 4,
-    'header': ['#', 'Gracz', 'Zmiana rankingu', 'Punkty'],
-    'columns_weights': [50, 250, 150, 120],
-    'header_height': 30,
-    'row_height': 25,
-    'header_bg': '#BDA184',
-    'row_bg': '#eee',
-    'odd_row_bg': '#fff',
-    'selected_bg': '#ADD8E6',
-    'header_fg': 'black',
-    'row_fg': 'black',
-    'font': ('Arial', 13),
-    'header_font': ('Roboto', 17),
+    'header': ['#', 'Gracz', 'Ranking', 'Punkty'],
+    'columns_weights': [5, 25, 15, 12],
     'max_selection': 0,
 }
 
@@ -142,7 +126,7 @@ class PairsFrame(tk.Frame):
         }
 
         self.table.update_table([
-            (pos, player, ratings_labels[player], PointsView(self.table, points))
+            (pos, player, ratings_labels[player], PointsView(self.table, points, POINTS_VIEW_STYLE['finish_table']))
             for pos, player, points in tournament.get_scoreboard()
         ])
         self._update_waiting(None)
@@ -157,11 +141,11 @@ class PairsFrame(tk.Frame):
 
         text = f'{str(old_rating).rjust(5)} {deviation_str}-> {str(new_rating).rjust(5)}  '
 
-        lbl = ColorfulLabel(self.table, initial_text=text)
+        lbl = ColorfulLabel(self.table, initial_text=text, font=FINISH_TABLE_STYLE['font'])
         lbl.colorize_regex(r'([\(\)]|->)', '#404040')
         lbl.colorize_regex(r'(^\s+\d+)', '#1f1f1f')
 
         if new_rating != old_rating:
-            lbl.colorize_regex(r'\(([+\-]\d*)\)', 'green' if new_rating > old_rating else 'red')
+            lbl.colorize_regex(r'(\([+\-]\d*\))', '#328f20' if new_rating > old_rating else '#a0312d')
 
         return lbl

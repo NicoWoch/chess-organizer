@@ -1,14 +1,14 @@
 import tkinter as tk
 
 from src.algorithms.constants import Points
-from src.gui.widgets.points_view import PointsView
+from src.gui.widgets.points_view import PointsView, POINTS_VIEW_STYLE
 from src.gui.widgets.table import ScrollableTableFrame
 from src.player import Player
 
 SCOREBOARD_TABLE_STYLE = {
     'columns_count': 3,
-    'columns_weights': (1, 7, 4),
-    'row_height': 23,
+    'columns_weights': (1, 7, 5),
+    'row_height': 27,
     'font': ('Arial', 12),
     'row_bg': '#eee',
     'odd_row_bg': '#fff',
@@ -29,12 +29,14 @@ class ScoreboardFrame(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-        tk.Label(self, text='Tablica Wyników', bg='#BDA184', font='Roboto 16', justify='center') \
+        self.configure(bg='#BDA184')
+
+        tk.Label(self, text='Tablica Wyników', bg=self['bg'], font='Roboto 16', justify='center') \
             .place(relwidth=1, height=40)
-        scrollable_table.place(y=40, relwidth=1, height=-40, relheight=1)
+        scrollable_table.place(y=40, relwidth=1, height=-40 - 5, relheight=1)
 
     def update_scoreboard(self, scoreboard: list[tuple[int, Player, Points]]):
         self.table.update_table([
-            (pos, str(player), PointsView(self.table, score))
+            (pos, str(player), PointsView(self.table, score, POINTS_VIEW_STYLE['scoreboard']))
             for pos, player, score in scoreboard
         ])
