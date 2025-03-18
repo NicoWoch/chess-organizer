@@ -25,7 +25,7 @@ class PlayerBrowserWindow(BrowserWindow):
         self.title('Wszyscy gracze')
         utils.add_icon(self)
         utils.center_window(self, (550, 550))
-        self.minsize(450, 100)
+        self.minsize(450, 140)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
@@ -97,6 +97,9 @@ class PlayerBrowserWindow(BrowserWindow):
 
             self.players.append(new_player)
             self.update_table()
+
+            player_index = self.players.index(new_player)
+            self.scrollable_table.scroll_to_row(player_index, hightlight=True)
 
         PlayerEditorWindow(self, new_player, on_save)
 

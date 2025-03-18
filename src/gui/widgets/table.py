@@ -127,6 +127,14 @@ class Table(tk.Canvas):
         if self.__resize_listener is not None:
             self.__resize_listener()
 
+    @property
+    def columns_count(self) -> int:
+        return self._style['columns_count']
+
+    @property
+    def rows_count(self) -> int:
+        return len(self._table) - (1 if self._style['header'] is not None else 0)
+
     def update_table(self, table: Sequence[Sequence[Any]]):
         assert all(len(row) == self._style['columns_count'] for row in table), \
                'Length of some new rows does not match number of columns'
@@ -290,6 +298,31 @@ class Table(tk.Canvas):
             for index in self._selected_indexes
         ]
 
+    def select_row(self, index: int):
+        if index in self.get_selection():
+            return
+
+        row_index = (index if self._style['header'] is None else index + 1)
+        self._selected_indexes.append(row_index)
+
+        for cell in self._table[row_index]:
+            cell.update_selection(self)
+
+    def deselect_row(self, index: int):
+        if index not in self.get_selection():
+            return
+
+        row_index = (index if self._style['header'] is None else index + 1)
+        self._selected_indexes.remove(row_index)
+
+        for cell in self._table[row_index]:
+            cell.update_selection(self)
+
+    def get_row_position(self, index: int) -> tuple[int, int]:
+        row_index = (index if self._style['header'] is None else index + 1)
+        _, y, _, height = self._calculate_cell_bbox(row_index, 0)
+        return y, height
+
 
 class ScrollableTableFrame(tk.Frame):
     def __init__(self, parent, scrollbar_width: int = 15, bottom_offset: int = 30):
@@ -333,6 +366,19 @@ class ScrollableTableFrame(tk.Frame):
             self._scrollbar.place_forget()
 
         self._scrollbar_state = state
+
+    def scroll_to_row(self, index: int, hightlight: bool = False):
+        y, row_height = self.table.get_row_position(index)
+        max_y = sum(self.table.get_row_position(self.table.rows_count))
+
+        y += row_height / 2
+        y -= self.winfo_height() / 2
+
+        self.table.yview_moveto(max(y, 0) / max_y)
+
+        if hightlight:
+            self.table.select_row(index)
+            self.after(1000, lambda i=index: self.table.deselect_row(i))
 
 
 def _test_window():
