@@ -126,6 +126,7 @@ class PlayerBrowserWindow(BrowserWindow):
         selected_players = [self.players[idx] for idx in self.table.get_selection()]
 
         self.add_to_tournament(selected_players)
+        self.table.remove_selection()
 
     def auto_save(self):
         MainDB.save_players(self.players)
