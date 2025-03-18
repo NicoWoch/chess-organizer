@@ -12,7 +12,7 @@ from src.gui.subwindows.info.error_window import WindowException, ErrorWindow
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
-from src.gui.tournament.rounds_frame import RoundsFrame
+from src.gui.tournament.rounds_frame import RoundsFrame, ROUNDS_FRAME_BACKGROUND
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
 from src.pdf import pdf
 from src.player import Player
@@ -100,7 +100,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
                 optimum = get_optimal_swiss_rounds(self.tournament.players_count)
 
                 optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}',
-                                         font=('Calibri', 9), justify='center')
+                                         font=('Calibri', 9), justify='center', bg=ROUNDS_FRAME_BACKGROUND)
                 optimum_label.place(x=30, rely=1, y=-60, width=self.rounds_frame.winfo_width() - 60, height=40)
 
                 self._info_labels.append(optimum_label)
