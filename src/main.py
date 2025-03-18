@@ -45,9 +45,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        logging.fatal('Fatal Exception!')
-        logging.fatal(e)
-        raise e
+    print('Please run file ../chess-organizer.py to start the program')
