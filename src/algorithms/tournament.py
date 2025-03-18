@@ -125,6 +125,8 @@ class Tournament(ABC):
         self.__change_points_by_result(game.black, game.white, new_result.opposite(), 1)
         game.result = new_result
 
+        self._update_small_points()
+
     def __change_points_by_result(self, player: Player, opponent: Player, result: Result, points_mul: int):
         if points_mul not in (-1, 1):
             raise ValueError(f'Bad points_mul. {points_mul} should be -1 or 1')
@@ -177,7 +179,7 @@ class Tournament(ABC):
             not_ended_count = sum(game.result == Result.Playing for game in self.last_round)
             raise RoundNotEnded(not_ended_count)
 
-        self._update_points()
+        self._update_small_points()
 
     def has_round_ended(self) -> bool:
         return all(game.result != Result.Playing for game in self.last_round)
@@ -214,4 +216,4 @@ class Tournament(ABC):
     def _pair_round(self, round_no: int) -> Pairing: ...
 
     @abstractmethod
-    def _update_points(self): ...
+    def _update_small_points(self): ...
