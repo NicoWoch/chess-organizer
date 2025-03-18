@@ -278,7 +278,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.__assert_tournament_opened()
 
         fpdf = pdf.make_starting_list_pdf(self.tournament.name, self.tournament.players)
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type='lista_startowa')
 
     def make_pdf_active_pairings(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
@@ -290,17 +290,17 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         pause_players = self.tournament.get_pause(round_id)
 
         fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type=f'runda_{round_id + 1}')
 
     def make_pdf_results(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
 
         fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type='wyniki')
 
-    @classmethod
-    def __run_pdf_action(cls, fpdf, action):
+    def __run_pdf_action(self, fpdf, action: Literal['print', 'save'], pdf_type: str = ''):
         if action == 'print':
-            pdf.show_pdf_in_browser(fpdf)
+            file_title = self.tournament.name.title().replace(' ', '') + '_' + pdf_type
+            pdf.show_pdf_in_browser(fpdf, file_title)
         elif action == 'save':
             pdf.save_pdf_with_dialog(fpdf)
