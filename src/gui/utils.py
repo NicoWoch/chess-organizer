@@ -1,6 +1,8 @@
 import os
 import tkinter as tk
+import tkinter.font as tkfont
 from dataclasses import dataclass
+from functools import cache
 from typing import Callable, Literal, Any
 
 import screeninfo
@@ -178,3 +180,23 @@ def update_styles(source: dict, overrides: dict):
 
 def add_icon(window: tk.Tk | tk.Toplevel):
     window.iconphoto(True, create_image(Config.WINDOW_ICON_PATH, (32, 32)))
+
+
+@cache
+def get_font_size_from_height(height: int, family: str = 'Arial') -> int:
+    left, right = 1, height
+
+    while left < right:
+        mid = (left + right) // 2
+
+        font = tkfont.Font(family='Arial', size=mid)
+        mid_height = font.metrics('linespace')
+
+        if mid_height < height:
+            left = mid + 1
+        elif mid_height > height:
+            right = mid - 1
+        else:
+            return mid
+
+    return left

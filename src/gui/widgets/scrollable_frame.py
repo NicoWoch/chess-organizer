@@ -2,10 +2,12 @@ import tkinter as tk
 
 
 class ScrollableFrame(tk.Frame):
-    def __init__(self, parent, child_frame_class: type[tk.Widget], *args, **kwargs):
+    def __init__(self, parent, child_frame_class: type[tk.Widget], bg: str = None, *args, **kwargs):
         super().__init__(parent)
 
-        self._canvas = tk.Canvas(self)
+        kwargs['bg'] = bg
+
+        self._canvas = tk.Canvas(self, bg=bg, highlightthickness=0)
         self.child_frame = child_frame_class(self._canvas, *args, **kwargs)
         self._scrollbar = tk.Scrollbar(self, orient='vertical', command=self._canvas.yview)
 
@@ -42,7 +44,7 @@ class ScrollableFrame(tk.Frame):
             self._canvas.place(width=-self.scrollbar_width, relwidth=1, relheight=1)
             self._scrollbar.place(x=-self.scrollbar_width, relx=1, width=self.scrollbar_width, relheight=1)
         else:
-            self._canvas.place(relwidth=1, relheight=1)
+            self._canvas.place(width=0, relwidth=1, relheight=1)
 
         self._has_scrollbar = self._should_has_scrollbar()
 

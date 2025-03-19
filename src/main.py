@@ -5,6 +5,7 @@ from typing import Iterable
 
 from src.config import Config
 from src.gui.main_window import MainWindow
+from pathlib import Path
 
 
 def iter_logs() -> Iterable[str]:
@@ -22,13 +23,19 @@ def log_clear():
 
 
 def main():
-    log_clear()
+    # log_clear()  # ONLY FOR DEVELOPMENT
+
+    Path(Config.USER_DATA_DIR).mkdir(parents=True, exist_ok=True)
+    Path(Config.LOG_DIR).mkdir(exist_ok=True)
+    Path(Config.DB_DIR).mkdir(exist_ok=True)
+    Path(Config.TEMP_DIR).mkdir(exist_ok=True)
 
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s %(message)s',
         level=logging.WARNING,
         datefmt='%Y-%m-%d %H:%M:%S',
-        filename=Config.LOG_FILE)
+        filename=Config.LOG_FILE,
+        encoding='utf-8')
 
     logging.getLogger("PIL.PngImagePlugin").setLevel(logging.CRITICAL + 1)
 
@@ -38,9 +45,4 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        logging.fatal('Fatal Exception!')
-        logging.fatal(e)
-        raise e
+    print('Please run file ../chess-organizer.py to start the program')

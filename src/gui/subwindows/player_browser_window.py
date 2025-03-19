@@ -14,8 +14,8 @@ from src.gui.subwindows.info.error_window import WindowException
 from src.gui.subwindows.player_editor_window import PlayerEditorWindow
 from src.player import Player, Gender, sort_players_nice
 
-EXPORT_IMPORT_FILE_EXT = [('Wszystkie Pliki', '*.*'),
-                          ('Gracze', '*.players')]
+EXPORT_IMPORT_FILE_EXT = [('Gracze', '*.players'),
+                          ('Wszystkie Pliki', '*.*'),]
 
 
 class PlayerBrowserWindow(BrowserWindow):
@@ -25,7 +25,7 @@ class PlayerBrowserWindow(BrowserWindow):
         self.title('Wszyscy gracze')
         utils.add_icon(self)
         utils.center_window(self, (550, 550))
-        self.minsize(450, 100)
+        self.minsize(450, 140)
 
         self.add_to_tournament = add_to_tournament
         self.players = MainDB.load_players()
@@ -59,7 +59,7 @@ class PlayerBrowserWindow(BrowserWindow):
         for i, player in enumerate(self.players):
             edit_btn = utils.create_image_btn(self.table, 'edit.png', (20, 20),
                                               cmd=lambda idx=i: self.edit_player(idx))
-            remove_btn = utils.create_image_btn(self.table, 'minus.png', (20, 20),
+            remove_btn = utils.create_image_btn(self.table, 'remove.png', (20, 20),
                                                 cmd=lambda idx=i: self.remove_player(idx))
 
             table_content.append((i + 1, player.name, player.surname, player.rating, edit_btn, remove_btn))
@@ -98,6 +98,9 @@ class PlayerBrowserWindow(BrowserWindow):
             self.players.append(new_player)
             self.update_table()
 
+            player_index = self.players.index(new_player)
+            self.scrollable_table.scroll_to_row(player_index, hightlight=True)
+
         PlayerEditorWindow(self, new_player, on_save)
 
     def import_btn(self):
@@ -126,6 +129,7 @@ class PlayerBrowserWindow(BrowserWindow):
         selected_players = [self.players[idx] for idx in self.table.get_selection()]
 
         self.add_to_tournament(selected_players)
+        self.table.remove_selection()
 
     def auto_save(self):
         MainDB.save_players(self.players)

@@ -12,7 +12,7 @@ from src.gui.subwindows.info.error_window import WindowException, ErrorWindow
 from src.gui.subwindows.player_browser_window import PlayerBrowserWindow
 from src.gui.subwindows.tournament_browser_window import TournamentBrowserWindow
 from src.gui.tournament.pairs_frame import PairsFrame
-from src.gui.tournament.rounds_frame import RoundsFrame
+from src.gui.tournament.rounds_frame import RoundsFrame, ROUNDS_FRAME_BACKGROUND
 from src.gui.tournament.scoreboard_frame import ScoreboardFrame
 from src.pdf import pdf
 from src.player import Player
@@ -26,6 +26,11 @@ def update_title(main_window: tk.Tk, tournament):
         main_window.title(Config.WINDOW_NAME + sep + tournament.name)
 
 
+ROUNDS_FRAME_WIDTH = 160
+PAIRS_RELATIVE_WIDTH = .82
+SCOREBOARD_ADDITIONAL_PX = 160
+
+
 class TournamentFrame(tk.Frame, ActionBarListener):
     def __init__(self, parent, register_subwindow):
         super().__init__(parent)
@@ -36,39 +41,27 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.pairs_frame = PairsFrame(self)
         self.scoreboard_frame = ScoreboardFrame(self)
 
-        self.columnconfigure(0, weight=1, minsize=40)
-        self.columnconfigure(1, weight=7, minsize=50)
-        self.rowconfigure(0, weight=1)
-
-        self.rounds_frame.grid(row=0, column=0, sticky='nesw')
-        self.pairs_frame.grid(row=0, column=1, sticky='nesw')
-        self.scoreboard_frame.grid(row=0, column=2, sticky='nesw')
-
         self._update_frame()
 
         self._info_labels: list[tk.Label] = []
         self.bind('<Configure>', lambda _: self.__show_swiss_info_labels())
 
-    def _grid_frame(self, grid_scoreboard: bool):
-        self.rounds_frame.grid()
-        self.pairs_frame.grid()
-        self.update()
-        self.rounds_frame.grid()
-        self.pairs_frame.grid()
+    def _place_frame(self, use_scoreboard: bool):
+        rfwidth = ROUNDS_FRAME_WIDTH
+        srelwidth = PAIRS_RELATIVE_WIDTH
+        saddpx = SCOREBOARD_ADDITIONAL_PX
 
-        if grid_scoreboard:
-            self.grid_columnconfigure(1, weight=5)
-            self.grid_columnconfigure(2, weight=2, minsize=5)
-            self.scoreboard_frame.grid()
+        self.rounds_frame.place(width=rfwidth, relheight=1)
+
+        if use_scoreboard:
+            self.pairs_frame.place(x=rfwidth, relwidth=srelwidth, width=-rfwidth // 2 - saddpx, relheight=1)
+            self.scoreboard_frame.place(relx=1, relwidth=1 - srelwidth, width=-rfwidth // 2 + saddpx,
+                                        relheight=1, anchor='ne')
         else:
-            self.grid_columnconfigure(1, weight=7)
-            self.grid_columnconfigure(2, weight=0, minsize=5)
-            self.scoreboard_frame.grid_remove()
+            self.pairs_frame.place(x=rfwidth, relwidth=1, width=-rfwidth, relheight=1)
+            self.scoreboard_frame.place_forget()
 
     def _forget_all(self):
-        for slave in self.grid_slaves():
-            slave.grid_remove()
-
         for slave in self.place_slaves():
             slave.place_forget()
 
@@ -78,7 +71,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             return
 
         self.scoreboard_frame.update_scoreboard(self.tournament.get_scoreboard())
-        self._grid_frame(grid_scoreboard=self.rounds_frame.is_round())
+        self._place_frame(use_scoreboard=self.rounds_frame.is_round())
 
         if self.rounds_frame.is_registration():
             self.pairs_frame.update_first(self.tournament)
@@ -106,8 +99,9 @@ class TournamentFrame(tk.Frame, ActionBarListener):
             if players_count >= 2:
                 optimum = get_optimal_swiss_rounds(self.tournament.players_count)
 
-                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}', font=('Calibri', 9))
-                optimum_label.place(x=self.rounds_frame.winfo_width() // 2, rely=1, y=-25, anchor=tk.S)
+                optimum_label = tk.Label(self, text=f'Optymalna ilość\nrund:  {optimum}',
+                                         font=('Calibri', 9), justify='center', bg=ROUNDS_FRAME_BACKGROUND)
+                optimum_label.place(x=30, rely=1, y=-60, width=self.rounds_frame.winfo_width() - 60, height=40)
 
                 self._info_labels.append(optimum_label)
 
@@ -284,7 +278,7 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         self.__assert_tournament_opened()
 
         fpdf = pdf.make_starting_list_pdf(self.tournament.name, self.tournament.players)
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type='lista_startowa')
 
     def make_pdf_active_pairings(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
@@ -296,17 +290,17 @@ class TournamentFrame(tk.Frame, ActionBarListener):
         pause_players = self.tournament.get_pause(round_id)
 
         fpdf = pdf.make_pairings_pdf(self.tournament.name, round_id, pairings, pause_players)
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type=f'runda_{round_id + 1}')
 
     def make_pdf_results(self, action: Literal['print', 'save']):
         self.__assert_tournament_opened()
 
         fpdf = pdf.make_results_pdf(self.tournament.name, self.tournament.get_scoreboard())
-        self.__run_pdf_action(fpdf, action)
+        self.__run_pdf_action(fpdf, action, pdf_type='wyniki')
 
-    @classmethod
-    def __run_pdf_action(cls, fpdf, action):
+    def __run_pdf_action(self, fpdf, action: Literal['print', 'save'], pdf_type: str = ''):
         if action == 'print':
-            pdf.show_pdf_in_browser(fpdf)
+            file_title = self.tournament.name.title().replace(' ', '') + '_' + pdf_type
+            pdf.show_pdf_in_browser(fpdf, file_title)
         elif action == 'save':
             pdf.save_pdf_with_dialog(fpdf)

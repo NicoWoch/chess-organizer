@@ -14,7 +14,7 @@ class DummyTournament(Tournament):
     def _pair_round(self, round_no: int) -> Pairing:
         raise NotImplementedError
 
-    def _update_points(self):
+    def _update_small_points(self):
         raise NotImplementedError
 
 

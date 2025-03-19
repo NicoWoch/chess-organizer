@@ -8,19 +8,20 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{E9E707EE-9708-4CAB-8D41-1D5B21BCD544}
+; Two curly braces has to be here
+AppId={{3D475ECB-3850-42CB-A6A7-D1D29C6303FA}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\ChessOrganizer
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\48502\PycharmProjects\chess-organizer-desktop\dist\chess-organizer\license.md
+LicenseFile={#MyRootDir}\dist\chess-organizer\license.md
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=chess-organizer-installer
-SetupIconFile=C:\Users\48502\PycharmProjects\chess-organizer-desktop\data\images\installer-logo.ico
+OutputBaseFilename=chess-organizer-{#MyAppVersion}-installer
+SetupIconFile={#MyRootDir}\data\images\installer-logo.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -33,13 +34,13 @@ Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\48502\PycharmProjects\chess-organizer-desktop\dist\chess-organizer\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\48502\PycharmProjects\chess-organizer-desktop\dist\chess-organizer\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyRootDir}\dist\chess-organizer\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyRootDir}\dist\chess-organizer\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\data\images\logo.ico"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; IconFilename: "{app}\data\images\logo.ico"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

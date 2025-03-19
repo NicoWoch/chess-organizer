@@ -55,7 +55,7 @@ class ActionBarFrame(tk.Frame):
                 tk.CENTER, tooltip='Czarne wygrały',
             ),
             utils.Action(
-                'draw_icon.png',
+                'draw.png',
                 lambda: self.listener.set_result(Result.Draw),
                 tk.CENTER, tooltip='Remis',
             ),
@@ -75,7 +75,7 @@ class ActionBarFrame(tk.Frame):
                 tk.RIGHT, tooltip='Przeglądaj graczy',
             ),
             utils.Action(
-                'player_minus.png',
+                'player_remove.png',
                 self.listener.remove_players,
                 tk.RIGHT, tooltip='Usuń gracza',
             ),

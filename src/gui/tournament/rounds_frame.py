@@ -1,26 +1,29 @@
 import tkinter as tk
 from collections.abc import Callable
+from typing import Any
 
 from src.gui import utils
 from src.algorithms.tournament import Tournament
 from src.gui.widgets.scrollable_frame import ScrollableFrame
+
+ROUNDS_FRAME_BACKGROUND = '#e4e1e6'
 
 
 class RoundsFrame(tk.Frame):
     REGISTRATION = 'registration'
     RESULTS = 'results'
 
-    def __init__(self, parent, on_round_change: Callable):
+    def __init__(self, parent, on_round_change: Callable[[], Any]):
         super().__init__(parent)
 
-        self._scroll_frame = ScrollableFrame(self, tk.Frame)
+        self.configure(bg=ROUNDS_FRAME_BACKGROUND, highlightthickness=0)
+        self._scroll_frame = ScrollableFrame(self, tk.Frame, bg=ROUNDS_FRAME_BACKGROUND, highlightthickness=0)
         self._buttons_frame = self._scroll_frame.child_frame
         self._buttons = {}
-        self._active_button = None
+        self._active_button: str | None = None
         self._on_round_change = on_round_change
 
         self._scroll_frame.config(relief='groove', borderwidth=3)
-
         self._scroll_frame.place(relwidth=1, relheight=1)
 
     def is_registration(self) -> bool:
@@ -74,12 +77,12 @@ class RoundsFrame(tk.Frame):
             self._add_button(tournament.round_count + 1, self.RESULTS, 'Wyniki', 'red_flag.png')
 
         btn_count = tournament.round_count + tournament.is_ended + 1
-        btn_height = 50
-        self._scroll_frame.height = btn_height * btn_count + 6
+        btn_height = 52
+        self._scroll_frame.height = btn_height * btn_count + 6 + 2
 
     def _add_button(self, i, idx, text: str, image_path: str):
         image = utils.create_image(image_path, (28, 28))
         btn = tk.Button(self._buttons_frame, text=text, font='verdana 13', image=image, bg='white', height=20,
                         compound=tk.LEFT, command=lambda: self.set_active_btn(idx))
-        btn.place(y=i * 50, relwidth=1, width=-10, height=50)
+        btn.place(y=i * 52 + 2, relwidth=1, x=5, width=-16, height=50)
         self._buttons[idx] = btn

@@ -238,8 +238,8 @@ class SwissTournament(Tournament):
 
         return games
 
-    def _update_points(self):
-        for i, opps in zip(itertools.count(), self._opponents):
+    def _update_small_points(self):
+        for i, opps in enumerate(self._opponents):
             win_op_points = sum(self._points[j].big_points for j in opps[Result.White])
             draw_op_points = sum(self._points[j].big_points for j in opps[Result.Draw])
             lost_op_points = sum(self._points[j].big_points for j in opps[Result.Black])
